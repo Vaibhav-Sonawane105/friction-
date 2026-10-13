@@ -10,7 +10,8 @@ A Chrome extension designed to interrupt mindless browsing habits by introducing
 │   ├── project.md          # Product vision, requirements, and user flows
 │   ├── ui.md               # UI design system, UX specifications, and tokens
 │   ├── techstack.md        # Technical stack and architectural choices
-│   └── phases.md           # Implementation milestones and task breakdown
+│   ├── phases.md           # Implementation milestones and task breakdown
+│   └── progress.md         # Chronological execution log & context graph
 │
 ├── extension/              # Chrome Extension (React + Vite)
 │   ├── public/             # Static extension assets

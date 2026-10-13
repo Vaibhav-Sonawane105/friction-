@@ -4,11 +4,19 @@
   "version": "0.1.0",
   "description": "Interrupt unwanted browsing habits with progressive math challenges and intentional friction.",
   "action": {
-    "default_popup": "index.html"
+    "default_popup": "index.html",
+    "default_title": "Progressive Friction"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
   },
   "permissions": [
     "storage",
     "tabs",
-    "declarativeNetRequest"
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ]
 }

@@ -27,7 +27,7 @@ It defines the development phases, their objectives, implementation tasks, compl
 
 ## Phase 1 — Core Extension
 
-**Status:** Not Started
+**Status:** In Progress (Core Features Implemented & Verified)
 
 ### Objective
 
@@ -35,17 +35,17 @@ Build a functional Chrome extension that allows users to select distracting webs
 
 ### Tasks
 
-- [ ] Initialize the Chrome extension structure and manifest.
-- [ ] Implement the extension popup and website-selection interface.
-- [ ] Store selected website domains locally.
-- [ ] Implement website detection and blocking.
-- [ ] Create the blocked-page interface.
-- [ ] Implement math challenge generation.
-- [ ] Validate submitted answers.
-- [ ] Implement temporary unlock sessions.
-- [ ] Track unlock attempts and difficulty progression per website.
-- [ ] Persist required extension state locally.
-- [ ] Handle invalid input, navigation, refreshes, and expired sessions.
+- [x] Initialize the Chrome extension structure and manifest.
+- [x] Implement the extension popup and website-selection interface.
+- [x] Store selected website domains locally.
+- [x] Implement website detection and blocking.
+- [x] Create the blocked-page interface.
+- [x] Implement math challenge generation.
+- [x] Validate submitted answers.
+- [x] Implement temporary unlock sessions.
+- [x] Track unlock attempts and difficulty progression per website.
+- [x] Persist required extension state locally.
+- [x] Handle invalid input, navigation, refreshes, and expired sessions.
 - [ ] Test blocking and unlocking across multiple websites.
 - [ ] Test edge cases and ensure existing functionality remains stable.
 

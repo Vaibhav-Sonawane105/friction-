@@ -1,10 +1,7 @@
+import { PopupPage } from './pages/PopupPage';
 
 function App() {
-  
-
-  return (
-    <></>
-  )
+  return <PopupPage />;
 }
 
-export default App
+export default App;

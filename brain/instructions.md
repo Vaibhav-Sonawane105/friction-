@@ -14,6 +14,7 @@ These instructions apply whenever an AI assistant works on this project. Read th
 8. **Use the project's chosen stack** unless the owner explicitly approves a change.
 9. **Do not add dependencies, paid services, or external APIs without explaining why they are needed.** Prefer simple, affordable options for the MVP.
 10. **Keep documentation in sync.** If architecture, product behavior, UI rules, data collection, or subscription policy changes, update the appropriate `brain/` document.
+11. **Do not update `progress.md` without asking the project owner first.** The `brain/progress.md` file serves as the single source of truth for ongoing context and execution history (like a git timeline/graph) so any new AI immediately understands what is done, what has changed, and what is currently in progress. Never modify `progress.md` automatically or silently without asking and confirming with the user.
 
 ## Before implementing a feature
 
