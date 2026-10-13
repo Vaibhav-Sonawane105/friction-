@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Progressive Friction",
+  "version": "0.1.0",
+  "description": "Interrupt unwanted browsing habits with progressive math challenges and intentional friction.",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": [
+    "storage",
+    "tabs",
+    "declarativeNetRequest"
+  ]
+}
