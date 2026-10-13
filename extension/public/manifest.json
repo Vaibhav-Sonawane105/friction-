@@ -18,5 +18,21 @@
   ],
   "host_permissions": [
     "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-loader.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content-main.js",
+        "assets/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
   ]
 }

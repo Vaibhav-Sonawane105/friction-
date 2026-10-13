@@ -37,7 +37,7 @@ export function PopupPage() {
   };
 
   return (
-    <div className="w-[380px] min-h-[440px] bg-[#FAF8F5] text-[#1E1E1E] p-4 flex flex-col gap-4 font-sans selection:bg-[#E0A238]/30">
+    <div className="w-[380px] min-h-[460px] bg-[#F5F5F5] text-black p-4 flex flex-col gap-4 font-istok select-none">
       <Header />
       <LimitNotice currentCount={domains.length} />
       <DomainForm onAddDomain={handleAdd} currentCount={domains.length} />
@@ -50,7 +50,7 @@ export function PopupPage() {
           <DomainList domains={domains} onRemoveDomain={handleRemove} />
         )}
       </div>
-      <footer className="pt-2 border-t border-[#D8D4C9] text-[10px] text-[#777777] flex items-center justify-between">
+      <footer className="pt-2 border-t-2 border-black text-[11px] text-[#555555] flex items-center justify-between font-medium">
         <span>Solves grant temporary access</span>
         <span>Manifest V3</span>
       </footer>

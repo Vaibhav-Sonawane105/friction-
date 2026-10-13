@@ -4,14 +4,17 @@ import {
   getUnlockSessions,
   setTabUnlocked,
   clearTabSession,
+  recordSuccessfulUnlock,
 } from './services/storage';
 import { normalizeDomain } from './utils/domain';
 
 /**
- * Handles navigation to check whether a tab should be redirected to the blocked page.
+ * Evaluates whether a tab/url should be blocked.
  */
-async function handleNavigation(tabId, targetUrl) {
-  if (!targetUrl || typeof targetUrl !== 'string') return;
+export async function getStatusForTab(tabId, targetUrl) {
+  if (!targetUrl || typeof targetUrl !== 'string') {
+    return { shouldBlock: false, matchedDomain: null, difficultyLevel: 1, tabId };
+  }
 
   const blockedList = await getBlockedDomains();
   const activeSessions = await getUnlockSessions();
@@ -39,39 +42,18 @@ async function handleNavigation(tabId, targetUrl) {
     activeSessions
   );
 
-  if (shouldBlock && matchedDomain) {
-    const blockedPageUrl = chrome.runtime.getURL(
-      `blocked.html?target=${encodeURIComponent(targetUrl)}&tabId=${tabId}`
-    );
-
-    // Prevent recursive redirect if already on the blocked page
-    if (!targetUrl.startsWith(chrome.runtime.getURL('blocked.html'))) {
-      try {
-        await chrome.tabs.update(tabId, { url: blockedPageUrl });
-      } catch (err) {
-        console.warn('Could not redirect tab:', err);
-      }
-    }
+  let difficultyLevel = 1;
+  if (matchedDomain) {
+    const found = blockedList.find((d) => d.domain === matchedDomain);
+    difficultyLevel = found?.difficultyLevel || 1;
   }
-}
 
-// Intercept navigation via chrome.webNavigation if available for early redirection
-if (typeof chrome !== 'undefined' && chrome.webNavigation?.onBeforeNavigate) {
-  chrome.webNavigation.onBeforeNavigate.addListener((details) => {
-    if (details.frameId === 0) {
-      // Main frame only
-      handleNavigation(details.tabId, details.url);
-    }
-  });
-}
-
-// Fallback / complement via chrome.tabs.onUpdated
-if (typeof chrome !== 'undefined' && chrome.tabs?.onUpdated) {
-  chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
-    if (changeInfo.url) {
-      handleNavigation(tabId, changeInfo.url);
-    }
-  });
+  return {
+    shouldBlock: Boolean(shouldBlock),
+    matchedDomain: matchedDomain || null,
+    difficultyLevel,
+    tabId,
+  };
 }
 
 // Clean up sessions when a tab is closed
@@ -81,14 +63,48 @@ if (typeof chrome !== 'undefined' && chrome.tabs?.onRemoved) {
   });
 }
 
-// Handle runtime messages (e.g. UNLOCK_TAB or LEAVE_TAB from blocked challenge page)
+// Notify tab when navigation / update occurs (useful for SPAs like YouTube)
+if (typeof chrome !== 'undefined' && chrome.tabs?.onUpdated) {
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+    if (changeInfo.url) {
+      chrome.tabs.sendMessage(tabId, {
+        type: 'TAB_URL_UPDATED',
+        url: changeInfo.url,
+      }).catch(() => {
+        // Tab might not be listening yet, which is expected
+      });
+    }
+  });
+}
+
+// Handle runtime messages from content script or popup/challenge pages
 if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message?.type === 'UNLOCK_TAB' && message.tabId && message.domain) {
-      setTabUnlocked(message.tabId, message.domain).then(() => {
-        sendResponse({ success: true });
-      });
+    if (message?.type === 'CHECK_TAB_STATUS') {
+      const tabId = sender.tab?.id || message.tabId;
+      const targetUrl = message.url || sender.tab?.url;
+      getStatusForTab(tabId, targetUrl).then(sendResponse);
       return true; // Keep channel open for async response
+    }
+
+    if (message?.type === 'UNLOCK_TAB') {
+      const tabId = message.tabId || sender.tab?.id;
+      const domain = message.domain;
+      if (tabId && domain) {
+        setTabUnlocked(tabId, domain).then(() => {
+          sendResponse({ success: true });
+        });
+        return true;
+      }
+    }
+
+    if (message?.type === 'RECORD_UNLOCK') {
+      if (message.domain) {
+        recordSuccessfulUnlock(message.domain).then((record) => {
+          sendResponse({ success: true, record });
+        });
+        return true;
+      }
     }
 
     if (message?.type === 'LEAVE_TAB') {

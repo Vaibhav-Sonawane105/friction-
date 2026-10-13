@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Button } from '../common/Button';
-import { Input } from '../common/Input';
 import { FREE_TIER_DOMAIN_LIMIT } from '../../services/storage';
 
 export function DomainForm({ onAddDomain, currentCount = 0 }) {
@@ -40,8 +38,9 @@ export function DomainForm({ onAddDomain, currentCount = 0 }) {
     <form onSubmit={handleSubmit} className="space-y-2">
       <div className="flex gap-2 items-start">
         <div className="flex-1">
-          <Input
+          <input
             id="domain-input"
+            type="text"
             value={domainInput}
             onChange={(e) => {
               setDomainInput(e.target.value);
@@ -49,20 +48,23 @@ export function DomainForm({ onAddDomain, currentCount = 0 }) {
             }}
             placeholder="e.g. reddit.com or youtube.com"
             disabled={isAtLimit || isSubmitting}
-            error={error}
+            className="w-full bg-white border-2 border-black rounded-lg shadow-[3px_3px_0px_#FF699B] px-3 py-2 text-xs font-istok font-medium text-black placeholder:text-[#888888] focus:outline-none focus:ring-1 focus:ring-black disabled:opacity-50"
           />
         </div>
-        <Button
+        <button
           type="submit"
-          variant="primary"
-          size="md"
           disabled={isAtLimit || isSubmitting || !domainInput.trim()}
-          className="shrink-0"
+          className="cursor-pointer shrink-0 bg-[#4ECDC4] border-2 border-black rounded-lg shadow-[3px_3px_0px_#000] px-3.5 py-2 flex items-center gap-1.5 font-istok text-xs font-bold text-black hover:bg-[#3dbdb4] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 select-none"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 stroke-[2.5]" />
           <span>Restrict</span>
-        </Button>
+        </button>
       </div>
+      {error && (
+        <p className="text-[11px] font-istok font-semibold text-[#F24822] px-1">
+          {error}
+        </p>
+      )}
     </form>
   );
 }

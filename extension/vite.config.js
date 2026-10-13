@@ -15,11 +15,15 @@ export default defineConfig({
         popup: resolve(import.meta.dirname, 'index.html'),
         blocked: resolve(import.meta.dirname, 'blocked.html'),
         background: resolve(import.meta.dirname, 'src/background.js'),
+        content: resolve(import.meta.dirname, 'src/content.jsx'),
       },
       output: {
         entryFileNames: (chunkInfo) => {
           if (chunkInfo.name === 'background') {
             return 'background.js';
+          }
+          if (chunkInfo.name === 'content') {
+            return 'content-main.js';
           }
           return 'assets/[name]-[hash].js';
         },
