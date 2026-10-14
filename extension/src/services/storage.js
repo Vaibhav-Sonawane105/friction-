@@ -13,13 +13,15 @@ const STORAGE_KEYS = {
 };
 
 // In-memory or localStorage fallback for development outside Chrome extension environment
-const isChromeStorageAvailable =
-  typeof chrome !== 'undefined' &&
-  chrome.storage &&
-  chrome.storage.local;
+function isChromeStorageAvailable() {
+  return (
+    typeof chrome !== 'undefined' &&
+    Boolean(chrome.storage?.local)
+  );
+}
 
 async function getFromStorage(key, defaultValue = null) {
-  if (isChromeStorageAvailable) {
+  if (isChromeStorageAvailable()) {
     return new Promise((resolve) => {
       chrome.storage.local.get([key], (result) => {
         resolve(result[key] !== undefined ? result[key] : defaultValue);
@@ -36,7 +38,7 @@ async function getFromStorage(key, defaultValue = null) {
 }
 
 async function setToStorage(key, value) {
-  if (isChromeStorageAvailable) {
+  if (isChromeStorageAvailable()) {
     return new Promise((resolve) => {
       chrome.storage.local.set({ [key]: value }, () => {
         resolve(true);

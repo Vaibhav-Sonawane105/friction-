@@ -8,10 +8,10 @@
 
 ## 1. Quick State Snapshot
 
-* **Current Active Phase:** Phase 1 — Core Extension
-* **Current Status:** In-Page Overlay Modal with Blur Backdrop & Neo-Brutalist UI Completed & Verified!
+* **Current Active Phase:** Phase 1 Complete & Verified ──► Ready for Phase 2 (Backend & Authentication)
+* **Current Status:** Core Extension Built & Verified Across All 5 Browser Scenarios (20/20 Vitest Tests Passing)!
 * **Active Working Directory:** `extension/`
-* **Current Focus:** Phase 1 final stability verification and preparing for Phase 2 backend architecture.
+* **Current Focus:** Phase 2 preparation (Node.js/Express + Supabase Auth + PostgreSQL).
 
 ---
 
@@ -123,4 +123,4 @@
 - [x] **Task 1.8:** Temporary session unlock management (per-tab / navigation handling).
 - [x] **Task 1.9:** Per-website difficulty tier progression upon successful unlock.
 - [x] **Task 1.10:** Safe leave action (open new Chrome tab & close blocked tab).
-- [ ] **Task 1.11:** Final edge case testing across multiple domains and browser restarts.
+- [x] **Task 1.11:** Final edge case testing across multiple domains, refreshes, multi-tab isolation, tier capping, and offline resilience (20/20 Vitest tests passing).

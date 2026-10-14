@@ -73,7 +73,7 @@ Use only media the owner has permission to use. Copyrighted anime clips/music ma
 ### Backend
 - Node.js
 - Express.js
-- MongoDB / MongoDB Atlas
+- Supabase (PostgreSQL, Supabase Auth, Row Level Security)
 
 ### Possible companion dashboard
 - Next.js

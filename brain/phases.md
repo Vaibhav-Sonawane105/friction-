@@ -6,9 +6,9 @@ This document tracks the implementation progress of the Progressive Website Bloc
 
 It defines the development phases, their objectives, implementation tasks, completion criteria, and dependencies.
 
-**Current Phase:** Phase 1 — Core Extension  
-**Current Status:** Not Started  
-**Overall Status:** Planning Complete — Development Beginning
+**Current Phase:** Phase 1 — Core Extension (Verification Complete)  
+**Current Status:** Phase 1 Complete & Verified — Phase 2 Ready  
+**Overall Status:** Core Extension Complete — Moving to Phase 2 Backend
 
 ## Development Rules
 
@@ -27,7 +27,7 @@ It defines the development phases, their objectives, implementation tasks, compl
 
 ## Phase 1 — Core Extension
 
-**Status:** In Progress (Core Features Implemented & Verified)
+**Status:** Completed & Fully Verified
 
 ### Objective
 
@@ -46,8 +46,8 @@ Build a functional Chrome extension that allows users to select distracting webs
 - [x] Track unlock attempts and difficulty progression per website.
 - [x] Persist required extension state locally.
 - [x] Handle invalid input, navigation, refreshes, and expired sessions.
-- [ ] Test blocking and unlocking across multiple websites.
-- [ ] Test edge cases and ensure existing functionality remains stable.
+- [x] Test blocking and unlocking across multiple websites.
+- [x] Test edge cases and ensure existing functionality remains stable (refreshes, same-domain nav, multi-tab isolation, tier capping, offline resilience).
 
 ### Completion Criteria
 
@@ -64,7 +64,7 @@ Build a functional Chrome extension that allows users to select distracting webs
 
 ## Phase 2 — Backend & Authentication
 
-**Status:** Not Started
+**Status:** Not Started (Ready to Begin)
 
 ### Objective
 
@@ -73,23 +73,23 @@ Introduce a backend to support user accounts, authenticated API requests, cross-
 ### Tasks
 
 - [ ] Set up the Node.js and Express server.
-- [ ] Configure MongoDB and database models.
-- [ ] Implement registration, login, and logout.
-- [ ] Implement secure API authentication and authorization.
-- [ ] Define user and settings data models.
-- [ ] Implement synchronization of supported settings.
-- [ ] Store and retrieve unlock history.
-- [ ] Handle API errors and expired authentication sessions.
-- [ ] Add environment-variable and secrets management.
+- [ ] Configure Supabase project, PostgreSQL tables, and schemas.
+- [ ] Implement Supabase Auth (registration, login, logout, and session management).
+- [ ] Implement Row Level Security (RLS) policies to protect user data at the database level.
+- [ ] Define user and settings data models in PostgreSQL.
+- [ ] Implement synchronization of supported settings between local storage and Supabase.
+- [ ] Store and retrieve user unlock history in PostgreSQL.
+- [ ] Handle API errors, network failures, offline state, and expired authentication sessions.
+- [ ] Add environment-variable and secrets management (keep service-role keys server-side).
 - [ ] Test authentication, authorization, and data access boundaries.
 
 ### Completion Criteria
 
-- Users can create accounts and authenticate securely.
+- Users can create accounts and authenticate securely using Supabase Auth.
 - Protected API endpoints reject unauthorized requests.
-- Users can access only their own account data.
-- Supported settings and unlock history persist in MongoDB.
-- Backend failures do not unnecessarily break core extension functionality.
+- Row Level Security (RLS) guarantees users can access and modify only their own account data.
+- Supported settings and unlock history persist in Supabase PostgreSQL database.
+- Backend failures do not break core extension functionality (local-first resilience).
 
 ---
 
