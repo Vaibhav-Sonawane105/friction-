@@ -8,6 +8,9 @@ This directory contains version-controlled PostgreSQL migrations for the Progres
 
 - **`migrations/20261015000001_initial_schema.sql`**: Initial database schema covering user profiles, preferences/settings sync, synced websites, unlock history, indexes, triggers, and Row Level Security (RLS) policies.
 - **`migrations/20261015000002_harden_permissions.sql`**: Removes client writes to profiles/billing fields, enforces cloud-data consent through restrictive RLS policies, and hardens the signup trigger function. Apply this to existing databases after the initial schema; it has no data-deletion statements.
+- **`migrations/20261015000003_versioned_website_sync.sql`**: Adds server-controlled website revisions, a consistent snapshot RPC, and atomic list replacement with revision checks. Required for automatic sync. It updates grants on user settings so clients cannot forge revisions; existing settings upserts remain supported.
+
+After applying migration 3 in staging, run `tests/versioned_sync.sql` as `postgres`. It checks revision conflicts, all-or-nothing replacements, removals, invalid input, consent, revision protection, settings upserts, and anonymous denial, then rolls back its fixtures. Re-run `tests/permissions.sql` too. These scripts are prepared checks, not a claim that the hosted database has already been verified.
 
 ## Security verification
 

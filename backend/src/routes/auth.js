@@ -5,6 +5,30 @@ import { validateAuthCredentials } from '../utils/validation.js';
 
 const router = Router();
 
+// Token-bearing responses must never be cached by browsers or proxies.
+router.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
+
+router.post('/refresh', async (req, res) => {
+  const refreshToken = req.body?.refresh_token;
+  if (typeof refreshToken !== 'string' || !refreshToken.trim() || refreshToken.length > 8192) {
+    return res.status(400).json({ error: 'Bad Request', message: 'A refresh token is required' });
+  }
+  try {
+    const { data, error } = await createAuthClient().auth.refreshSession({ refresh_token: refreshToken });
+    if (error || !data?.session) {
+      return res.status(error?.status >= 500 ? 502 : 401).json({
+        error: 'RefreshError', message: 'Session could not be refreshed. Please sign in again.'
+      });
+    }
+    return res.json({ user: data.user, session: data.session });
+  } catch {
+    return res.status(502).json({ error: 'RefreshError', message: 'Authentication service unavailable. Try again.' });
+  }
+});
+
 /**
  * POST /api/auth/signup
  * Registers a new user with Supabase Auth.

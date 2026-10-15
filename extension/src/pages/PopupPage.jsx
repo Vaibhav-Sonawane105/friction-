@@ -3,6 +3,7 @@ import { Header } from '../components/popup/Header';
 import { LimitNotice } from '../components/popup/LimitNotice';
 import { DomainForm } from '../components/popup/DomainForm';
 import { DomainList } from '../components/popup/DomainList';
+import { AccountPanel } from '../components/popup/AccountPanel';
 import {
   getBlockedDomains,
   addBlockedDomain,
@@ -27,11 +28,16 @@ export function PopupPage() {
 
   useEffect(() => {
     let active = true;
-    getBlockedDomains().then(
+    const refresh = () => getBlockedDomains().then(
       (list) => { if (active) setDomains(list); },
       (err) => { if (active) setError(err.message || 'Could not load settings. Reopen the popup to try again.'); }
     ).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+    refresh();
+    const onChanged = (changes, area) => {
+      if (area === 'local' && changes.pf_blocked_domains) refresh();
+    };
+    globalThis.chrome?.storage?.onChanged?.addListener(onChanged);
+    return () => { active = false; globalThis.chrome?.storage?.onChanged?.removeListener(onChanged); };
   }, []);
 
   const handleAdd = async (newDomain) => {
@@ -64,6 +70,7 @@ export function PopupPage() {
           <DomainList domains={domains} onRemoveDomain={handleRemove} />
         )}
       </div>
+      <AccountPanel onWebsitesChanged={loadDomains} />
       <footer className="pt-2 border-t-2 border-black text-[11px] text-[#555555] flex items-center justify-between font-medium">
         <span>Solves grant temporary access</span>
         <span>Manifest V3</span>

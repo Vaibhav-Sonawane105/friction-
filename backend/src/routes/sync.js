@@ -124,6 +124,38 @@ async function checkSyncEnabled(req, res, next) {
   }
 }
 
+router.get('/website-snapshot', checkSyncEnabled, async (req, res) => {
+  try {
+    const { data, error } = await req.supabase.rpc('get_website_snapshot');
+    if (error || !data) return res.status(503).json({ error: 'SyncUnavailable', message: 'Versioned sync unavailable. Check database migrations.' });
+    return res.json(data);
+  } catch {
+    return res.status(503).json({ error: 'SyncUnavailable', message: 'Cloud sync unavailable. Try again.' });
+  }
+});
+
+router.put('/website-snapshot', checkSyncEnabled, async (req, res) => {
+  const { revision, websites } = req.body || {};
+  if (!Number.isSafeInteger(revision) || revision < 0 || !Array.isArray(websites) || websites.length > 2 ||
+      websites.some((item) => !item || typeof item.domain !== 'string' ||
+        normalizeDomain(item.domain) !== item.domain || item.domain.length > 253 || typeof item.enabled !== 'boolean') ||
+      new Set(websites.map((item) => item.domain)).size !== websites.length) {
+    return res.status(400).json({ error: 'Bad Request', message: 'Provide a revision and at most two unique domains with enabled flags.' });
+  }
+  try {
+    const { data, error } = await req.supabase.rpc('replace_website_snapshot', {
+      expected_revision: revision, websites: websites.map(({ domain, enabled }) => ({ domain, enabled }))
+    });
+    if (error) {
+      const status = error.code === '40001' ? 409 : error.code === '42501' ? 403 : 503;
+      return res.status(status).json({ error: 'SyncError', message: status === 409 ? 'Cloud list changed. Retry sync.' : 'Unable to save cloud list.' });
+    }
+    return res.json(data);
+  } catch {
+    return res.status(503).json({ error: 'SyncUnavailable', message: 'Cloud sync unavailable. Try again.' });
+  }
+});
+
 /**
  * GET /api/sync/websites
  * Retrieves cloud-synced restricted website domains for this user.

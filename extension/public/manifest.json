@@ -13,6 +13,7 @@
     "type": "module"
   },
   "permissions": [
+    "alarms",
     "storage",
     "tabs",
     "webNavigation"

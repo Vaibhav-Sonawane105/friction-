@@ -4,6 +4,7 @@
  */
 
 import { normalizeDomain } from '../utils/domain';
+import { sameConfig, websiteConfig } from './syncModel';
 
 export const FREE_TIER_DOMAIN_LIMIT = 2;
 
@@ -257,6 +258,21 @@ export const storageOperations = {
   removeBlockedDomain: removeBlockedDomainLocal,
   toggleDomainEnabled: toggleDomainEnabledLocal,
   completeUnlock: completeUnlockLocal,
+  replaceWebsiteConfig: async (expected, incoming) => {
+    const existing = await getBlockedDomains();
+    if (!sameConfig(existing, expected)) throw new Error('Local list changed during sync. Retrying shortly.');
+    const config = websiteConfig(incoming);
+    const updated = config.map((item) => {
+      const previous = existing.find((entry) => entry.domain === item.domain);
+      return { difficultyLevel: 1, successfulUnlockCount: 0, createdAt: Date.now(), ...previous, ...item };
+    });
+    const sessions = await getUnlockSessions();
+    for (const [tabId, session] of Object.entries(sessions)) {
+      if (!config.some((item) => item.domain === session.domain && item.enabled)) delete sessions[tabId];
+    }
+    await setValues({ [STORAGE_KEYS.BLOCKED_DOMAINS]: updated, [STORAGE_KEYS.UNLOCK_SESSIONS]: sessions });
+    return updated;
+  },
 };
 
 export const addBlockedDomain = (...args) => mutate('addBlockedDomain', args);

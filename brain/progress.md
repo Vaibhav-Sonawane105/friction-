@@ -8,10 +8,10 @@
 
 ## 1. Quick State Snapshot
 
-* **Current Active Phase:** Pre-release hardening — Step 2: unlock handling implemented; preparing for extension/backend integration
-* **Current Status:** Authentication hardening has 58/58 backend tests passing and owner-confirmed Supabase permission checks. Unlock handling fixes are implemented, with Chrome checklist completion confirmed by the owner. During implementation, 37/37 extension tests, lint, and build passed; the additional lifecycle test file is now absent, so the current suite was rerun and passes 20/20 tests across 3 files. Extension account/cloud-sync integration and production deployment remain incomplete.
+* **Current Active Phase:** Pre-release hardening — Step 3: account and automatic website-sync integration implemented; ready for staging preparation
+* **Current Status:** Extension account controls and opt-in automatic website-list sync are implemented. Last assistant-run checks passed: 56/56 extension tests, 72/72 backend tests, extension lint and build. Owner confirmed the versioned-sync migration and SQL checks ran without errors, then confirmed sync across two Chrome profiles and the follow-up removal/offline/disable checks were working. Live results are owner-reported; production hosting and staging deployment remain unverified.
 * **Active Working Directory:** `extension/`
-* **Current Focus:** Next: extension/backend integration, including outstanding live signup/login/profile/logout verification. Then verify in staging, prepare the store release, and synchronize all brain documents as the final step. Ask for approval before further brain-file edits; never push to GitHub without permission.
+* **Current Focus:** Next: staging preparation and deployment verification, followed by Chrome Web Store release preparation. Synchronize all brain documents as the final documentation step only with owner approval. Read all brain files before executing new work; do not edit them or push to GitHub without permission.
 
 ---
 
@@ -30,19 +30,20 @@
   * Outer glowing gradient card frame (`linear-gradient(135deg, #80E8FF 0%, #FFCBAA 33%, #D9B7F9 70%, #FF699B 100%)`).
   * Palette: Peach (`#FFB8B5`), Coral/Red (`#F24822`), Yellow (`#FBE76D`), Turquoise (`#4ECDC4`), Hot Pink (`#FF699B`), Neutral canvas (`#F4F4F6`, `#FFFFFF`).
   * Typography: Jeju Gothic for headings, equations, and primary buttons; Istok Web for body, labels, inputs, and badges.
-* **Extension Standard:** Chrome Manifest V3 (`storage`, `tabs`, `webNavigation`, `content_scripts`, `web_accessible_resources`).
+* **Extension Standard:** Chrome Manifest V3 (`storage`, `tabs`, `webNavigation`, `alarms`, `content_scripts`, `web_accessible_resources`), minimum Chrome 106.
 * **Tech Stack:**
   * Frontend: React 19, Vite, Tailwind CSS v4 (`@tailwindcss/vite`), custom SVG icons from `public/assets/logos/`.
-  * Testing: Vitest (current extension suite: 20/20; earlier unlock-hardening suite: 37/37 before the lifecycle test file became absent; backend: 58/58 after authentication hardening).
+  * Testing: Last verified Vitest results: 56/56 extension tests across 7 files and 72/72 backend tests across 6 files. The separate unlock lifecycle test file remains absent; account/sync coverage does not restore those earlier lifecycle cases.
   * Linting: ESLint (0 errors, 0 warnings).
   * Storage: Local-first (`chrome.storage.local` with `localStorage` dev fallback). Background-worker writes are serialized; progression and unlock sessions are saved together. A browser-lifetime identifier in `chrome.storage.session` expires temporary unlocks after browser restart/extension reload while preserving them through worker restarts. Chrome 106+ is required.
+* **Account & Sync Baseline:** Email/password authentication through Express/Supabase, with token refresh. Account tokens are held in trusted session storage, never returned to popup callers, and expire from device storage when Chrome closes or the extension reloads. Sign-in and device sync consent must then be renewed. Only domain/enabled settings sync; local counts, difficulty, tab sessions, and browsing history do not upload. Automatic sync uses a separate network queue, minute polling alarms, revision-checked cloud writes, three-way merging, and explicit conflict choices. API defaults to localhost:5000 for development; HTTPS hosting remains to be configured.
 
 ---
 
 ## 3. Chronological Execution Graph
 
 ```text
-[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync API] ──► [M010: Authentication & Database Permission Hardening] ──► [M011: Unlock Lifecycle Hardening]
+[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync API] ──► [M010: Authentication & Database Permission Hardening] ──► [M011: Unlock Lifecycle Hardening] ──► [M012: Accounts & Automatic Website Sync]
 ```
 
 ### Milestone Log
@@ -223,6 +224,34 @@
   * No backend changes were made during unlock hardening; 58/58 is the previously verified backend result.
 * **State:** Unlock fixes implemented and manual Chrome checks confirmed by owner. Preserve the test-count distinction above; restoring the missing lifecycle regression suite is recommended before release. Live account-flow verification and extension/backend integration remain pending.
 
+#### `[M012]` Extension Accounts & Automatic Website Sync
+* **Implementation date:** 2026-10-15
+* **Live follow-up confirmation / documentation date:** 2026-10-16
+* **Authorization:** Owner selected automatic cross-device sync and explicitly requested this progress.md update. Only progress.md was edited in this documentation turn; no assistant commit or push was performed.
+* **Summary:**
+  * Added optional popup account controls for signup, login, account/profile verification, logout, and sync opt-in/out with loading, success, failure, and conflict states.
+  * Added uncached `POST /api/auth/refresh`, request-isolated token rotation, and worker-side session management. Passwords are not stored; tokens stay in `chrome.storage.session` and are not exposed in popup responses.
+  * Implemented automatic website configuration reconciliation after local edits and on approximately one-minute Chrome alarms. Network requests use a separate queue with timeouts so outages cannot stall blocking or challenge completion.
+  * Added three-way merge of the last shared snapshot, local list, and remote list, including deletions. Conflicting changes or merged lists above the two-site limit require an explicit choice instead of silently overwriting/truncating data.
+  * Added local compare-and-swap application that retains current progression for retained domains and invalidates sessions for removed/disabled domains.
+  * Added `GET/PUT /api/sync/website-snapshot` and migration `20261015000003_versioned_website_sync.sql`: consistent snapshots, atomic replacement, server-controlled revisions, consent checks, and stale-write rejection.
+  * Added rollback-based `backend/supabase/tests/versioned_sync.sql`, regression tests, `extension/.env.example`, and `extension/INTEGRATION.md` setup/verification instructions.
+  * Added backend `/auth/confirmed` and `/` informational landing pages for email redirects. Development Supabase Site URL should use `http://localhost:5000/auth/confirmed`; prior emails can retain the old localhost:3000 redirect. The page itself does not verify email or sign the user in.
+* **Verification evidence:**
+  * Last assistant-run automated checks: **56/56 extension tests**, **72/72 backend tests**, extension ESLint, and production extension build passed. These are recorded implementation results, not a fresh rerun during this documentation-only turn.
+  * Owner confirmed both the versioned-sync migration and its SQL verification script ran without errors. Hosted SQL execution was not directly observed by the assistant.
+  * Owner explicitly confirmed automatic sync worked on both Chrome profiles. After follow-up requests to check removal propagation, offline recovery, and disabling sync, owner confirmed it was working and authorized moving on; recorded as owner-reported acceptance of those follow-up checks.
+  * An assistant localhost `/health` probe returned HTTP 200 during redirect troubleshooting. This established API reachability only, not independent proof of database readiness.
+  * Email-confirmation troubleshooting encountered the old localhost:3000 redirect and Supabase's outbound-email rate limit. Later successful two-profile sync confirms usable authenticated sessions; exact dashboard settings, email delivery, live token expiry/refresh, and every account error path were not independently observed.
+* **Current limitations / next work:**
+  * Hosting provider, deployed HTTPS API URL, hosted confirmation redirect, and staging environment are not yet configured or verified in this work.
+  * Account login and sync opt-in are browser-session scoped; closing Chrome or reloading the extension requires signing in and enabling device sync again.
+  * Cloud integration currently syncs website configuration only. Unlock-history APIs exist, but the extension does not upload history or analytics events.
+  * Cloud data remains stored when sync is disabled. Account deletion/retention policy, production email delivery setup, readiness checks, and release preparation remain to be addressed.
+  * The separately missing unlock lifecycle regression suite remains a release follow-up; the new account/sync suites are present.
+  * Other brain documents still contain historical assumptions; synchronize them at the agreed final documentation step after receiving approval.
+* **State:** Account and automatic website-sync integration implemented with passing automated checks and owner-confirmed live acceptance. Proceed to staging preparation; do not describe the project as production deployed.
+
 ---
 
 ## 4. Current Work in Progress
@@ -256,14 +285,16 @@
 - [x] Implement request-isolated authentication clients and token-scoped profile reads.
 - [x] Bind logout to the validated caller session and handle failures.
 - [x] Prepare database permission migration and rollback-based SQL assertions.
-- [x] Pass backend regression suite (58/58).
+- [x] Pass backend regression suite (latest recorded result: 72/72).
 - [x] Obtain owner confirmation that Supabase permission assertions completed without errors.
-- [ ] Verify live signup, login, profile access, and logout after the fixes.
+- [x] Verify authenticated two-profile sync (owner-confirmed).
+- [ ] Independently verify remaining live account edge cases, including expired-token refresh and logout/revocation failures, during staging.
 - [x] Stabilize unlock handling and verify real Chrome lifecycle behavior (owner-confirmed checklist completion; see M011).
-- [ ] Restore the absent unlock lifecycle regression suite before release (current automated suite contains only the original 20 tests).
-- [ ] Complete extension account and optional cloud-sync integration.
+- [ ] Restore the absent unlock lifecycle regression suite before release (account/sync additions bring the current recorded extension total to 56, but do not restore those lifecycle cases).
+- [x] Complete extension account and opt-in automatic website-list sync integration (M012; owner-confirmed live acceptance).
+- [x] Obtain owner confirmation of the versioned-sync migration and SQL checks without errors.
 - [ ] Verify the integrated product in staging.
 - [ ] Prepare the Chrome Web Store release.
 - [ ] Synchronize all brain documents as the final documentation step, with owner approval before editing.
 
-Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010/M011, and the pre-release checklist.
+Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010/M011/M012, and the pre-release checklist.

@@ -4,6 +4,7 @@ import {
   completeUnlock, enableBackgroundWriter, storageOperations,
 } from './services/storage';
 import { isDomainMatch } from './utils/domain';
+import { createAccountController } from './services/account';
 
 enableBackgroundWriter();
 
@@ -13,6 +14,37 @@ function enqueue(task) {
   const result = taskTail.then(task);
   taskTail = result.catch(() => {});
   return result;
+}
+
+let accountController;
+function account() {
+  if (!accountController) accountController = createAccountController({
+    sessionStore: chrome.storage.session,
+    stateStore: chrome.storage.local,
+    readLocal: () => enqueue(getBlockedDomains),
+    applyLocal: (expected, incoming) => enqueue(async () => {
+      const result = await storageOperations.replaceWebsiteConfig(expected, incoming);
+      const tabs = await chrome.tabs.query({});
+      await Promise.all(tabs.map((tab) => notifyTab(tab.id, tab.url)));
+      return result;
+    }),
+  });
+  return accountController;
+}
+
+let syncScheduled = false;
+function scheduleSync() {
+  if (syncScheduled) return;
+  syncScheduled = true;
+  // Network requests never enter the blocking/session queue.
+  Promise.resolve().then(() => account().action('sync')).catch(() => {}).finally(() => { syncScheduled = false; });
+}
+
+export function handleAccountMessage(message, sender) {
+  if (sender.id !== chrome.runtime.id || sender.url !== chrome.runtime.getURL('index.html')) {
+    return Promise.reject(new Error('Account actions require the extension popup.'));
+  }
+  return Promise.resolve().then(() => account().action(message.operation, message.args)).then((result) => ({ success: true, result }));
 }
 
 export async function getStatusForTab(tabId, targetUrl) {
@@ -56,6 +88,7 @@ export async function handleMessage(message, sender) {
     }
     // The outer worker queue serializes these alongside unlocks and navigation.
     const result = await storageOperations[message.operation](...message.args);
+    scheduleSync();
     const tabs = await chrome.tabs.query({});
     await Promise.all(tabs.map((tab) => notifyTab(tab.id, tab.url)));
     return { success: true, result };
@@ -103,9 +136,21 @@ if (globalThis.chrome?.webNavigation?.onCommitted) {
 }
 if (globalThis.chrome?.runtime?.onMessage) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    enqueue(() => handleMessage(message, sender)).then(sendResponse, (error) => {
+    const operation = message?.type === 'ACCOUNT'
+      ? handleAccountMessage(message, sender)
+      : enqueue(() => handleMessage(message, sender));
+    operation.then(sendResponse, (error) => {
       sendResponse({ success: false, error: error.message || 'Could not update extension state.' });
     });
     return true;
   });
+}
+
+if (globalThis.chrome?.alarms?.onAlarm) {
+  chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === 'pf_cloud_sync') scheduleSync();
+  });
+  chrome.alarms.get('pf_cloud_sync').then((alarm) => {
+    if (!alarm) return chrome.alarms.create('pf_cloud_sync', { periodInMinutes: 1 });
+  }).catch(console.warn);
 }
