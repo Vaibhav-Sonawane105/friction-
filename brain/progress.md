@@ -8,10 +8,10 @@
 
 ## 1. Quick State Snapshot
 
-* **Current Active Phase:** Phase 1 Complete & Verified ──► Ready for Phase 2 (Backend & Authentication)
-* **Current Status:** Core Extension Built & Verified Across All 5 Browser Scenarios (20/20 Vitest Tests Passing)!
-* **Active Working Directory:** `extension/`
-* **Current Focus:** Phase 2 preparation (Node.js/Express + Supabase Auth + PostgreSQL).
+* **Current Active Phase:** Phase 2 — Backend & Authentication (In Progress)
+* **Current Status:** Backend initialized (Node.js/Express) & live Supabase connection verified (`supabase: connected`).
+* **Active Working Directory:** `backend/`
+* **Current Focus:** Phase 2: Database schemas (PostgreSQL / Supabase), authentication endpoints, and RLS policies.
 
 ---
 
@@ -42,7 +42,7 @@
 ## 3. Chronological Execution Graph
 
 ```text
-[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI]
+[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration]
 ```
 
 ### Milestone Log
@@ -109,10 +109,28 @@
   * Vite Build: 0 errors, 0 warnings, package built in `extension/dist/`.
 * **State:** In-page blur overlay and Neo-Brutalist design verified and fully operational.
 
+#### `[M006]` Backend Initialization & Supabase Integration
+* **Date:** 2026-10-15
+* **Summary:**
+  * Created dedicated `backend/` directory in the root directory alongside `brain/`, `extension/`, `.gitignore`, and `README.md`.
+  * Initialized Node.js (ES Modules, `"type": "module"`), Express.js, and dotenv.
+  * Installed production dependencies `express`, `dotenv`, `@supabase/supabase-js`, and development dependency `nodemon`.
+  * Configured npm scripts: `"start": "node src/server.js"`, `"dev": "nodemon src/server.js"`.
+  * Added `backend/.gitignore` and `backend/.env.example` ensuring secrets (`.env`) and `node_modules/` are strictly excluded from git.
+  * Created modular Supabase client in `backend/src/supabase.js` connected to project `https://eahktzdgggsciahcmbqq.supabase.co`.
+  * Implemented `GET /health` in `backend/src/server.js` with JSON response and real-time live ping to Supabase Auth (`supabase: "connected"`).
+  * Preserved full offline resilience and untouched state of the Chrome extension (`extension/`).
+* **Verification:**
+  * Supabase handshake: `Auth check error: null | Client initialized: true`.
+  * Express `/health` endpoint: returns `status: "ok"`, `supabase: "connected"`.
+  * Git status: `.env` and `node_modules` confirmed untracked/ignored.
+* **State:** Backend server running with live Supabase connection verified.
+
 ---
 
-## 4. Current Work in Progress (Phase 1 Checklist)
+## 4. Current Work in Progress
 
+### Phase 1 Checklist (Completed & Verified)
 - [x] **Task 1.1:** Extension Manifest V3 & Vite multi-entry build setup (Popup + Content Script + Background Service Worker).
 - [x] **Task 1.2:** Popup interface for website selection (domain list, add/remove, 2-website limit enforcement).
 - [x] **Task 1.3:** Local storage service (`chrome.storage.local`) for domains and progression.
@@ -124,3 +142,14 @@
 - [x] **Task 1.9:** Per-website difficulty tier progression upon successful unlock.
 - [x] **Task 1.10:** Safe leave action (open new Chrome tab & close blocked tab).
 - [x] **Task 1.11:** Final edge case testing across multiple domains, refreshes, multi-tab isolation, tier capping, and offline resilience (20/20 Vitest tests passing).
+
+### Phase 2 Checklist — Backend & Authentication (In Progress)
+- [x] **Task 2.1:** Backend directory setup, Node.js/Express, dotenv, and nodemon.
+- [x] **Task 2.2:** Environment security (`.env.example`, `.gitignore` for `.env` & `node_modules`).
+- [x] **Task 2.3:** Health endpoint (`GET /health`) with live status check.
+- [x] **Task 2.4:** Supabase SDK installation & client configuration (`@supabase/supabase-js`).
+- [x] **Task 2.5:** Verified live backend-to-Supabase connectivity.
+- [ ] **Task 2.6:** Configure PostgreSQL tables & schemas (users, profiles, settings, unlock history).
+- [ ] **Task 2.7:** Implement Supabase Auth endpoints (signup, login, session token validation).
+- [ ] **Task 2.8:** Configure Row Level Security (RLS) policies for data isolation.
+- [ ] **Task 2.9:** Implement optional cloud synchronization for settings and history while preserving offline-first blocking.
