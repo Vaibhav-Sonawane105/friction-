@@ -9,9 +9,9 @@
 ## 1. Quick State Snapshot
 
 * **Current Active Phase:** Phase 2 — Backend & Authentication (In Progress)
-* **Current Status:** Supabase PostgreSQL database schema configured with RLS policies verified across all 4 tables (`profiles`, `user_settings`, `synced_websites`, `unlock_history`).
+* **Current Status:** Supabase Auth implemented & verified (signup, login, JWT middleware, profile inspection, logout) with 25 passing tests.
 * **Active Working Directory:** `backend/`
-* **Current Focus:** Phase 2: Supabase Auth endpoints (signup, login, session token validation) and account management.
+* **Current Focus:** Phase 2: Optional cloud synchronization for settings and history (Task 2.9) while keeping offline-first blocking intact.
 
 ---
 
@@ -33,7 +33,7 @@
 * **Extension Standard:** Chrome Manifest V3 (`storage`, `tabs`, `webNavigation`, `content_scripts`, `web_accessible_resources`).
 * **Tech Stack:**
   * Frontend: React 19, Vite, Tailwind CSS v4 (`@tailwindcss/vite`), custom SVG icons from `public/assets/logos/`.
-  * Testing: Vitest (11/11 tests passing).
+  * Testing: Vitest (11/11 tests passing in extension, 25/25 in backend).
   * Linting: ESLint (0 errors, 0 warnings).
   * Storage: Local-first (`chrome.storage.local` with `localStorage` dev fallback).
 
@@ -42,7 +42,7 @@
 ## 3. Chronological Execution Graph
 
 ```text
-[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies]
+[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware]
 ```
 
 ### Milestone Log
@@ -145,6 +145,24 @@
   * Chrome extension and local blocking mechanics remain 100% offline-first and untouched.
 * **State:** Supabase database schema and RLS security fully configured and verified.
 
+#### `[M008]` Supabase Authentication & Session Middleware
+* **Date:** 2026-10-15
+* **Summary:**
+  * Implemented input validation middleware (`src/utils/validation.js`) enforcing email format regex and minimum 6-character password length.
+  * Implemented session validation middleware (`src/middleware/auth.js`) validating Bearer JWTs via `supabase.auth.getUser(token)` and returning uniform 401 Unauthorized errors on missing or invalid tokens.
+  * Created authentication routes (`src/routes/auth.js`):
+    * `POST /api/auth/signup`: Registers user with Supabase Auth (triggering automatic profile/settings row initialization).
+    * `POST /api/auth/login`: Authenticates credentials with clean 401 response on invalid logins.
+    * `GET /api/auth/me`: Protected endpoint returning user data and database profile.
+    * `POST /api/auth/logout`: Revokes active sessions safely.
+  * Added global JSON error handler in `src/server.js` preventing stack trace leaks on malformed payloads.
+  * Built complete test suite using `vitest` and `supertest` in `backend/tests/`.
+  * Preserved full offline-first extension blocking resilience and kept `extension/` untouched.
+* **Verification:**
+  * Automated Tests: 25/25 passing across `validation.test.js`, `authMiddleware.test.js`, and `authRoutes.test.js`.
+  * Live server test: confirmed 401 on missing/invalid tokens and invalid login credentials.
+* **State:** Supabase authentication and JWT middleware fully operational and verified.
+
 ---
 
 ## 4. Current Work in Progress
@@ -169,6 +187,6 @@
 - [x] **Task 2.4:** Supabase SDK installation & client configuration (`@supabase/supabase-js`).
 - [x] **Task 2.5:** Verified live backend-to-Supabase connectivity.
 - [x] **Task 2.6:** Configure PostgreSQL tables & schemas (users, profiles, settings, unlock history).
-- [ ] **Task 2.7:** Implement Supabase Auth endpoints (signup, login, session token validation).
+- [x] **Task 2.7:** Implement Supabase Auth endpoints (signup, login, session token validation).
 - [x] **Task 2.8:** Configure Row Level Security (RLS) policies for data isolation.
 - [ ] **Task 2.9:** Implement optional cloud synchronization for settings and history while preserving offline-first blocking.
