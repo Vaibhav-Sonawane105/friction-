@@ -9,9 +9,9 @@
 ## 1. Quick State Snapshot
 
 * **Current Active Phase:** Phase 2 — Backend & Authentication (In Progress)
-* **Current Status:** Backend initialized (Node.js/Express) & live Supabase connection verified (`supabase: connected`).
+* **Current Status:** Supabase PostgreSQL database schema configured with RLS policies verified across all 4 tables (`profiles`, `user_settings`, `synced_websites`, `unlock_history`).
 * **Active Working Directory:** `backend/`
-* **Current Focus:** Phase 2: Database schemas (PostgreSQL / Supabase), authentication endpoints, and RLS policies.
+* **Current Focus:** Phase 2: Supabase Auth endpoints (signup, login, session token validation) and account management.
 
 ---
 
@@ -42,7 +42,7 @@
 ## 3. Chronological Execution Graph
 
 ```text
-[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration]
+[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies]
 ```
 
 ### Milestone Log
@@ -126,6 +126,25 @@
   * Git status: `.env` and `node_modules` confirmed untracked/ignored.
 * **State:** Backend server running with live Supabase connection verified.
 
+#### `[M007]` Supabase Database Schema & Row Level Security (RLS)
+* **Date:** 2026-10-15
+* **Summary:**
+  * Designed relational PostgreSQL database schema anchored to Supabase Auth (`auth.users(id)`) with cascade deletion.
+  * Created version-controlled migration file `backend/supabase/migrations/20261015000001_initial_schema.sql` containing:
+    * `public.profiles`: User tier (`free`/`premium`) and subscription status tracking.
+    * `public.user_settings`: User preferences defaulting strictly to `analytics_opt_in = false` and `sync_enabled = false` for privacy by design.
+    * `public.synced_websites`: Multi-device cloud sync for blocked domains with unique constraint `(user_id, domain)`.
+    * `public.unlock_history`: Domain-level challenge unlock event logs (strictly domain and tier; never stores full URLs or browsing activity).
+    * Automated Triggers: User onboarding trigger `on_auth_user_created` (via `handle_new_user()`) and timestamp synchronizer `set_*_updated_at`.
+    * Performance Indexes: Indexed `user_id`, `(user_id, domain)`, and `(user_id, unlocked_at DESC)`.
+    * Row Level Security (RLS): Enabled on all 4 tables with idempotent `DROP POLICY IF EXISTS` guards, strictly enforcing data access boundaries (`auth.uid() = id` or `auth.uid() = user_id`).
+  * Created automated schema checker script `backend/scripts/verify-schema.js` and added `npm run db:check` script to `package.json`.
+  * Added `backend/supabase/README.md` detailing migration steps, table schemas, and privacy guarantees.
+* **Verification:**
+  * Ran `npm run db:check` against the live Supabase project; all 4 tables verified active with RLS enabled.
+  * Chrome extension and local blocking mechanics remain 100% offline-first and untouched.
+* **State:** Supabase database schema and RLS security fully configured and verified.
+
 ---
 
 ## 4. Current Work in Progress
@@ -149,7 +168,7 @@
 - [x] **Task 2.3:** Health endpoint (`GET /health`) with live status check.
 - [x] **Task 2.4:** Supabase SDK installation & client configuration (`@supabase/supabase-js`).
 - [x] **Task 2.5:** Verified live backend-to-Supabase connectivity.
-- [ ] **Task 2.6:** Configure PostgreSQL tables & schemas (users, profiles, settings, unlock history).
+- [x] **Task 2.6:** Configure PostgreSQL tables & schemas (users, profiles, settings, unlock history).
 - [ ] **Task 2.7:** Implement Supabase Auth endpoints (signup, login, session token validation).
-- [ ] **Task 2.8:** Configure Row Level Security (RLS) policies for data isolation.
+- [x] **Task 2.8:** Configure Row Level Security (RLS) policies for data isolation.
 - [ ] **Task 2.9:** Implement optional cloud synchronization for settings and history while preserving offline-first blocking.
