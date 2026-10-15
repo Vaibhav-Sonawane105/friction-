@@ -2,9 +2,9 @@ Development Phases & Progress Tracker
 Purpose
 This document tracks the implementation progress of the Progressive Website Blocker Chrome extension.
 It defines the development phases, their objectives, implementation tasks, completion criteria, and dependencies.
-Current Phase: Phase 2 — Backend & Authentication (planned next)
-Current Status: Original Phase 1 baseline verified; progressive challenge levels are a newly approved enhancement and remain unimplemented.
-Overall Status: Core extension baseline complete; documentation is being aligned before backend work.
+Current Phase: Phase 3 — Subscription System (or Phase 1 Enhancement — Progressive Challenge Levels)
+Current Status: Phase 1 (Core Extension) & Phase 2 (Backend & Authentication) Completed & Fully Verified.
+Overall Status: Core extension and full-stack backend foundations verified with 70 passing tests (20 in extension, 50 in backend).
 Development Rules
 1. Work on one phase at a time unless a dependency requires otherwise.
 2. Do not start implementing a later phase simply because its features are described here.
@@ -81,20 +81,20 @@ Completion Criteria
 Dependency and sequencing
 This enhancement does not depend on the backend. Phase 2 can be developed independently because authentication and cloud sync must not control local challenge execution. However, the new levels must be implemented and verified before claiming the expanded challenge system is complete.
 Phase 2 — Backend & Authentication
-Status: Not Started (Ready to Begin)
+Status: Completed & Fully Verified
 Objective
 Introduce a backend to support user accounts, authenticated API requests, cross-device settings, and unlock history.
 Tasks
-- [ ] Set up the Node.js and Express server.
-- [ ] Configure Supabase project, PostgreSQL tables, and schemas.
-- [ ] Implement Supabase Auth (registration, login, logout, and session management).
-- [ ] Implement Row Level Security (RLS) policies to protect user data at the database level.
-- [ ] Define user and settings data models in PostgreSQL.
-- [ ] Implement synchronization of supported settings between local storage and Supabase.
-- [ ] Store and retrieve user unlock history in PostgreSQL.
-- [ ] Handle API errors, network failures, offline state, and expired authentication sessions.
-- [ ] Add environment-variable and secrets management (keep service-role keys server-side).
-- [ ] Test authentication, authorization, and data access boundaries.
+- [x] Set up the Node.js and Express server.
+- [x] Configure Supabase project, PostgreSQL tables, and schemas.
+- [x] Implement Supabase Auth (registration, login, logout, and session management).
+- [x] Implement Row Level Security (RLS) policies to protect user data at the database level.
+- [x] Define user and settings data models in PostgreSQL.
+- [x] Implement synchronization of supported settings between local storage and Supabase.
+- [x] Store and retrieve user unlock history in PostgreSQL.
+- [x] Handle API errors, network failures, offline state, and expired authentication sessions.
+- [x] Add environment-variable and secrets management (keep service-role keys server-side).
+- [x] Test authentication, authorization, and data access boundaries.
 Completion Criteria
 - Users can create accounts and authenticate securely using Supabase Auth.
 - Protected API endpoints reject unauthorized requests.
@@ -166,9 +166,14 @@ Initial Setup
 - Created the project documentation structure.
 - Prepared the phased development roadmap.
 Future Updates
-Add the date, completed work, tests performed, and any important decisions after each meaningful milestone.
+- **2026-10-14**: Phase 1 Core Extension verified across all 5 browser scenarios with 20 passing Vitest tests.
+- **2026-10-15**: Phase 2 Backend & Authentication completed & verified:
+  - Express API skeleton with ES Modules, dotenv, nodemon, and GET /health.
+  - Supabase client integration and verified live connectivity.
+  - Relational PostgreSQL schemas (profiles, user_settings, synced_websites, unlock_history) with RLS policies, indexes, and triggers.
+  - Authentication endpoints (signup, login, me, logout) with JWT Bearer validation middleware and safe JSON error handling.
+  - Optional cloud synchronization for preferences, website blocklists, and minimal unlock history with strict privacy guards (normalizeDomain).
+  - 50/50 automated backend tests passing (Vitest + Supertest).
 Current Next Step
-1. Align project.md and techstack.md with the approved progressive challenge levels and local-first timer behavior.
-2. Begin Phase 2 in small, testable steps: backend skeleton, Supabase setup, authentication, RLS, and optional settings/history synchronization.
-3. Implement and verify the Phase 1 Enhancement as a separate extension task. Do not describe the expanded challenge system as complete until its completion criteria pass.
-Keep blocking, challenge selection, unlock progression, and the Level 4 timer local-first. Backend outages or sign-out must not prevent these core behaviors.
+1. Choose between proceeding with **Phase 3 — Subscription System** (Razorpay/Stripe, webhooks, server-side entitlement checks) or **Phase 1 Enhancement — Progressive Challenge Levels** (Levels 1–4: arithmetic, algebra/intro-calculus, mini-puzzles, persistent pause/resume timer).
+2. Keep blocking, challenge progression, and the Level 4 timer local-first. Backend outages or sign-out must not disrupt core local functionality.
