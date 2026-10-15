@@ -1,8 +1,9 @@
-import { supabase } from '../supabase.js';
+import { supabase, createScopedClient } from '../supabase.js';
 
 /**
  * Middleware to require and validate a Supabase JWT / access token.
- * Attaches the verified user object to req.user and the token string to req.token.
+ * Attaches the verified user object to req.user, the token string to req.token,
+ * and an RLS-scoped client to req.supabase.
  */
 export async function requireAuth(req, res, next) {
   try {
@@ -35,6 +36,7 @@ export async function requireAuth(req, res, next) {
 
     req.user = user;
     req.token = token;
+    req.supabase = createScopedClient(token);
     next();
   } catch (err) {
     return res.status(500).json({

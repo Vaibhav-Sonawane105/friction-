@@ -11,3 +11,15 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
+
+/**
+ * Creates an authenticated Supabase client scoped to a user's JWT.
+ * Ensures PostgREST evaluates Row Level Security (RLS) with auth.uid() = user.id.
+ */
+export function createScopedClient(token) {
+  return createClient(supabaseUrl, supabaseKey, {
+    global: {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    }
+  });
+}

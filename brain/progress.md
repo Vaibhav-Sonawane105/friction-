@@ -8,10 +8,10 @@
 
 ## 1. Quick State Snapshot
 
-* **Current Active Phase:** Phase 2 — Backend & Authentication (In Progress)
-* **Current Status:** Supabase Auth implemented & verified (signup, login, JWT middleware, profile inspection, logout) with 25 passing tests.
+* **Current Active Phase:** Phase 2 Complete & Verified ──► Ready for Phase 3 (Subscription System) or Phase 1 Enhancement
+* **Current Status:** Backend, Supabase Auth, and Optional Cloud Sync fully implemented and verified (50/50 tests passing in backend, 20/20 in extension).
 * **Active Working Directory:** `backend/`
-* **Current Focus:** Phase 2: Optional cloud synchronization for settings and history (Task 2.9) while keeping offline-first blocking intact.
+* **Current Focus:** Phase 3 (Subscription System / Payment Integration) or Phase 1 Enhancement (Progressive Challenge Levels 1–4).
 
 ---
 
@@ -33,7 +33,7 @@
 * **Extension Standard:** Chrome Manifest V3 (`storage`, `tabs`, `webNavigation`, `content_scripts`, `web_accessible_resources`).
 * **Tech Stack:**
   * Frontend: React 19, Vite, Tailwind CSS v4 (`@tailwindcss/vite`), custom SVG icons from `public/assets/logos/`.
-  * Testing: Vitest (11/11 tests passing in extension, 25/25 in backend).
+  * Testing: Vitest (20/20 tests passing in extension, 50/50 in backend).
   * Linting: ESLint (0 errors, 0 warnings).
   * Storage: Local-first (`chrome.storage.local` with `localStorage` dev fallback).
 
@@ -42,7 +42,7 @@
 ## 3. Chronological Execution Graph
 
 ```text
-[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware]
+[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync (Phase 2 Complete)]
 ```
 
 ### Milestone Log
@@ -163,6 +163,22 @@
   * Live server test: confirmed 401 on missing/invalid tokens and invalid login credentials.
 * **State:** Supabase authentication and JWT middleware fully operational and verified.
 
+#### `[M009]` Optional Cloud Synchronization (Phase 2 Complete)
+* **Date:** 2026-10-15
+* **Summary:**
+  * Implemented JWT-scoped Supabase client (`createScopedClient(token)`) in `backend/src/supabase.js` and mounted to `req.supabase` in `requireAuth`, enforcing PostgreSQL Row Level Security (RLS) policies natively.
+  * Implemented privacy-preserving domain normalization (`normalizeDomain`) in `src/utils/validation.js` that strips protocols, www prefixes, paths, and query parameters, guaranteeing full URLs and browsing history are never leaked or stored in the database.
+  * Created optional cloud sync endpoints in `src/routes/sync.js`:
+    * `GET /api/sync/settings` & `PUT /api/sync/settings`: Reads/updates user preferences, defaulting strictly to `sync_enabled: false` and `analytics_opt_in: false`.
+    * `GET /api/sync/websites`, `POST /api/sync/websites`, `DELETE /api/sync/websites/:domain`: Synchronizes blocked domains only when `sync_enabled` is active (returns 403 `SyncDisabled` when false).
+    * `POST /api/sync/unlock-history` & `GET /api/sync/unlock-history`: Synchronizes minimal unlock events (domain, difficulty tier, challenge type, timestamp) only when `analytics_opt_in` is active (returns 403 `AnalyticsDisabled` when false).
+  * Preserved full offline-first resilience: local extension storage (`chrome.storage.local`), blocking logic, math progression, and Level 4 timer never depend on backend requests.
+  * Kept `extension/` untouched.
+* **Verification:**
+  * Backend test suite: 50/50 passing tests across `validation.test.js`, `authMiddleware.test.js`, `authRoutes.test.js`, and `syncRoutes.test.js`.
+  * Extension test suite: 20/20 passing tests.
+* **State:** Phase 2 (Backend & Authentication) complete and fully verified.
+
 ---
 
 ## 4. Current Work in Progress
@@ -180,7 +196,7 @@
 - [x] **Task 1.10:** Safe leave action (open new Chrome tab & close blocked tab).
 - [x] **Task 1.11:** Final edge case testing across multiple domains, refreshes, multi-tab isolation, tier capping, and offline resilience (20/20 Vitest tests passing).
 
-### Phase 2 Checklist — Backend & Authentication (In Progress)
+### Phase 2 Checklist — Backend & Authentication (Completed & Verified)
 - [x] **Task 2.1:** Backend directory setup, Node.js/Express, dotenv, and nodemon.
 - [x] **Task 2.2:** Environment security (`.env.example`, `.gitignore` for `.env` & `node_modules`).
 - [x] **Task 2.3:** Health endpoint (`GET /health`) with live status check.
@@ -189,4 +205,4 @@
 - [x] **Task 2.6:** Configure PostgreSQL tables & schemas (users, profiles, settings, unlock history).
 - [x] **Task 2.7:** Implement Supabase Auth endpoints (signup, login, session token validation).
 - [x] **Task 2.8:** Configure Row Level Security (RLS) policies for data isolation.
-- [ ] **Task 2.9:** Implement optional cloud synchronization for settings and history while preserving offline-first blocking.
+- [x] **Task 2.9:** Implement optional cloud synchronization for settings and history while preserving offline-first blocking.

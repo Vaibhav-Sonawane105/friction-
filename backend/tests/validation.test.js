@@ -1,5 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
-import { isValidEmail, isValidPassword, validateAuthCredentials } from '../src/utils/validation.js';
+import {
+  isValidEmail,
+  isValidPassword,
+  validateAuthCredentials,
+  normalizeDomain,
+  isValidDomain,
+  isValidDifficultyTier,
+  isValidChallengeType
+} from '../src/utils/validation.js';
 
 describe('Validation Utilities', () => {
   describe('isValidEmail', () => {
@@ -87,6 +95,72 @@ describe('Validation Utilities', () => {
         expect.objectContaining({ message: 'Password must be at least 6 characters long' })
       );
       expect(next).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('normalizeDomain (Privacy-by-Design)', () => {
+    it('normalizes standard domain names', () => {
+      expect(normalizeDomain('youtube.com')).toBe('youtube.com');
+      expect(normalizeDomain('REDDIT.COM')).toBe('reddit.com');
+      expect(normalizeDomain('  news.ycombinator.com  ')).toBe('news.ycombinator.com');
+    });
+
+    it('strips protocol, www prefix, full path, and query strings', () => {
+      expect(normalizeDomain('https://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe('youtube.com');
+      expect(normalizeDomain('http://reddit.com/r/popular?utm_source=test#comments')).toBe('reddit.com');
+      expect(normalizeDomain('www.instagram.com/p/12345/')).toBe('instagram.com');
+    });
+
+    it('rejects invalid or empty domain inputs', () => {
+      expect(normalizeDomain('')).toBeNull();
+      expect(normalizeDomain('not a domain')).toBeNull();
+      expect(normalizeDomain(null)).toBeNull();
+      expect(normalizeDomain(12345)).toBeNull();
+    });
+  });
+
+  describe('isValidDomain', () => {
+    it('validates correct domain formats', () => {
+      expect(isValidDomain('example.com')).toBe(true);
+      expect(isValidDomain('sub.domain.co.uk')).toBe(true);
+      expect(isValidDomain('x.com')).toBe(true);
+    });
+
+    it('rejects invalid domain formats', () => {
+      expect(isValidDomain('localhost')).toBe(false);
+      expect(isValidDomain('example..com')).toBe(false);
+      expect(isValidDomain('domain')).toBe(false);
+      expect(isValidDomain('')).toBe(false);
+    });
+  });
+
+  describe('isValidDifficultyTier', () => {
+    it('accepts integers between 1 and 10', () => {
+      expect(isValidDifficultyTier(1)).toBe(true);
+      expect(isValidDifficultyTier(5)).toBe(true);
+      expect(isValidDifficultyTier(10)).toBe(true);
+    });
+
+    it('rejects tiers outside 1-10 or non-integers', () => {
+      expect(isValidDifficultyTier(0)).toBe(false);
+      expect(isValidDifficultyTier(11)).toBe(false);
+      expect(isValidDifficultyTier(4.5)).toBe(false);
+      expect(isValidDifficultyTier('3')).toBe(false);
+    });
+  });
+
+  describe('isValidChallengeType', () => {
+    it('accepts valid challenge types', () => {
+      expect(isValidChallengeType('math')).toBe(true);
+      expect(isValidChallengeType('algebra')).toBe(true);
+      expect(isValidChallengeType('puzzle')).toBe(true);
+      expect(isValidChallengeType('timer')).toBe(true);
+    });
+
+    it('rejects unknown challenge types', () => {
+      expect(isValidChallengeType('chess')).toBe(false);
+      expect(isValidChallengeType('')).toBe(false);
+      expect(isValidChallengeType(null)).toBe(false);
     });
   });
 });

@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { supabase } from './supabase.js';
 import authRouter from './routes/auth.js';
+import syncRouter from './routes/sync.js';
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRouter);
+app.use('/api/sync', syncRouter);
 
 // Health endpoint with live Supabase ping
 app.get('/health', async (req, res) => {
