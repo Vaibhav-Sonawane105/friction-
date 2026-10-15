@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { supabase } from '../supabase.js';
+import { supabase, createAuthClient } from '../supabase.js';
 import { requireAuth } from '../middleware/auth.js';
 import { validateAuthCredentials } from '../utils/validation.js';
 
@@ -14,7 +14,7 @@ router.post('/signup', validateAuthCredentials, async (req, res) => {
     const { email, password } = req.body;
     const cleanEmail = email.trim().toLowerCase();
 
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await createAuthClient().auth.signUp({
       email: cleanEmail,
       password
     });
@@ -50,7 +50,7 @@ router.post('/login', validateAuthCredentials, async (req, res) => {
     const { email, password } = req.body;
     const cleanEmail = email.trim().toLowerCase();
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await createAuthClient().auth.signInWithPassword({
       email: cleanEmail,
       password
     });
@@ -82,11 +82,18 @@ router.post('/login', validateAuthCredentials, async (req, res) => {
  */
 router.get('/me', requireAuth, async (req, res) => {
   try {
-    const { data: profile, error } = await supabase
+    const { data: profile, error } = await req.supabase
       .from('profiles')
       .select('*')
       .eq('id', req.user.id)
       .maybeSingle();
+
+    if (error) {
+      return res.status(500).json({
+        error: 'DatabaseError',
+        message: 'Failed to retrieve user profile'
+      });
+    }
 
     return res.status(200).json({
       user: req.user,
@@ -105,11 +112,15 @@ router.get('/me', requireAuth, async (req, res) => {
  * POST /api/auth/logout
  * Signs out the authenticated user session.
  */
-router.post('/logout', async (req, res) => {
+router.post('/logout', requireAuth, async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      await supabase.auth.signOut();
+    // Explicit token avoids shared session state; local scope preserves other devices.
+    const { error } = await supabase.auth.admin.signOut(req.token, 'local');
+    if (error) {
+      return res.status(502).json({
+        error: 'LogoutError',
+        message: 'Failed to revoke session'
+      });
     }
 
     return res.status(200).json({

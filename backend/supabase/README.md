@@ -7,6 +7,17 @@ This directory contains version-controlled PostgreSQL migrations for the Progres
 ## Migration Files
 
 - **`migrations/20261015000001_initial_schema.sql`**: Initial database schema covering user profiles, preferences/settings sync, synced websites, unlock history, indexes, triggers, and Row Level Security (RLS) policies.
+- **`migrations/20261015000002_harden_permissions.sql`**: Removes client writes to profiles/billing fields, enforces cloud-data consent through restrictive RLS policies, and hardens the signup trigger function. Apply this to existing databases after the initial schema; it has no data-deletion statements.
+
+## Security verification
+
+Apply both migrations in filename order. Then run `tests/permissions.sql` as `postgres` in a staging project's SQL editor. It verifies profile protection, per-user isolation, opt-in enforcement, anonymous denial, and trusted billing updates. The script creates temporary test users inside a transaction and ends with `ROLLBACK`; if it fails, roll back the failed transaction before retrying. Do not treat a successful table SELECT or the API's unit tests as proof that these database checks passed.
+
+The repository includes the hardening migration and SQL assertions; their presence does not mean they have been applied to a hosted database.
+
+## Authentication behavior
+
+Signup and login use fresh, non-persistent Supabase clients for each request. Protected database reads use the caller's bearer token. Logout requires a valid bearer token and revokes only that session's refresh token, preserving other devices. Existing access JWTs can remain valid until their expiry; the client must clear its local credentials on successful logout. See [Supabase sign-out behavior](https://supabase.com/docs/guides/auth/signout).
 
 ---
 

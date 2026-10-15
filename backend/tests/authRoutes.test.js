@@ -1,11 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import app from '../src/server.js';
-import { supabase } from '../src/supabase.js';
+import * as clients from '../src/supabase.js';
+const { supabase } = clients;
+const requestAuth = { auth: { signUp: vi.fn(), signInWithPassword: vi.fn() } };
+const scoped = { from: vi.fn() };
 
 describe('Auth Endpoints (/api/auth)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.spyOn(clients, 'createAuthClient').mockReturnValue(requestAuth);
+    vi.spyOn(clients, 'createScopedClient').mockReturnValue(scoped);
   });
 
   describe('POST /api/auth/signup', () => {
@@ -40,7 +45,7 @@ describe('Auth Endpoints (/api/auth)', () => {
       const mockUser = { id: 'usr-new-1', email: 'new@example.com' };
       const mockSession = { access_token: 'tok-abc', refresh_token: 'ref-abc' };
 
-      vi.spyOn(supabase.auth, 'signUp').mockResolvedValue({
+      vi.spyOn(requestAuth.auth, 'signUp').mockResolvedValue({
         data: { user: mockUser, session: mockSession },
         error: null
       });
@@ -56,7 +61,7 @@ describe('Auth Endpoints (/api/auth)', () => {
     });
 
     it('returns error status if user already registered or Supabase returns error', async () => {
-      vi.spyOn(supabase.auth, 'signUp').mockResolvedValue({
+      vi.spyOn(requestAuth.auth, 'signUp').mockResolvedValue({
         data: { user: null, session: null },
         error: { message: 'User already registered', status: 422, name: 'AuthApiError' }
       });
@@ -80,7 +85,7 @@ describe('Auth Endpoints (/api/auth)', () => {
     });
 
     it('returns 401 when invalid credentials are provided', async () => {
-      vi.spyOn(supabase.auth, 'signInWithPassword').mockResolvedValue({
+      vi.spyOn(requestAuth.auth, 'signInWithPassword').mockResolvedValue({
         data: { user: null, session: null },
         error: { message: 'Invalid login credentials', status: 400 }
       });
@@ -98,7 +103,7 @@ describe('Auth Endpoints (/api/auth)', () => {
       const mockUser = { id: 'usr-10', email: 'user@example.com' };
       const mockSession = { access_token: 'jwt-xyz', expires_in: 3600 };
 
-      vi.spyOn(supabase.auth, 'signInWithPassword').mockResolvedValue({
+      vi.spyOn(requestAuth.auth, 'signInWithPassword').mockResolvedValue({
         data: { user: mockUser, session: mockSession },
         error: null
       });
@@ -145,7 +150,7 @@ describe('Auth Endpoints (/api/auth)', () => {
         error: null
       });
 
-      vi.spyOn(supabase, 'from').mockReturnValue({
+      vi.spyOn(scoped, 'from').mockReturnValue({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
             maybeSingle: vi.fn().mockResolvedValue({ data: mockProfile, error: null })
@@ -164,8 +169,31 @@ describe('Auth Endpoints (/api/auth)', () => {
   });
 
   describe('POST /api/auth/logout', () => {
+    it('rejects missing credentials', async () => {
+      const signOut = vi.spyOn(supabase.auth.admin, 'signOut');
+      const res = await request(app).post('/api/auth/logout');
+      expect(res.status).toBe(401);
+      expect(signOut).not.toHaveBeenCalled();
+    });
+
+    it('rejects invalid tokens without signing out another session', async () => {
+      vi.spyOn(supabase.auth, 'getUser').mockResolvedValue({ data: { user: null }, error: { message: 'Invalid token' } });
+      const signOut = vi.spyOn(supabase.auth.admin, 'signOut');
+      const res = await request(app).post('/api/auth/logout').set('Authorization', 'Bearer invalid');
+      expect(res.status).toBe(401);
+      expect(signOut).not.toHaveBeenCalled();
+    });
+
+    it('reports revocation failures instead of claiming success', async () => {
+      vi.spyOn(supabase.auth, 'getUser').mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null });
+      vi.spyOn(supabase.auth.admin, 'signOut').mockResolvedValue({ error: { message: 'Unavailable' } });
+      const res = await request(app).post('/api/auth/logout').set('Authorization', 'Bearer valid-token');
+      expect(res.status).toBe(502);
+    });
+
     it('returns 200 and success message on logout', async () => {
-      vi.spyOn(supabase.auth, 'signOut').mockResolvedValue({ error: null });
+      vi.spyOn(supabase.auth, 'getUser').mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null });
+      const signOut = vi.spyOn(supabase.auth.admin, 'signOut').mockResolvedValue({ error: null });
 
       const res = await request(app)
         .post('/api/auth/logout')
@@ -173,6 +201,33 @@ describe('Auth Endpoints (/api/auth)', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Logged out successfully');
+      expect(signOut).toHaveBeenCalledWith('valid-token', 'local');
     });
+  });
+
+  it('isolates profile reads for concurrent users', async () => {
+    vi.spyOn(supabase.auth, 'getUser').mockImplementation(async (token) => ({ data: { user: { id: token } }, error: null }));
+    const sharedQuery = vi.spyOn(supabase, 'from');
+    vi.spyOn(clients, 'createScopedClient').mockImplementation((token) => ({
+      from: () => ({ select: () => ({ eq: (column, id) => ({
+        maybeSingle: async () => {
+          expect(id).toBe(token);
+          return { data: { id: token }, error: null };
+        }
+      }) }) })
+    }));
+    const responses = await Promise.all(['user-a', 'user-b'].map((token) =>
+      request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`)
+    ));
+    expect(responses.map((res) => res.body.profile.id)).toEqual(['user-a', 'user-b']);
+    expect(sharedQuery).not.toHaveBeenCalled();
+  });
+
+  it('does not expose database errors from profile reads', async () => {
+    vi.spyOn(supabase.auth, 'getUser').mockResolvedValue({ data: { user: { id: 'user-a' } }, error: null });
+    scoped.from.mockReturnValue({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: { message: 'private database detail' } }) }) }) });
+    const res = await request(app).get('/api/auth/me').set('Authorization', 'Bearer user-a');
+    expect(res.status).toBe(500);
+    expect(JSON.stringify(res.body)).not.toContain('private database detail');
   });
 });

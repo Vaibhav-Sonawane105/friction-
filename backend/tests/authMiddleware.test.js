@@ -81,6 +81,16 @@ describe('requireAuth Middleware', () => {
     expect(next).not.toHaveBeenCalled();
   });
 
+  it('rejects a header containing multiple tokens before contacting Supabase', async () => {
+    const verify = vi.spyOn(supabase.auth, 'getUser');
+    const res = createMockRes();
+    const next = vi.fn();
+    await requireAuth({ headers: { authorization: 'Bearer token-a token-b' } }, res, next);
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(verify).not.toHaveBeenCalled();
+    expect(next).not.toHaveBeenCalled();
+  });
+
   it('attaches req.user and req.token and calls next() when token is valid', async () => {
     const mockUser = { id: 'usr-1234', email: 'verified@example.com' };
 

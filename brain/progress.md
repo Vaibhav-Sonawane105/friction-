@@ -8,10 +8,10 @@
 
 ## 1. Quick State Snapshot
 
-* **Current Active Phase:** Phase 2 Complete & Verified ──► Ready for Phase 3 (Subscription System) or Phase 1 Enhancement
-* **Current Status:** Backend, Supabase Auth, and Optional Cloud Sync fully implemented and verified (50/50 tests passing in backend, 20/20 in extension).
+* **Current Active Phase:** Pre-release hardening — Step 1: authentication and database permissions
+* **Current Status:** Authentication fixes implemented locally with 58/58 backend tests passing. Owner confirmed the Supabase permission SQL tests completed without errors. Extension baseline: 20/20 tests, lint, and build passed during the project review. Backend API foundations exist; extension account/cloud-sync integration and production deployment remain incomplete.
 * **Active Working Directory:** `backend/`
-* **Current Focus:** Phase 3 (Subscription System / Payment Integration) or Phase 1 Enhancement (Progressive Challenge Levels 1–4).
+* **Current Focus:** Finish live signup/login/profile/logout verification, then stabilize unlock handling. Continue with extension/backend integration, staging verification, store-release preparation, and finally synchronization of all brain documents. Ask for approval before any further brain-file edits; never push to GitHub without permission.
 
 ---
 
@@ -33,7 +33,7 @@
 * **Extension Standard:** Chrome Manifest V3 (`storage`, `tabs`, `webNavigation`, `content_scripts`, `web_accessible_resources`).
 * **Tech Stack:**
   * Frontend: React 19, Vite, Tailwind CSS v4 (`@tailwindcss/vite`), custom SVG icons from `public/assets/logos/`.
-  * Testing: Vitest (20/20 tests passing in extension, 50/50 in backend).
+  * Testing: Vitest (20/20 extension baseline tests; 58/58 backend tests after authentication hardening).
   * Linting: ESLint (0 errors, 0 warnings).
   * Storage: Local-first (`chrome.storage.local` with `localStorage` dev fallback).
 
@@ -42,7 +42,7 @@
 ## 3. Chronological Execution Graph
 
 ```text
-[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync (Phase 2 Complete)]
+[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync API] ──► [M010: Authentication & Database Permission Hardening]
 ```
 
 ### Milestone Log
@@ -179,6 +179,31 @@
   * Extension test suite: 20/20 passing tests.
 * **State:** Phase 2 (Backend & Authentication) complete and fully verified.
 
+#### `[M010]` Authentication & Database Permission Hardening
+* **Date:** 2026-10-15
+* **Authorization:** Owner explicitly authorized this progress.md update. No other brain files were updated; no GitHub push or commit was performed by the assistant.
+* **Summary:**
+  * Added fresh, non-persistent Supabase clients for signup/login and disabled server-side session persistence, automatic refresh, and URL-session detection.
+  * Scoped `/api/auth/me` database reads to the caller's bearer token and return a generic error when the profile query fails.
+  * Required valid authentication for logout and explicitly revoke the supplied token's session with local scope; return a failure response if revocation fails. Existing access JWTs may remain valid until expiry.
+  * Rejected malformed authorization headers containing multiple tokens.
+  * Added `backend/supabase/migrations/20261015000002_harden_permissions.sql`: removes client profile writes (including subscription fields), retains trusted service-role updates, enforces website-sync/analytics consent with restrictive RLS policies, and locks down the privileged signup trigger function.
+  * Added rollback-based database assertions in `backend/supabase/tests/permissions.sql` and updated backend Supabase setup documentation.
+  * Added regressions for client isolation, concurrent profile requests, unauthorized logout, revocation failures, malformed tokens, and profile-query errors.
+* **Verification:**
+  * Backend automated suite: **58/58 tests passed** across 5 files. HTTP-based tests required running outside the filesystem/network sandbox to allow loopback connections.
+  * Owner reported the supplied Supabase permission test script finished **without errors**. This is owner-confirmed execution, not direct assistant observation; the project/environment was not independently identified.
+  * The script checks profile-field protection, user isolation, consent enforcement, anonymous profile denial, and trusted billing updates, then rolls back temporary fixtures.
+  * `git diff --check` passed.
+* **Remaining work / corrections to earlier completion claims:**
+  * Live signup, login, profile retrieval, and logout after these changes still need verification.
+  * Optional cloud sync currently consists of backend endpoints; the extension has no account UI or sync client yet.
+  * The health endpoint's `getSession()` call does not prove live Supabase connectivity; the schema checker does not prove RLS enforcement.
+  * Advanced challenge levels, including the persistent Level 4 timer, remain planned and are not implemented. Earlier references to their offline resilience describe intended architecture.
+  * Unlock handling still needs navigation/session cleanup, correct domain boundaries, protection against repeated submissions, and safe concurrent storage updates.
+  * Production backend hosting and store publication are not verified.
+* **State:** Local authentication hardening tested and database permission checks confirmed by owner; live authentication verification remains pending before closing Step 1.
+
 ---
 
 ## 4. Current Work in Progress
@@ -206,3 +231,19 @@
 - [x] **Task 2.7:** Implement Supabase Auth endpoints (signup, login, session token validation).
 - [x] **Task 2.8:** Configure Row Level Security (RLS) policies for data isolation.
 - [x] **Task 2.9:** Implement optional cloud synchronization for settings and history while preserving offline-first blocking.
+
+
+### Pre-release Hardening Checklist (Current)
+- [x] Implement request-isolated authentication clients and token-scoped profile reads.
+- [x] Bind logout to the validated caller session and handle failures.
+- [x] Prepare database permission migration and rollback-based SQL assertions.
+- [x] Pass backend regression suite (58/58).
+- [x] Obtain owner confirmation that Supabase permission assertions completed without errors.
+- [ ] Verify live signup, login, profile access, and logout after the fixes.
+- [ ] Stabilize unlock handling and verify real Chrome lifecycle behavior.
+- [ ] Complete extension account and optional cloud-sync integration.
+- [ ] Verify the integrated product in staging.
+- [ ] Prepare the Chrome Web Store release.
+- [ ] Synchronize all brain documents as the final documentation step, with owner approval before editing.
+
+Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010, and the pre-release checklist.

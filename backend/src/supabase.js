@@ -10,7 +10,19 @@ if (!supabaseUrl || !supabaseKey) {
   console.warn('Warning: SUPABASE_URL or SUPABASE_ANON_KEY is missing in environment variables.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Never retain a user's session in the long-lived API process.
+const serverAuth = {
+  persistSession: false,
+  autoRefreshToken: false,
+  detectSessionInUrl: false,
+};
+
+export function createAuthClient() {
+  return createClient(supabaseUrl, supabaseKey, { auth: serverAuth });
+}
+
+// Used only for operations with an explicit token (getUser / admin.signOut).
+export const supabase = createAuthClient();
 
 /**
  * Creates an authenticated Supabase client scoped to a user's JWT.
@@ -18,6 +30,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
  */
 export function createScopedClient(token) {
   return createClient(supabaseUrl, supabaseKey, {
+    auth: serverAuth,
     global: {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     }

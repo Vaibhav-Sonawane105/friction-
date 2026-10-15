@@ -16,13 +16,17 @@ export async function requireAuth(req, res, next) {
       });
     }
 
-    const token = authHeader.split(' ')[1]?.trim();
+    const token = authHeader.slice(7).trim();
 
     if (!token) {
       return res.status(401).json({
         error: 'Unauthorized',
         message: 'Empty authentication token provided'
       });
+    }
+
+    if (/\s/.test(token)) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Malformed authentication token' });
     }
 
     const { data: { user }, error } = await supabase.auth.getUser(token);
