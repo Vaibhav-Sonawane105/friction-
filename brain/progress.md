@@ -8,10 +8,10 @@
 
 ## 1. Quick State Snapshot
 
-* **Current Active Phase:** Pre-release hardening — Step 1: authentication and database permissions
-* **Current Status:** Authentication fixes implemented locally with 58/58 backend tests passing. Owner confirmed the Supabase permission SQL tests completed without errors. Extension baseline: 20/20 tests, lint, and build passed during the project review. Backend API foundations exist; extension account/cloud-sync integration and production deployment remain incomplete.
-* **Active Working Directory:** `backend/`
-* **Current Focus:** Finish live signup/login/profile/logout verification, then stabilize unlock handling. Continue with extension/backend integration, staging verification, store-release preparation, and finally synchronization of all brain documents. Ask for approval before any further brain-file edits; never push to GitHub without permission.
+* **Current Active Phase:** Pre-release hardening — Step 2: unlock handling implemented; preparing for extension/backend integration
+* **Current Status:** Authentication hardening has 58/58 backend tests passing and owner-confirmed Supabase permission checks. Unlock handling fixes are implemented, with Chrome checklist completion confirmed by the owner. During implementation, 37/37 extension tests, lint, and build passed; the additional lifecycle test file is now absent, so the current suite was rerun and passes 20/20 tests across 3 files. Extension account/cloud-sync integration and production deployment remain incomplete.
+* **Active Working Directory:** `extension/`
+* **Current Focus:** Next: extension/backend integration, including outstanding live signup/login/profile/logout verification. Then verify in staging, prepare the store release, and synchronize all brain documents as the final step. Ask for approval before further brain-file edits; never push to GitHub without permission.
 
 ---
 
@@ -33,16 +33,16 @@
 * **Extension Standard:** Chrome Manifest V3 (`storage`, `tabs`, `webNavigation`, `content_scripts`, `web_accessible_resources`).
 * **Tech Stack:**
   * Frontend: React 19, Vite, Tailwind CSS v4 (`@tailwindcss/vite`), custom SVG icons from `public/assets/logos/`.
-  * Testing: Vitest (20/20 extension baseline tests; 58/58 backend tests after authentication hardening).
+  * Testing: Vitest (current extension suite: 20/20; earlier unlock-hardening suite: 37/37 before the lifecycle test file became absent; backend: 58/58 after authentication hardening).
   * Linting: ESLint (0 errors, 0 warnings).
-  * Storage: Local-first (`chrome.storage.local` with `localStorage` dev fallback).
+  * Storage: Local-first (`chrome.storage.local` with `localStorage` dev fallback). Background-worker writes are serialized; progression and unlock sessions are saved together. A browser-lifetime identifier in `chrome.storage.session` expires temporary unlocks after browser restart/extension reload while preserving them through worker restarts. Chrome 106+ is required.
 
 ---
 
 ## 3. Chronological Execution Graph
 
 ```text
-[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync API] ──► [M010: Authentication & Database Permission Hardening]
+[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync API] ──► [M010: Authentication & Database Permission Hardening] ──► [M011: Unlock Lifecycle Hardening]
 ```
 
 ### Milestone Log
@@ -204,6 +204,25 @@
   * Production backend hosting and store publication are not verified.
 * **State:** Local authentication hardening tested and database permission checks confirmed by owner; live authentication verification remains pending before closing Step 1.
 
+#### `[M011]` Unlock Lifecycle Hardening
+* **Date:** 2026-10-15
+* **Authorization:** Owner explicitly approved this progress.md update before their commit/push. No other brain files were edited, and the assistant did not commit or push.
+* **Summary:**
+  * Centralized production settings and unlock writes in the background worker, ordering browser events and runtime requests to prevent concurrent overwrites.
+  * Combined successful-unlock progression and tab-session updates into one storage write; repeated completions in the same active session do not increment the count again.
+  * Replaced separate unlock/count messages with `COMPLETE_UNLOCK`, bound to the sender's top-level tab and checked against the current document/domain. Legacy unlock messages and content-script settings writes are rejected.
+  * Moved navigation cleanup into background tab/navigation listeners, including destinations without content scripts. Domain matching respects exact hosts and actual subdomains, not suffix lookalikes.
+  * Invalidated temporary sessions across browser restart/extension reload using a session-storage epoch while retaining website settings and progression. Worker restarts preserve active sessions. Old untagged sessions expire on upgrade.
+  * Added submission guards and a saving state. Failed storage writes retain the challenge and allow retry; the overlay closes only after successful persistence.
+  * Added stale-status checks, Back/Forward page restoration checks, settings-change notifications for open tabs, and visible popup load/remove errors.
+  * Added Chrome 106 minimum version and retained `extension/TESTING.md` as the repeatable browser verification checklist.
+* **Verification:**
+  * During implementation: **37/37 extension tests passed** across 4 files; ESLint and production build passed.
+  * Owner subsequently confirmed that all manual Chrome checklist tests passed. This is owner-reported verification; the assistant's browser attempt was stopped by Computer Use because it could not confidently determine Chrome's current URL.
+  * Before this documentation update, `extension/src/services/unlockLifecycle.test.js` was found absent. The current suite was rerun: **20/20 tests passed** across 3 files. The earlier 17 additional lifecycle cases are therefore not present in the current automated suite. The missing file was not restored during this documentation-only task.
+  * No backend changes were made during unlock hardening; 58/58 is the previously verified backend result.
+* **State:** Unlock fixes implemented and manual Chrome checks confirmed by owner. Preserve the test-count distinction above; restoring the missing lifecycle regression suite is recommended before release. Live account-flow verification and extension/backend integration remain pending.
+
 ---
 
 ## 4. Current Work in Progress
@@ -240,10 +259,11 @@
 - [x] Pass backend regression suite (58/58).
 - [x] Obtain owner confirmation that Supabase permission assertions completed without errors.
 - [ ] Verify live signup, login, profile access, and logout after the fixes.
-- [ ] Stabilize unlock handling and verify real Chrome lifecycle behavior.
+- [x] Stabilize unlock handling and verify real Chrome lifecycle behavior (owner-confirmed checklist completion; see M011).
+- [ ] Restore the absent unlock lifecycle regression suite before release (current automated suite contains only the original 20 tests).
 - [ ] Complete extension account and optional cloud-sync integration.
 - [ ] Verify the integrated product in staging.
 - [ ] Prepare the Chrome Web Store release.
 - [ ] Synchronize all brain documents as the final documentation step, with owner approval before editing.
 
-Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010, and the pre-release checklist.
+Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010/M011, and the pre-release checklist.

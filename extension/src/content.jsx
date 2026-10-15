@@ -156,6 +156,11 @@ async function evaluateCurrentPage() {
       url,
     });
 
+    if (window.location.href !== url) return;
+    if (!response || response.success === false) {
+      throw new Error(response?.error || 'Could not check restriction status.');
+    }
+
     if (response?.shouldBlock) {
       mountBlockedOverlay({
         domain: response.matchedDomain,
@@ -184,6 +189,7 @@ if (document.readyState === 'loading') {
 // Listen for SPA navigation and URL changes
 window.addEventListener('popstate', evaluateCurrentPage);
 window.addEventListener('hashchange', evaluateCurrentPage);
+window.addEventListener('pageshow', evaluateCurrentPage);
 
 // Listen for messages from background service worker (e.g. TAB_URL_UPDATED)
 if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {

@@ -12,18 +12,26 @@ import {
 export function PopupPage() {
   const [domains, setDomains] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const loadDomains = async () => {
     try {
       const list = await getBlockedDomains();
       setDomains(list);
+    } catch (err) {
+      setError(err.message || 'Could not load settings. Reopen the popup to try again.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadDomains();
+    let active = true;
+    getBlockedDomains().then(
+      (list) => { if (active) setDomains(list); },
+      (err) => { if (active) setError(err.message || 'Could not load settings. Reopen the popup to try again.'); }
+    ).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, []);
 
   const handleAdd = async (newDomain) => {
@@ -32,8 +40,13 @@ export function PopupPage() {
   };
 
   const handleRemove = async (domain) => {
-    await removeBlockedDomain(domain);
-    await loadDomains();
+    try {
+      setError('');
+      await removeBlockedDomain(domain);
+      await loadDomains();
+    } catch (err) {
+      setError(err.message || 'Could not remove this website. Please try again.');
+    }
   };
 
   return (
@@ -41,6 +54,7 @@ export function PopupPage() {
       <Header />
       <LimitNotice currentCount={domains.length} />
       <DomainForm onAddDomain={handleAdd} currentCount={domains.length} />
+      {error && <p role="alert" className="text-sm text-[#F24822]">{error}</p>}
       <div className="flex-1">
         {loading ? (
           <div className="text-center py-8 text-xs text-[#555555]">

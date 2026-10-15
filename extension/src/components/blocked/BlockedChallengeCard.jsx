@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ProtectionIcon, ArrowExitIcon, DoneIcon, SparklesIcon } from '../common/Icons';
 import { validateAnswer } from '../../utils/mathGenerator';
 
@@ -12,9 +12,13 @@ export function BlockedChallengeCard({
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const submitting = useRef(false);
+
+  const handleSubmit = async (e) => {
     if (e) e.preventDefault();
+    if (submitting.current || isSuccess) return;
     if (!solution.trim()) {
       setHasError(true);
       setErrorMessage('Please enter a solution.');
@@ -27,20 +31,22 @@ export function BlockedChallengeCard({
     if (isCorrect) {
       setHasError(false);
       setErrorMessage('');
-      setIsSuccess(true);
-      if (onSuccess) {
-        onSuccess();
+      submitting.current = true;
+      setIsSubmitting(true);
+      try {
+        await onSuccess?.();
+        setIsSuccess(true);
+      } catch (error) {
+        submitting.current = false;
+        setHasError(true);
+        setErrorMessage(error.message || 'Could not save unlock. Please try again.');
+      } finally {
+        setIsSubmitting(false);
       }
     } else {
       setHasError(true);
       setErrorMessage('Incorrect solution. Recalculate carefully!');
       setTimeout(() => setHasError(false), 500);
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      handleSubmit(e);
     }
   };
 
@@ -132,7 +138,6 @@ export function BlockedChallengeCard({
                 if (hasError) setHasError(false);
                 if (errorMessage) setErrorMessage('');
               }}
-              onKeyDown={handleKeyDown}
               placeholder="Enter Solution..."
               autoFocus
               className="bg-white border-2 border-black rounded-xl shadow-brutal-input px-5 h-14 sm:h-16 w-56 sm:w-60 md:w-64 text-center font-istok text-base sm:text-lg md:text-xl font-bold text-black placeholder:text-base sm:placeholder:text-lg placeholder:text-[#888888] placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-black/20"
@@ -141,11 +146,11 @@ export function BlockedChallengeCard({
             {/* Submit Button - Enlarged text & icon, matching input size */}
             <button
               type="submit"
-              disabled={isSuccess}
+              disabled={isSuccess || isSubmitting || !challenge}
               className="cursor-pointer bg-white border-2 border-black rounded-xl shadow-brutal-submit px-5 h-14 sm:h-16 w-56 sm:w-60 md:w-64 flex items-center justify-center gap-2.5 sm:gap-3 hover:bg-[#F9F9F9] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all select-none"
             >
               <span className="font-istok font-bold text-base sm:text-lg md:text-xl text-black leading-none">
-                {isSuccess ? 'Unlocked!' : 'Submit'}
+                {isSuccess ? 'Unlocked!' : isSubmitting ? 'Saving...' : 'Submit'}
               </span>
               <DoneIcon className="w-6 h-6 sm:w-7 sm:h-7 text-[#757575]" />
             </button>

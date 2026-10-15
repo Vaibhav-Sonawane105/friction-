@@ -22,8 +22,9 @@ function isChromeStorageAvailable() {
 
 async function getFromStorage(key, defaultValue = null) {
   if (isChromeStorageAvailable()) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       chrome.storage.local.get([key], (result) => {
+        if (chrome.runtime?.lastError) return reject(new Error(chrome.runtime.lastError.message));
         resolve(result[key] !== undefined ? result[key] : defaultValue);
       });
     });
@@ -39,8 +40,9 @@ async function getFromStorage(key, defaultValue = null) {
 
 async function setToStorage(key, value) {
   if (isChromeStorageAvailable()) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       chrome.storage.local.set({ [key]: value }, () => {
+        if (chrome.runtime?.lastError) return reject(new Error(chrome.runtime.lastError.message));
         resolve(true);
       });
     });
@@ -50,7 +52,7 @@ async function setToStorage(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
     return true;
   } catch {
-    return false;
+    throw new Error('Could not save extension settings. Please try again.');
   }
 }
 
@@ -67,7 +69,7 @@ export async function getBlockedDomains() {
  * Adds a new domain to the block list.
  * Respects FREE_TIER_DOMAIN_LIMIT.
  */
-export async function addBlockedDomain(rawDomain) {
+async function addBlockedDomainLocal(rawDomain) {
   const domain = normalizeDomain(rawDomain);
   if (!domain) {
     throw new Error('Please enter a valid website domain.');
@@ -99,31 +101,39 @@ export async function addBlockedDomain(rawDomain) {
 /**
  * Removes a domain from the block list.
  */
-export async function removeBlockedDomain(domainToRemove) {
+async function removeBlockedDomainLocal(domainToRemove) {
   const domain = normalizeDomain(domainToRemove);
   const existing = await getBlockedDomains();
   const updated = existing.filter((item) => item.domain !== domain);
-  await setToStorage(STORAGE_KEYS.BLOCKED_DOMAINS, updated);
+  const sessions = await getUnlockSessions();
+  for (const [tabId, session] of Object.entries(sessions)) {
+    if (session.domain === domain) delete sessions[tabId];
+  }
+  await setValues({ [STORAGE_KEYS.BLOCKED_DOMAINS]: updated, [STORAGE_KEYS.UNLOCK_SESSIONS]: sessions });
   return updated;
 }
 
 /**
  * Toggles enabled status of a domain.
  */
-export async function toggleDomainEnabled(domainToToggle) {
+async function toggleDomainEnabledLocal(domainToToggle) {
   const domain = normalizeDomain(domainToToggle);
   const existing = await getBlockedDomains();
   const updated = existing.map((item) =>
     item.domain === domain ? { ...item, enabled: !item.enabled } : item
   );
-  await setToStorage(STORAGE_KEYS.BLOCKED_DOMAINS, updated);
+  const sessions = await getUnlockSessions();
+  for (const [tabId, session] of Object.entries(sessions)) {
+    if (session.domain === domain) delete sessions[tabId];
+  }
+  await setValues({ [STORAGE_KEYS.BLOCKED_DOMAINS]: updated, [STORAGE_KEYS.UNLOCK_SESSIONS]: sessions });
   return updated;
 }
 
 /**
  * Increments difficulty and successful unlock count for a website after a correct challenge.
  */
-export async function recordSuccessfulUnlock(domain) {
+async function recordSuccessfulUnlockLocal(domain) {
   const normalized = normalizeDomain(domain);
   const existing = await getBlockedDomains();
 
@@ -155,18 +165,20 @@ export async function recordSuccessfulUnlock(domain) {
  */
 export async function getUnlockSessions() {
   const sessions = await getFromStorage(STORAGE_KEYS.UNLOCK_SESSIONS, {});
-  return sessions && typeof sessions === 'object' ? sessions : {};
+  const epoch = await getSessionEpoch();
+  return Object.fromEntries(Object.entries(sessions || {}).filter(([, session]) => session.epoch === epoch));
 }
 
 /**
  * Sets a tab session as unlocked for a given domain.
  */
-export async function setTabUnlocked(tabId, domain) {
+async function setTabUnlockedLocal(tabId, domain) {
   const normalized = normalizeDomain(domain);
   const sessions = await getUnlockSessions();
   sessions[String(tabId)] = {
     domain: normalized,
     unlockedAt: Date.now(),
+    epoch: await getSessionEpoch(),
   };
   await setToStorage(STORAGE_KEYS.UNLOCK_SESSIONS, sessions);
 }
@@ -174,10 +186,100 @@ export async function setTabUnlocked(tabId, domain) {
 /**
  * Clears an unlock session for a specific tab.
  */
-export async function clearTabSession(tabId) {
+async function clearTabSessionLocal(tabId) {
   const sessions = await getUnlockSessions();
   if (sessions[String(tabId)]) {
     delete sessions[String(tabId)];
     await setToStorage(STORAGE_KEYS.UNLOCK_SESSIONS, sessions);
+  }
+}
+
+
+let backgroundWriter = false;
+let mutationTail = Promise.resolve();
+let epochPromise;
+
+export function enableBackgroundWriter() {
+  backgroundWriter = true;
+}
+
+async function getSessionEpoch() {
+  if (!globalThis.chrome?.storage?.session) return 'preview';
+  if (!epochPromise) {
+    epochPromise = (async () => {
+      const stored = await chrome.storage.session.get('pf_session_epoch');
+      if (stored.pf_session_epoch) return stored.pf_session_epoch;
+      const epoch = crypto.randomUUID();
+      await chrome.storage.session.set({ pf_session_epoch: epoch });
+      return epoch;
+    })().catch((error) => { epochPromise = null; throw error; });
+  }
+  return epochPromise;
+}
+
+function mutate(operation, args) {
+  if (!backgroundWriter && globalThis.chrome?.runtime?.sendMessage) {
+    return chrome.runtime.sendMessage({ type: 'MUTATE_STORAGE', operation, args }).then((response) => {
+      if (!response?.success) throw new Error(response?.error || 'Could not save extension state.');
+      return response.result;
+    });
+  }
+  const result = mutationTail.then(() => storageOperations[operation](...args));
+  mutationTail = result.catch(() => {});
+  return result;
+}
+
+// One storage.set commits both values so unlock retries cannot count twice.
+async function completeUnlockLocal(tabId, domain) {
+  const sessions = await getUnlockSessions();
+  const normalized = normalizeDomain(domain);
+  if (sessions[String(tabId)]?.domain === normalized) return { alreadyUnlocked: true };
+  const domains = await getBlockedDomains();
+  const entry = domains.find((item) => item.domain === normalized && item.enabled !== false);
+  if (!entry) throw new Error('This website is no longer restricted.');
+  const record = {
+    ...entry,
+    difficultyLevel: Math.min(10, (entry.difficultyLevel || 1) + 1),
+    successfulUnlockCount: (entry.successfulUnlockCount || 0) + 1,
+    lastUnlockedAt: Date.now(),
+  };
+  sessions[String(tabId)] = { domain: normalized, unlockedAt: Date.now(), epoch: await getSessionEpoch() };
+  const values = {
+    [STORAGE_KEYS.BLOCKED_DOMAINS]: domains.map((item) => item.domain === normalized ? record : item),
+    [STORAGE_KEYS.UNLOCK_SESSIONS]: sessions,
+  };
+  await setValues(values);
+  return { record };
+}
+
+export const storageOperations = {
+  addBlockedDomain: addBlockedDomainLocal,
+  removeBlockedDomain: removeBlockedDomainLocal,
+  toggleDomainEnabled: toggleDomainEnabledLocal,
+  completeUnlock: completeUnlockLocal,
+};
+
+export const addBlockedDomain = (...args) => mutate('addBlockedDomain', args);
+export const removeBlockedDomain = (...args) => mutate('removeBlockedDomain', args);
+export const toggleDomainEnabled = (...args) => mutate('toggleDomainEnabled', args);
+export const completeUnlock = (...args) => mutate('completeUnlock', args);
+// Internal lifecycle helpers are never exposed through runtime messages.
+Object.assign(storageOperations, {
+  recordSuccessfulUnlock: recordSuccessfulUnlockLocal,
+  setTabUnlocked: setTabUnlockedLocal,
+  clearTabSession: clearTabSessionLocal,
+});
+export const recordSuccessfulUnlock = (...args) => mutate('recordSuccessfulUnlock', args);
+export const setTabUnlocked = (...args) => mutate('setTabUnlocked', args);
+export const clearTabSession = (...args) => mutate('clearTabSession', args);
+
+async function setValues(values) {
+  if (isChromeStorageAvailable()) {
+    await new Promise((resolve, reject) => chrome.storage.local.set(values, () => {
+      if (chrome.runtime?.lastError) reject(new Error(chrome.runtime.lastError.message));
+      else resolve();
+    }));
+  } else {
+    for (const [key, value] of Object.entries(values)) await setToStorage(key, value);
   }
 }

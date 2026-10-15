@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import { BlockedChallengeCard } from './BlockedChallengeCard';
 import { generateChallenge } from '../../utils/mathGenerator';
 import {
-  recordSuccessfulUnlock,
-  setTabUnlocked,
+  completeUnlock,
   getBlockedDomains,
 } from '../../services/storage';
 
@@ -36,27 +35,11 @@ export function BlockedOverlay({
   }, [domain, initialLevel]);
 
   const handleSuccess = async () => {
-    try {
-      // 1. Record unlock and update difficulty in storage
-      if (domain) {
-        await recordSuccessfulUnlock(domain);
-      }
-
-      // 2. Mark this tab as unlocked
-      if (tabId) {
-        await setTabUnlocked(tabId, domain);
-      }
-
-      // 3. Inform background service worker
-      if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
-        chrome.runtime.sendMessage({
-          type: 'UNLOCK_TAB',
-          tabId,
-          domain,
-        });
-      }
-    } catch (err) {
-      console.warn('[Progressive Friction] Unlock record error:', err);
+    if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+      const response = await chrome.runtime.sendMessage({ type: 'COMPLETE_UNLOCK', domain });
+      if (!response?.success) throw new Error(response?.error || 'Could not save unlock. Please try again.');
+    } else {
+      await completeUnlock(tabId ?? 'preview', domain);
     }
 
     // 4. Smoothly fade out before unmounting
