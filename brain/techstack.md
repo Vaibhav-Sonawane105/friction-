@@ -25,23 +25,42 @@ The application will be developed in phases, beginning with a fully functional l
 - Extension popup.
 - Website management interface.
 - Blocked-page experience.
-- Math challenge interface.
+- Progressive challenge interfaces (arithmetic, linear/intro-calculus equations, interactive puzzles, countdown timer).
 - Unlock and progression feedback.
-- Web-based dashboard in later phases.
+- Voluntary disable-flow modal and motivational sequence.
 
 **Phase:** 1–5
+
+### Next.js (Planned)
+**Purpose:** Framework for companion web dashboard.
+
+**Used for:**
+- Web-based user account and subscription management dashboard.
+- Analytics visualization and focus trends.
+- Cross-device settings review.
+
+**Phase:** 4
 
 ### JavaScript (ES Modules)
 **Purpose:** Primary programming language for the application.
 
 **Used for:**
 - Extension logic.
-- Challenge generation and validation.
+- Progressive challenge engines (Levels 1–4: arithmetic, algebraic/calculus generators, puzzle state, pause/resume timer logic).
 - Website and session management.
 - API communication.
 - Frontend interactions.
 
 **Phase:** 1–5
+
+### HTML5 Video & Media Handling
+**Purpose:** Display local motivational media sequences.
+
+**Used for:**
+- Voluntary in-extension flow before disabling the extension (e.g., motivational anime video sequence).
+- Licensed or original static video/audio asset playback bundled within the extension.
+
+**Phase:** 5 (and voluntary extension flow)
 
 ### Vite
 **Purpose:** Frontend development server and production build tool.
@@ -113,13 +132,14 @@ The application will be developed in phases, beginning with a fully functional l
 
 **Used for:**
 - User-selected website domains.
-- Per-website difficulty progression.
+- Per-website difficulty progression and cumulative unlock counts.
+- Level 4 countdown timer state (remaining duration, pause-on-exit, resume-on-return per domain).
 - Temporary unlock session records.
 - Local preferences and focus settings.
 
-**Phase:** 1
+**Phase:** 1 & Phase 1 Enhancement
 
-Local extension storage is the default for the core blocking experience. Cloud synchronization will be introduced selectively in Phase 2.
+Local extension storage is the default for the core blocking experience and challenge progression. The Level 4 timer and puzzle selections execute strictly local-first. Cloud synchronization will be introduced selectively in Phase 2.
 
 ---
 
@@ -230,10 +250,14 @@ A compatible Vite configuration or extension build plugin will be selected durin
 
 ## 6. Subscription and Payment Technologies
 
-### Payment Provider — To Be Selected
+### Payment Provider — Candidates Under Evaluation
 **Purpose:** Process subscription payments.
 
 The provider will be selected based on supported regions, recurring billing, fees, webhook reliability, and integration requirements.
+
+**Candidates under evaluation:**
+- **Razorpay:** Considered for an India-focused launch, subject to business eligibility and onboarding requirements.
+- **Stripe:** Considered for global coverage where the business entity and account are eligible.
 
 **Expected capabilities:**
 - Monthly and yearly plans.
@@ -276,13 +300,15 @@ Charts will use data needed for meaningful user insights. Detailed cloud analyti
 **Purpose:** Unit testing for JavaScript modules.
 
 **Used for:**
-- Math challenge generation.
-- Answer validation.
-- Difficulty progression.
+- Progressive challenge generators and solvers (Level 1 arithmetic, Level 2 linear/calculus equations).
+- Answer validation and puzzle state (Level 3 sequences, patterns, memory).
+- Level 4 countdown timer pause/resume math and state transitions.
+- Unlock-count boundary calculations (0–20, 21–30, 31–50, 51–70).
+- Difficulty progression and unlock counts.
 - Unlock-session expiry calculations.
 - Website-domain normalization.
 
-**Phase:** 1–5
+**Phase:** 1–5 (including Phase 1 Enhancement)
 
 ### React Testing Library — Planned
 **Purpose:** Test React components and user interactions.
@@ -372,16 +398,17 @@ Supabase will manage the database and authentication services. It is not a repla
 | Phase | Main Technologies |
 |---|---|
 | Phase 1 — Core Extension | React, JavaScript, Vite, Tailwind CSS, Chrome Manifest V3, Chrome APIs, Chrome Storage, Vitest |
+| Phase 1 Enhancement — Progressive Challenge Levels | Progressive challenge engines (arithmetic, linear/calculus equations, interactive puzzles, Level 4 persistent timer), local-first state storage |
 | Phase 2 — Backend & Authentication | Node.js, Express, Supabase Auth, PostgreSQL, Supabase client libraries, RLS |
-| Phase 3 — Subscription System | Express, Supabase, payment provider, server-side entitlement checks, webhooks |
-| Phase 4 — Dashboard & Analytics | React, Tailwind CSS, Recharts, PostgreSQL, Supabase |
-| Phase 5 — Signature Features | Existing stack, Chrome APIs, optional additional libraries where justified |
+| Phase 3 — Subscription System | Express, Supabase, payment provider (Razorpay / Stripe candidates), server-side entitlement checks, webhooks |
+| Phase 4 — Dashboard & Analytics | Next.js / React, Tailwind CSS, Recharts, PostgreSQL, Supabase |
+| Phase 5 — Signature Features | HTML5 video/audio playback, voluntary disable flow, focus schedules, Chrome APIs |
 
 ---
 
 ## 12. Architecture and Data Principles
 
-1. **Local-first blocking:** Website blocking, challenge validation, and difficulty progression should work without requiring a backend request for every navigation.
+1. **Local-first blocking and challenges:** Website blocking, progressive challenge selection (Levels 1–4), puzzle verification, and Level 4 timer pause/resume mechanics must work entirely offline without requiring network access, backend requests, or user login. Backend outages or being logged out must never break core blocking or challenge completion.
 2. **Minimal synchronization:** Sync only settings and history required for account features.
 3. **Privacy by default:** Do not upload complete browsing histories or detailed analytics by default.
 4. **Secure authentication:** Protect account data using Supabase Auth and database authorization policies.
@@ -392,18 +419,14 @@ Supabase will manage the database and authentication services. It is not a repla
 
 ---
 
-## 13. Decisions Still Open
+## 13. Technical Decisions Still Open
 
-The following decisions should be finalized only when their implementation phase approaches:
+The following technical decisions should be finalized when their implementation phase approaches:
 
-- Exact Vite extension build plugin or custom configuration.
-- Exact domain-blocking strategy and permission model.
-- Authentication method and account session handling.
+- Exact equation generators and difficulty ceilings for advanced challenge tiers.
+- Exact Level 3 interactive puzzle mechanics and accessible UI representations.
+- Authentication method and account session handling in the extension.
 - Express deployment provider.
-- Payment provider and supported payment methods.
-- Analytics event definitions and retention periods.
+- Final payment provider selection (Razorpay vs Stripe) and pricing tiers.
+- Analytics event definitions, retention periods, and opt-in UX.
 - Chrome Web Store publishing requirements.
-
-**Current implementation target:** Phase 1 — Core Extension.
-
-Do not integrate Supabase, Express, payment processing, or dashboard analytics into the initial build unless a specific Phase 1 requirement genuinely needs them.
