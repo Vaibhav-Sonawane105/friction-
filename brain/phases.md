@@ -2,14 +2,17 @@ Development Phases & Progress Tracker
 Purpose
 This document tracks the implementation progress of the Progressive Website Blocker Chrome extension.
 It defines the development phases, their objectives, implementation tasks, completion criteria, and dependencies.
-Current Phase: Phase 3 — Subscription System (or Phase 1 Enhancement — Progressive Challenge Levels)
-Current Status: Phase 1 (Core Extension) & Phase 2 (Backend & Authentication) Completed & Fully Verified.
-Overall Status: Core extension and full-stack backend foundations verified with 70 passing tests (20 in extension, 50 in backend).
+Current Phase: Phase 1 Enhancement — Progressive Challenge Levels (next implementation; not yet implemented).
+Current Status: Core arithmetic extension and account/website-sync foundations are implemented. Render Free staging works with owner-confirmed live acceptance. The intended product is not release-ready.
+Overall Status: Latest recorded automated results: 61 extension tests across 7 files and 72 backend tests across 6 files, plus extension lint/build. These are prior observed runs, not a fresh rerun for this documentation update. The separate unlock lifecycle regression suite remains absent; live account edge cases remain follow-ups (see progress.md).
+
+Agreed sequence: implement and verify progressive challenge Levels 1–4 next; then continue Phase 3 subscriptions, Phase 4 dashboard/analytics and Phase 5 signature features in order unless the owner changes priorities. Chrome Web Store preparation/publication is a later release decision, not the next phase merely because hosting works.
+Current implementation uses ten arithmetic difficulty tiers capped at 10, increasing after each successful unlock. Those tiers are not the planned four challenge-type levels below.
 Development Rules
 1. Work on one phase at a time unless a dependency requires otherwise.
 2. Do not start implementing a later phase simply because its features are described here.
 3. Break each phase into small, testable tasks before implementation.
-4. Update this document whenever a task is started, completed, postponed, or changed.
+4. With owner permission, update this document when a task is started, completed, postponed, or changed; do not edit brain files automatically.
 5. Never mark a task complete unless the implementation has been verified.
 6. Keep the project consistent with instructions.md, project.md, and ui.md.
 7. Avoid unnecessary complexity, premature optimization, and features outside the current scope.
@@ -17,7 +20,7 @@ Development Rules
 9. When a phase is completed, test its acceptance criteria before moving forward.
 10. If requirements change, update the relevant documentation before implementing significant architectural changes.
 Phase 1 — Core Extension
-Status: Completed & Fully Verified
+Status: Implemented; owner-confirmed browser acceptance. Missing lifecycle regression coverage remains a follow-up.
 Objective
 Build a functional Chrome extension that allows users to select distracting websites, block them, solve math challenges to unlock them temporarily, and experience increasing difficulty for repeated unlocks.
 Tasks
@@ -44,7 +47,7 @@ Completion Criteria
 - The extension handles refreshes, expired sessions, and invalid answers correctly.
 - Core functionality works without a backend or account.
 Phase 1 Enhancement — Progressive Challenge Levels
-Status: Planned — Not Implemented
+Status: Next active implementation — not yet implemented
 Objective
 Extend the verified basic-math challenge into a configurable progression of challenge types. This is an extension-side feature and must remain functional without authentication, network access, or the backend.
 Approved Level Design
@@ -81,7 +84,7 @@ Completion Criteria
 Dependency and sequencing
 This enhancement does not depend on the backend. Phase 2 can be developed independently because authentication and cloud sync must not control local challenge execution. However, the new levels must be implemented and verified before claiming the expanded challenge system is complete.
 Phase 2 — Backend & Authentication
-Status: Completed & Fully Verified
+Status: Foundations implemented; hosted login and website-list sync owner-confirmed. Remaining live refresh/revocation/email checks are tracked in progress.md.
 Objective
 Introduce a backend to support user accounts, authenticated API requests, cross-device settings, and unlock history.
 Tasks
@@ -91,15 +94,15 @@ Tasks
 - [x] Implement Row Level Security (RLS) policies to protect user data at the database level.
 - [x] Define user and settings data models in PostgreSQL.
 - [x] Implement synchronization of supported settings between local storage and Supabase.
-- [x] Store and retrieve user unlock history in PostgreSQL.
+- [x] Implement opt-in unlock-history database/API support (the extension does not upload history or sync unlock counts).
 - [x] Handle API errors, network failures, offline state, and expired authentication sessions.
-- [x] Add environment-variable and secrets management (keep service-role keys server-side).
+- [x] Add environment-variable configuration; current backend uses caller-scoped anon/publishable credentials, with no service-role key required.
 - [x] Test authentication, authorization, and data access boundaries.
 Completion Criteria
 - Users can create accounts and authenticate securely using Supabase Auth.
 - Protected API endpoints reject unauthorized requests.
 - Row Level Security (RLS) guarantees users can access and modify only their own account data.
-- Supported settings and unlock history persist in Supabase PostgreSQL database.
+- Opted-in website configuration persists in Supabase. Unlock-history API support exists separately; extension history uploads and analytics remain unimplemented.
 - Backend failures do not break core extension functionality (local-first resilience).
 Phase 3 — Subscription System
 Status: Not Started
@@ -175,5 +178,8 @@ Future Updates
   - Optional cloud synchronization for preferences, website blocklists, and minimal unlock history with strict privacy guards (normalizeDomain).
   - 50/50 automated backend tests passing (Vitest + Supertest).
 Current Next Step
-1. Choose between proceeding with **Phase 3 — Subscription System** (Razorpay/Stripe, webhooks, server-side entitlement checks) or **Phase 1 Enhancement — Progressive Challenge Levels** (Levels 1–4: arithmetic, algebra/intro-calculus, mini-puzzles, persistent pause/resume timer).
-2. Keep blocking, challenge progression, and the Level 4 timer local-first. Backend outages or sign-out must not disrupt core local functionality.
+1. Proceed with **Phase 1 Enhancement — Progressive Challenge Levels**. First define exact count boundaries, arithmetic-to-level migration, timer behavior across tabs, and behavior after count 70; then implement and test the four levels incrementally. These details remain open, not silently finalized by this documentation update.
+2. Keep blocking, challenge progression, puzzles and the planned Level 4 timer local-first. Backend outages or sign-out must not disrupt core behavior.
+3. Continue the subscription/dashboard/signature-feature roadmap after the level mechanism. Store release is deferred until intended product scope and release checks are satisfied and the owner authorizes it.
+
+2026-10-17 alignment: Render staging and safe wake-up handling are completed groundwork (see progress.md M013); the owner restored progressive challenge levels as the next priority. Historical dated test counts above describe their original milestones, not the current suite.

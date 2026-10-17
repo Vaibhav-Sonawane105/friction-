@@ -1,6 +1,6 @@
 # Project Execution Progress & State Log
 
-> **CRITICAL RULE FOR AI ASSISTANTS (from [instructions.md](Crome%20Extention/brain/instructions.md)):**
+> **CRITICAL RULE FOR AI ASSISTANTS (from [instructions.md](instructions.md)):**
 > **DO NOT modify or append to this file without explicitly asking and receiving confirmation from the user.**
 > This file acts as the primary project context bridge across AI sessions—similar to a chronological git graph and snapshot of recent states, completed tasks, and active goals.
 
@@ -8,10 +8,10 @@
 
 ## 1. Quick State Snapshot
 
-* **Current Active Phase:** Pre-release hardening — Step 4: Render Free staging deployed; basic account/sync and cold-start acceptance owner-confirmed. Next: release preparation and remaining account edge cases.
+* **Current Active Phase:** Phase 1 Enhancement — Progressive Challenge Levels is next; design/implementation not yet started. Render staging is completed groundwork, not release completion.
 * **Current Status:** API deployed at `https://progressive-friction-api.onrender.com`. Assistant verified public health/confirmation routes, signed-out access rejection, and login input validation. Owner confirmed hosted sign-in/account verification and website-list sync, then confirmed recovery after Render's roughly one-minute wake-up delay. Last implementation checks passed: 61/61 extension tests, 72/72 backend tests, extension lint and build. Live authenticated results are owner-reported; store publication and full production readiness are not established.
 * **Active Working Directory:** `extension/`
-* **Current Focus:** Prepare the Chrome Web Store release while addressing remaining release checks below. Synchronize all brain documents as the final documentation step only with owner approval. Read all brain files before executing new work; do not edit them or push to GitHub without permission. Owner authorized this progress.md update and local test-artifact cleanup only; other brain documents remain untouched.
+* **Current Focus:** Follow phases.md: define and implement progressive challenge Levels 1–4 next, then continue subscriptions, dashboard/analytics and signature features unless the owner changes priorities. Store release is deferred. Owner authorized this project-wide Markdown synchronization; future brain edits and GitHub commits/pushes still require permission.
 
 ---
 
@@ -43,7 +43,7 @@
 ## 3. Chronological Execution Graph
 
 ```text
-[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync API] ──► [M010: Authentication & Database Permission Hardening] ──► [M011: Unlock Lifecycle Hardening] ──► [M012: Accounts & Automatic Website Sync] ──► [M013: Render Free Staging & Probe Cleanup]
+[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync API] ──► [M010: Authentication & Database Permission Hardening] ──► [M011: Unlock Lifecycle Hardening] ──► [M012: Accounts & Automatic Website Sync] ──► [M013: Render Free Staging & Probe Cleanup] ──► [M014: Roadmap & Documentation Alignment]
 ```
 
 ### Milestone Log
@@ -243,7 +243,7 @@
   * Owner explicitly confirmed automatic sync worked on both Chrome profiles. After follow-up requests to check removal propagation, offline recovery, and disabling sync, owner confirmed it was working and authorized moving on; recorded as owner-reported acceptance of those follow-up checks.
   * An assistant localhost `/health` probe returned HTTP 200 during redirect troubleshooting. This established API reachability only, not independent proof of database readiness.
   * Email-confirmation troubleshooting encountered the old localhost:3000 redirect and Supabase's outbound-email rate limit. Later successful two-profile sync confirms usable authenticated sessions; exact dashboard settings, email delivery, live token expiry/refresh, and every account error path were not independently observed.
-* **Current limitations / next work:**
+* **Limitations / next work at this milestone (later hosting status is in M013):**
   * Hosting provider, deployed HTTPS API URL, hosted confirmation redirect, and staging environment are not yet configured or verified in this work.
   * Account login and sync opt-in are browser-session scoped; closing Chrome or reloading the extension requires signing in and enabling device sync again.
   * Cloud integration currently syncs website configuration only. Unlock-history APIs exist, but the extension does not upload history or analytics events.
@@ -270,8 +270,19 @@
 * **Cleanup (authorized by owner):**
   * Audited production source and project files for probe fixtures/debug leftovers. Removed the ignored `cloudflare-spike.local/` folder: 1,961 temporary files totaling 311,107,708 bytes, including probe-only dependencies, mocks, logs, caches, scripts and builds. Key findings are retained in this milestone.
   * Kept regression tests, SQL assertions/migrations, `extension/TESTING.md`, `extension/INTEGRATION.md`, deployment files, installed project dependencies and the active unpacked-extension build. Tracked logo drafts/originals were preserved as design assets.
-  * Local folder cleanup does not delete Cloudflare resources. The synthetic-only Worker `throwaway-api-compatibility-probe` was previously deployed at `https://throwaway-api-compatibility-probe.throwaway-cloudflare-api-probe.workers.dev`; remote removal has not been performed. Wrangler account login remains outside the project folder.
-* **State:** Basic Render staging acceptance complete with owner-reported live results. Continue release preparation and remaining checks; do not label the project production-ready. Other brain documents still need the agreed final synchronization with separate owner approval.
+  * Local folder cleanup does not delete Cloudflare resources. The synthetic-only Worker `throwaway-api-compatibility-probe` was previously deployed at `https://throwaway-api-compatibility-probe.throwaway-cloudflare-api-probe.workers.dev`; owner later reported deleting this Worker after receiving removal instructions. That deletion was not independently checked. Wrangler account login remains outside the project folder.
+* **State:** Basic Render staging acceptance complete with owner-reported live results. Hosting remains groundwork, not product completion. The owner subsequently clarified that progressive challenge levels must come next; see M014. Do not label the project production-ready.
+
+---
+
+#### `[M014]` Roadmap & Project Markdown Alignment
+* **Date:** 2026-10-17
+* **Authorization:** Owner requested synchronization of brain and other project Markdown files, changing only stale documents. No product code, commits or pushes were authorized or performed in this task.
+* **Outcome:** Progressive challenge levels are the next product phase; store preparation is deferred. Approved ranges remain Level 1 arithmetic 0–20, Level 2 equations/introductory calculus-style problems 21–30, Level 3 easy puzzles 31–50, Level 4 a 1–8 minute persistent pause/resume timer 51–70. Exact count semantics, migration, timer ownership across tabs, duration selection and post-70 behavior remain open. No level implementation was added.
+* **Audit:** Reviewed all 11 project-authored Markdown files outside dependencies/build output. Updated stale requirements, sequence, technology status, setup, migration instructions, test claims and deployment evidence. Left ui.md unchanged because no visual-direction change was needed. Existing historical milestone evidence remains dated; current summaries supersede earlier next-step claims.
+* **Corrections:** Current code has ten arithmetic tiers, not the planned four challenge-type levels. Accounts and domain/enabled sync are implemented; unlock counts remain local. Render staging is deployed. The missing lifecycle suite is not counted as current coverage. Health/schema reads do not prove live RLS. Cloudflare Worker deletion is owner-reported.
+* **Verification:** Documentation-only diff and consistency checks; previously observed 61 extension / 72 backend test results are retained as historical evidence, not rerun test claims.
+* **State:** Documentation aligned to current implementation and intended roadmap. Next work starts with level-mechanism design, not store publication.
 
 ---
 
@@ -302,7 +313,14 @@
 - [x] **Task 2.9:** Implement optional cloud synchronization for settings and history while preserving offline-first blocking.
 
 
-### Pre-release Hardening Checklist (Current)
+### Phase 1 Enhancement — Progressive Challenge Levels (Next)
+- [ ] Define exact count boundaries, migration from arithmetic tiers, timer multi-tab policy, duration selection and behavior after 70.
+- [ ] Implement and verify Level 1 arithmetic selection and Level 2 equation generators.
+- [ ] Implement and verify Level 3 easy interactive puzzles.
+- [ ] Implement and verify Level 4 local persistent pause/resume timer.
+- [ ] Verify boundary transitions, offline operation, navigation/restarts and duplicate-completion protection. Detailed tasks remain in phases.md.
+
+### Completed Groundwork & Remaining Release Checks
 - [x] Implement request-isolated authentication clients and token-scoped profile reads.
 - [x] Bind logout to the validated caller session and handle failures.
 - [x] Prepare database permission migration and rollback-based SQL assertions.
@@ -316,7 +334,7 @@
 - [x] Obtain owner confirmation of the versioned-sync migration and SQL checks without errors.
 - [x] Verify basic hosted account actions, website-list sync and idle-server recovery in Render staging (owner-reported; see M013 for independent checks and remaining limits).
 - [ ] Verify a fresh hosted confirmation-email flow and saved Supabase redirect configuration.
-- [ ] Prepare the Chrome Web Store release.
-- [ ] Synchronize all brain documents as the final documentation step, with owner approval before editing.
+- [ ] Prepare the Chrome Web Store release only after intended product features, remaining acceptance checks and owner release approval; not the next active task.
+- [x] Audit and synchronize stale brain/project Markdown with owner approval (M014); keep future changes permission-gated.
 
-Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010/M011/M012/M013, and the pre-release checklist.
+Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010/M011/M012/M013/M014, and the pre-release checklist.

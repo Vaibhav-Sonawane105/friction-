@@ -2,6 +2,8 @@
 
 ## 1. Project Overview
 
+Status (2026-10-17): React/Vite/Tailwind MV3 extension, local arithmetic tiers, Express/Supabase accounts, automatic website-list sync and Render Free staging are implemented. Next is Phase 1 Enhancement — Progressive Challenge Levels. Algebra/calculus generators, mini-puzzles, timer, subscriptions, dashboard, analytics and motivational media below are planned, not current features. Store release is deferred; follow phases.md.
+
 The Progressive Website Blocker is a Chrome extension that helps users control distractions by blocking selected websites, requiring math challenges to unlock them, and progressively increasing challenge difficulty for repeated unlocks.
 
 The application will be developed in phases, beginning with a fully functional local Chrome extension and gradually introducing authentication, cloud synchronization, subscriptions, analytics, and signature features.
@@ -116,16 +118,16 @@ The application will be developed in phases, beginning with a fully functional l
 **Purpose:** Access browser extension functionality.
 
 **Relevant APIs:**
-- `chrome.storage.local` — store selected websites and local progression data.
+- `chrome.storage.local` — store selected websites and local progression data; chrome.storage.session holds browser-lifetime account tokens and the unlock-session epoch.
 - `chrome.alarms` — schedule supported background tasks when required.
 - `chrome.runtime` — communicate between extension components.
 - `chrome.tabs` — inspect or manage tabs when permissions and use cases require it.
-- `chrome.declarativeNetRequest` — enforce supported blocking rules.
+- Content scripts with isolated Shadow DOM — current in-page overlay; chrome.declarativeNetRequest is not used by the current manifest.
 - `chrome.webNavigation` — monitor relevant navigation events when necessary.
 
 **Phase:** 1–5
 
-**Permission principle:** Request only the permissions required for the features being implemented. Prefer declarative blocking rules where appropriate and avoid collecting a full browsing history.
+**Permission principle:** Request only the permissions required for the features being implemented. Current enforcement is an in-page overlay, not network blocking. The manifest declares storage, tabs, webNavigation, alarms and all-URL host/content matches. Avoid collecting full browsing history.
 
 ### Chrome Storage
 **Purpose:** Local persistence without requiring an account.
@@ -139,7 +141,7 @@ The application will be developed in phases, beginning with a fully functional l
 
 **Phase:** 1 & Phase 1 Enhancement
 
-Local extension storage is the default for the core blocking experience and challenge progression. The Level 4 timer and puzzle selections execute strictly local-first. Cloud synchronization will be introduced selectively in Phase 2.
+Local storage is the implemented default for blocking and arithmetic progression. Opt-in automatic sync already reconciles domain/enabled configuration only; counts and difficulty stay local. Planned puzzles and the Level 4 timer must also stay local-first; they are not implemented yet.
 
 ---
 
@@ -231,7 +233,7 @@ The build must support:
 - Background service worker.
 - Required CSS, JavaScript, and static assets.
 
-A compatible Vite configuration or extension build plugin will be selected during Phase 1.
+Implemented in extension/vite.config.js: popup, standalone blocked-page, background and content-script entries with stable background.js/content-main.js names. Public manifest/loader/assets are copied into dist. No extension build plugin is used. VITE_API_URL is embedded at build time; ignored .env.production selects Render for production builds.
 
 **Phase:** 1
 
@@ -295,6 +297,8 @@ Charts will use data needed for meaningful user insights. Detailed cloud analyti
 ---
 
 ## 8. Testing and Quality Assurance
+
+Latest recorded implementation checks: 61 extension tests across 7 files, 72 backend tests across 6 files, extension lint/build. These were not rerun for this documentation-only audit. Tests listed for advanced levels below are intended coverage, not implemented tests. The separate unlockLifecycle.test.js regression suite is absent and remains a follow-up.
 
 ### Vitest
 **Purpose:** Unit testing for JavaScript modules.
@@ -360,7 +364,7 @@ Charts will use data needed for meaningful user insights. Detailed cloud analyti
 ### Markdown Documentation
 **Purpose:** Maintain project knowledge and implementation consistency.
 
-The `brain/` directory contains:
+The `brain/` directory contains instructions.md (development rules) and progress.md (execution evidence), alongside:
 
 - `instructions.md` — development rules for AI-assisted implementation.
 - `project.md` — product vision, requirements, and architecture.
@@ -379,10 +383,14 @@ The `brain/` directory contains:
 
 **Phase:** Later release stage
 
-### Backend Hosting — To Be Selected
+### Backend Hosting — Render Free staging
 **Purpose:** Host the Express API if server-side functionality requires it.
 
-The deployment platform will be chosen based on cost, environment-variable support, reliability, and expected usage.
+The API is deployed at https://progressive-friction-api.onrender.com. Root render.yaml declares a Free Node service rooted at backend, npm ci --omit=dev, npm start, health path /health and automatic deployment off. See backend/DEPLOYMENT.md. Actual dashboard settings/deployed commit were not independently inspected after owner deployment.
+
+Render can sleep after inactivity. The extension uses bounded safe health reads before credentials/writes when needed, plus a loading message. Owner confirmed recovery took about a minute. The current health response proves process liveness, not a real database query or RLS.
+
+Cloudflare was evaluated but not selected for this build. Its local probe folder was removed; owner later reported deleting the synthetic Worker. Cloudflare is not a product dependency.
 
 **Phase:** 2–3
 
@@ -425,8 +433,7 @@ The following technical decisions should be finalized when their implementation 
 
 - Exact equation generators and difficulty ceilings for advanced challenge tiers.
 - Exact Level 3 interactive puzzle mechanics and accessible UI representations.
-- Authentication method and account session handling in the extension.
-- Express deployment provider.
+- Long-term production hosting/readiness beyond current Render Free staging. Email/password auth with worker-owned session storage is already implemented.
 - Final payment provider selection (Razorpay vs Stripe) and pricing tiers.
 - Analytics event definitions, retention periods, and opt-in UX.
 - Chrome Web Store publishing requirements.

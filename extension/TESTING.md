@@ -2,7 +2,9 @@
 
 Run `npm test`, `npm run lint`, and `npm run build` from `extension/`.
 
-The automated lifecycle tests use asynchronous Chrome API mocks. They verify duplicate requests, concurrent tab unlocks/settings edits, domain boundaries, departures to pages without content scripts, tab closure, worker/browser restart behavior, storage failures and retry, and sender/document validation. They do not replace real Chrome testing.
+Current automated suites cover arithmetic, blocking/storage, account messages, sync merging and Render wake-up behavior. The separate unlockLifecycle.test.js suite previously covering duplicate requests, concurrent unlocks, navigation, restart and storage failures is absent. Do not claim those earlier automated cases currently run. Restore that coverage before release; the manual checks below remain useful and were previously owner-confirmed.
+
+Latest recorded results: 61 extension tests across 7 files; lint/build passed. These are prior implementation results, not a rerun for this audit. Current challenges are ten arithmetic tiers. Planned Levels 1–4 require new boundary, puzzle, timer and migration tests; see ../brain/phases.md.
 
 ## Manual Chrome checks
 

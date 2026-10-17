@@ -8,7 +8,13 @@ The product combines:
 - A motivational anime video sequence
 - A full-stack account and subscription system
 - Optional analytics and future premium features
-The product name is not finalized. Do not invent a permanent brand name in code or documentation without approval.
+The current extension name is Progressive Friction. Final branding remains an owner decision; do not rename it without approval.
+
+Implementation status (2026-10-17)
+- Implemented: in-page blocking overlay, per-tab unlocks, local counts and ten arithmetic difficulty tiers; optional email/password accounts and automatic domain/enabled-list sync.
+- Hosted groundwork: Express API on Render Free at https://progressive-friction-api.onrender.com; Supabase supplies authentication and PostgreSQL. Owner confirmed hosted sync and roughly one-minute cold-start recovery.
+- Next: Phase 1 Enhancement — Progressive Challenge Levels. Levels 2–4, puzzles and the persistent timer are not implemented. Subscription processing, dashboard/analytics and motivational media remain future roadmap work.
+- Hosting is not product completion. Follow phases.md; store release is deferred pending intended features and release acceptance.
 Problem and intended outcome
 Traditional website blockers can be easy to ignore or disable. This product adds deliberate friction between an impulse and access. The intended outcome is to help users pause and reconsider unwanted browsing—not to claim guaranteed habit change or provide medical treatment.
 Core user flow
@@ -24,12 +30,12 @@ Core user flow
 10. After each successful unlock, that website's difficulty increases.
 11. The extension records relevant counts and progress.
 Session behavior
-The current intention is:
+Implemented session policy:
 - Same-domain navigation should not trigger a new challenge within an active session.
 - Refreshes should not count as new unlocks.
 - Closing a tab ends that tab's session.
 - Navigating away from the restricted domain ends that tab's session.
-- Multiple tabs for the same domain need an explicit, consistent policy. Initial recommendation: use a per-tab session, but document the exact behavior before implementing cross-tab sharing.
+- Multiple tabs unlock independently. Browser restart or extension reload ends temporary unlocks but retains counts; a service-worker restart preserves active tab sessions.
 Math challenge progression
 - Difficulty is tracked separately for each configured website.
 - Increase difficulty after every successful unlock.
@@ -37,7 +43,9 @@ Math challenge progression
 - Use valid, solvable equations with reliable answer checking.
 - Define a sensible maximum difficulty and avoid accidental impossible equations.
 - Prevent repeated submissions, page reloads, or navigation events from incrementing the unlock count more than once.
-- Exact levels, equation types, and maximum difficulty are not finalized.
+- Current code advances arithmetic difficulty on each successful unlock and caps it at tier 10. This is distinct from the planned challenge levels.
+- Approved next level design: Level 1 arithmetic at counts 0–20; Level 2 linear equations/introductory calculus-style problems at 21–30; Level 3 easy interactive puzzles at 31–50; Level 4 a 1–8 minute waiting challenge at 51–70, paused while away and resumed from local state.
+- Exact count semantics/boundaries, generators, puzzle choices, timer rules across multiple tabs, migration from existing arithmetic tiers, duration selection and behavior beyond 70 remain to be designed before implementation. See phases.md for tasks and acceptance criteria.
 Motivational video
 The owner wants an anime motivational speech when the user tries to disable the extension, with the title:
 Ahh look at you, running from a war, what a coward
@@ -49,7 +57,7 @@ Chrome extension
 - Chrome Extension Manifest V3
 - HTML, CSS, JavaScript
 - chrome.storage.local for local settings and local state
-- chrome.declarativeNetRequest for supported blocking/redirect rules
+- Content-script overlay in isolated Shadow DOM at document_start; chrome.declarativeNetRequest is not used by the current manifest or enforcement code
 - Other Chrome APIs only when necessary and with the minimum required permissions
 Backend
 - Node.js
@@ -80,7 +88,7 @@ Free tier
 Premium tier
 - More or unlimited configured websites is a proposed benefit.
 - Monthly and yearly subscriptions are planned.
-- Advanced difficulty customization, analytics, schedules, custom motivational media, and cross-device sync are possible future benefits.
+- Advanced difficulty customization, analytics, schedules and custom motivational media are possible future benefits. Opt-in website-list sync already exists; future monetization of that feature has not been decided.
 Pricing, exact limits, final premium features, trial policy, and cancellation behavior remain undecided. Do not present proposals as finalized decisions.
 Privacy and data handling
 Agreed principle: collect the minimum data needed to provide the product.
@@ -108,7 +116,7 @@ User preferences
 - syncEnabled
 - UI and challenge preferences
 Website configuration
-Prefer local storage for the actual domain list. If cloud sync is explicitly enabled, sync only the settings needed for that feature.
+The domain/enabled list is local by default and automatically reconciled with Supabase after explicit sync opt-in. Counts, challenge difficulty and unlock sessions stay local; enabling sync does not upload browsing history or unlock-history events. Tokens live only in chrome.storage.session; closing Chrome or reloading the extension requires sign-in and device sync consent again.
 - domain
 - enabled
 - optional user-defined label
@@ -140,26 +148,24 @@ These may be reconsidered later if a real need emerges.
 MVP acceptance checklist
 - [ ] User can add and remove domains.
 - [ ] Free users cannot configure more than 2 websites through the supported product flow.
-- [ ] Restricted navigation leads to a local challenge page.
+- [ ] Restricted pages show the local in-page challenge overlay (standalone blocked page remains a fallback).
 - [ ] Correct answers grant temporary access.
 - [ ] Same-domain navigation and refreshes do not create duplicate unlock events.
 - [ ] Leaving the domain ends the relevant access session.
 - [ ] Each successful unlock increases only that website's difficulty.
 - [ ] Equations are valid and answer validation is tested.
 - [ ] Basic settings and blocking continue working during a backend outage.
-- [ ] Authentication and subscription checks are validated server-side.
+- [ ] Authentication is validated server-side; planned paid entitlements must also be verified server-side when subscriptions are implemented.
 - [ ] Detailed cloud analytics are opt-in.
 - [ ] The user can remove the extension through normal browser controls.
 - [ ] Privacy behavior and permissions are documented.
 Open decisions
 Keep this list current:
 - Product name and visual identity
-- Exact equation levels and difficulty ceiling
-- Whether sessions are per-tab or shared across tabs
-- Exact challenge-generation and answer-validation strategy
-- Authentication approach
-- Whether settings sync is available and how users enable it
+- Exact challenge-level boundaries, generator/puzzle design, migration and timer semantics (approved ranges above)
 - Payment provider and pricing
 - Final premium feature list
 - Data retention and account-deletion policy
-- Deployment and hosting choices
+- Longer-term production hosting/readiness beyond the current Render Free staging setup
+
+Checklist note: unchecked MVP acceptance items above are the final release checklist, not a claim that implemented groundwork is absent. Current verified scope and outstanding checks are recorded in progress.md.

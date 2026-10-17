@@ -1,6 +1,8 @@
 # Render Free staging
 
-The API runs on Render; Supabase remains the authentication and database provider.
+The staging API is deployed at https://progressive-friction-api.onrender.com; Supabase remains the authentication and database provider. Owner confirmed hosted account actions, website-list sync and roughly one-minute idle-server recovery. The assistant observed public health/confirmation responses and authentication/input guards. See ../brain/progress.md for evidence and remaining live checks.
+
+This is completed infrastructure groundwork. The next product phase is progressive challenge levels; store release is deferred.
 Render Free is for staging/hobby use. It sleeps after 15 idle minutes and waking
 can take about a minute. Verify the cold-start experience before a public release.
 
@@ -31,17 +33,17 @@ Choose a region close to the Supabase project's region when available.
 
 ## Connect the extension and confirmation emails
 
-1. Check `https://YOUR-SERVICE.onrender.com/health` returns HTTP 200. This is
+1. Check `https://progressive-friction-api.onrender.com/health` returns HTTP 200. This is
    process liveness only: the current `supabase: connected` field does not prove
    database connectivity or RLS. Verify authenticated operations separately.
 2. In Supabase Authentication URL Configuration, add the exact
-   `https://YOUR-SERVICE.onrender.com/auth/confirmed` redirect URL. Set the Site URL
+   `https://progressive-friction-api.onrender.com/auth/confirmed` redirect URL. Set the Site URL
    to that hosted confirmation page for default confirmation links. Preserve
    development redirect entries if still needed. Request a fresh confirmation
    email after changing the configuration; previously issued links can retain
    their original redirect destination.
 3. In an ignored local `extension/.env.production`, set only
-   `VITE_API_URL=https://YOUR-SERVICE.onrender.com` (an origin with no path).
+   `VITE_API_URL=https://progressive-friction-api.onrender.com` (an origin with no path).
 4. Run `npm run build` from `extension`, reload the unpacked extension, and
    refresh existing test tabs. Vite embeds this URL at build time.
 
@@ -57,8 +59,7 @@ Choose a region close to the Supabase project's region when available.
   request and after 12 minutes without successful API traffic. Up to four
   20-second reads, spaced at least 20 seconds apart, allow up to roughly 83
   seconds for wake-up. Fast loading/error responses do not exhaust the checks
-  immediately. Each
-  attempt also reads Chrome session storage to renew service-worker activity.
+  immediately. Each attempt also reads Chrome session storage to renew service-worker activity.
   Login/signup/refresh/writes are not automatically replayed for network failure.
 - If wake-up exceeds that window, a clear error appears and the user can retry;
   enabled sync also retries on its existing alarm. This is not a keep-alive job.
@@ -68,8 +69,7 @@ Choose a region close to the Supabase project's region when available.
 - Check signed-out requests cannot read account data and tokens/passwords are
   absent from logs, popup status and persistent local storage.
 
-Automated tests simulate wake-up; real Chrome cold-start behavior and live Render
-requests remain acceptance checks until a service is deployed.
+Automated tests simulate wake-up. Basic live account/sync/cold-start acceptance was owner-confirmed. Independently verifying live token expiry/refresh, revocation failures and a fresh hosted confirmation-email flow remains outstanding; saved redirect/dashboard settings were not independently inspected.
 
 References: https://render.com/docs/free and
 https://render.com/docs/blueprint-spec.

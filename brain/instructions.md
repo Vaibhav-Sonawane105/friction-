@@ -4,7 +4,7 @@ These instructions apply whenever an AI assistant works on this project. Read th
 
 ## Core rules
 
-1. **Keep the project consistent.** Treat the three files in this `brain/` folder as the shared source of truth. If a decision changes, update the relevant document instead of letting contradictory assumptions accumulate.
+1. **Keep the project consistent.** Read all six files in `brain/` before new work. Use `project.md` for product requirements, `phases.md` for sequence, `techstack.md` for technologies, `ui.md` for design, and `progress.md` for execution evidence, alongside these instructions. Reconcile contradictions without silently inventing decisions.
 2. **Do not invent decisions.** If a requirement is undecided, label it as open or propose a recommendation clearly. Do not silently treat a suggestion as finalized.
 3. **Preserve working behavior.** Before changing code, understand the existing structure and behavior. Avoid unrelated rewrites and regressions.
 4. **Build incrementally.** Prefer small, testable steps. Explain the purpose of each step and verify relevant behavior after changes.
@@ -13,12 +13,12 @@ These instructions apply whenever an AI assistant works on this project. Read th
 7. **Security matters.** Never put API secrets, payment-provider secret keys, or privileged credentials in extension code. Validate sensitive actions and subscription entitlements on the backend.
 8. **Use the project's chosen stack** unless the owner explicitly approves a change.
 9. **Do not add dependencies, paid services, or external APIs without explaining why they are needed.** Prefer simple, affordable options for the MVP.
-10. **Keep documentation in sync.** If architecture, product behavior, UI rules, data collection, or subscription policy changes, update the appropriate `brain/` document.
+10. **Keep documentation in sync with permission.** Identify stale brain and project Markdown documents when behavior or decisions change. Ask before editing any brain file; permission for one update is not standing permission for future edits. Do not commit or push without owner permission.
 11. **Do not update `progress.md` without asking the project owner first.** The `brain/progress.md` file serves as the single source of truth for ongoing context and execution history (like a git timeline/graph) so any new AI immediately understands what is done, what has changed, and what is currently in progress. Never modify `progress.md` automatically or silently without asking and confirming with the user.
 
 ## Before implementing a feature
 
-- Read `brain/instructions.md`, `brain/project.md`, and `brain/ui.md`.
+- Read all brain files and affected setup/testing documents. Implement the active phase in `phases.md`; deployment progress does not authorize skipping product features or starting store release.
 - Identify which existing files and flows the change affects.
 - State assumptions where requirements are incomplete.
 - Consider extension lifecycle, multiple tabs, navigation within a domain, backend outages, and browser permission constraints where relevant.
@@ -29,7 +29,7 @@ These instructions apply whenever an AI assistant works on this project. Read th
 
 - Each configured website has its own unlock history and difficulty progression.
 - Difficulty increases after each **successful unlock**, not on refreshes or ordinary navigation within the same domain.
-- An unlock is intended to last until the user leaves the website. The exact multi-tab/session policy must be implemented consistently and documented.
+- Unlocks are per tab: same-domain navigation and refresh preserve access; leaving the domain or closing the tab ends it. Browser restart/extension reload ends temporary sessions while preserving counts; worker restart preserves sessions.
 - A correct answer grants temporary access; leaving the site means the next visit requires a new challenge.
 - Users choose the websites they want to restrict. Do not classify sites or decide what should be blocked on the user's behalf.
 - The extension must not trap users. The user must retain a clear way to disable or remove it through normal browser controls.
