@@ -25,12 +25,18 @@ These instructions apply whenever an AI assistant works on this project. Read th
 - Include error, loading, empty, and success states when applicable.
 - Explain how to test the change.
 
+## Required challenge architecture
+
+Follow [project.md — required modular challenge architecture](project.md#required-modular-challenge-architecture) before adding Levels 1–4. Separate progression policy, module registry, independently loaded challenge modules, shared exactly-once completion and versioned local state. Do not expand the arithmetic-only implementation into a monolithic multi-game component. New modules must preserve existing counts, tab/session behavior and offline blocking. Current code has not yet been migrated.
+
+Camera recognition is outside the current roadmap. Do not add its permissions, dependencies, scaffolding or implementation as part of this work.
+
 ## Product-specific rules
 
 - Each configured website has its own unlock history and difficulty progression.
-- Difficulty increases after each **successful unlock**, not on refreshes or ordinary navigation within the same domain.
+- The successful-unlock count advances exactly once per completed unlock, never on refresh/navigation. The planned progression policy maps that count to level ranges; a level need not change after every unlock. Current arithmetic-tier behavior is the legacy baseline to migrate.
 - Unlocks are per tab: same-domain navigation and refresh preserve access; leaving the domain or closing the tab ends it. Browser restart/extension reload ends temporary sessions while preserving counts; worker restart preserves sessions.
-- A correct answer grants temporary access; leaving the site means the next visit requires a new challenge.
+- A validated challenge completion grants temporary per-tab access; leaving the site ends it. Resumable module state is separate from access and follows the module’s defined lifecycle.
 - Users choose the websites they want to restrict. Do not classify sites or decide what should be blocked on the user's behalf.
 - The extension must not trap users. The user must retain a clear way to disable or remove it through normal browser controls.
 - The motivational video is a voluntary in-extension step before a user-initiated disable action where possible. Do not claim the extension can intercept Chrome's own disable/uninstall controls.

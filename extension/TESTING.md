@@ -6,6 +6,21 @@ Current automated suites cover arithmetic, blocking/storage, account messages, s
 
 Latest recorded results: 61 extension tests across 7 files; lint/build passed. These are prior implementation results, not a rerun for this audit. Current challenges are ten arithmetic tiers. Planned Levels 1–4 require new boundary, puzzle, timer and migration tests; see ../brain/phases.md.
 
+## Required tests for the modular foundation and Levels 1–4 (not implemented yet)
+
+Follow [project.md](../brain/project.md#required-modular-challenge-architecture) and phases.md before adding game-specific behavior. Test:
+
+- Progression boundaries separately from module rendering/validation; distinguish level from arithmetic difficulty.
+- Registry resolution, supported module/state versions and initialization of only the selected challenge.
+- Each module's validation and resource cleanup; no surviving game timers/listeners after disposal.
+- Shared completion: valid active attempt succeeds once; duplicate/stale/cross-tab results cannot increment counts or unlock another tab.
+- Storage failures and safe retry; modules cannot bypass the common persistence flow.
+- Migration from existing arithmetic state without losing website settings or successful-unlock counts; restoration of resumable tasks after restart/update.
+- Puzzle keyboard interaction and actual Chrome responsiveness; timer pause/resume across navigation, closure and restart according to the finalized policy.
+- Website-list sync preserves local module/progression state where appropriate; core challenges work offline.
+
+The existing manual checks below are the arithmetic baseline to preserve, not evidence the modular system exists. Extend them as each module is implemented. Camera recognition is excluded and needs no tests or scaffolding now.
+
 ## Manual Chrome checks
 
 1. Reload the unpacked extension at `chrome://extensions`, pointing to `extension/dist`. Refresh existing website tabs so they use the new content script and message protocol.

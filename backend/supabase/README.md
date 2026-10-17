@@ -22,6 +22,12 @@ The owner reported applying the migrations and running the permission/versioned-
 
 The extension syncs only domain/enabled configuration. Unlock-history tables/endpoints exist behind analytics opt-in, but the extension does not upload history or share unlock counts. Subscriptions and billing processing are planned. Despite its printed labels, `npm run db:check` only attempts table reads; it does not establish RLS correctness.
 
+## Modular challenge boundary
+
+The next extension implementation follows [project.md](../../brain/project.md#required-modular-challenge-architecture): separate progression policy, registry, independent modules, shared completion and versioned local state. This decision does not move challenge execution or state into Supabase. Do not add cloud writes for answers, puzzles, countdown state or unlock counts as part of module work.
+
+The existing unlock_history difficulty_tier constraint (1–10) represents the arithmetic-era API schema; it is not the new challenge-level contract. Extension uploads remain unimplemented. Any future analytics schema change needs explicit design and migration; do not repurpose fields silently. Current migrations/SQL assertions remain the account/sync baseline. Camera recognition is outside current scope.
+
 ## Authentication behavior
 
 Signup and login use fresh, non-persistent Supabase clients for each request. Protected database reads use the caller's bearer token. Logout requires a valid bearer token and revokes only that session's refresh token, preserving other devices. Existing access JWTs can remain valid until their expiry; the client must clear its local credentials on successful logout. See [Supabase sign-out behavior](https://supabase.com/docs/guides/auth/signout).

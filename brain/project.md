@@ -1,6 +1,6 @@
 Project Context — Progressive-Friction Website Blocker
 Working concept
-A Chrome extension that helps users interrupt unwanted browsing habits by requiring them to solve a math equation before opening websites they have explicitly chosen to restrict. Each successful unlock makes the next challenge for that website more difficult.
+A Chrome extension that helps users interrupt unwanted browsing habits through progressive challenges before accessing websites they explicitly choose to restrict. The intended product supports arithmetic, equations, easy puzzles and a waiting timer; current shipped code still uses arithmetic only. Each successful unlock advances that website’s count; progression rules determine the next challenge level.
 The product combines:
 - Website blocking
 - Progressive math challenges
@@ -13,7 +13,7 @@ The current extension name is Progressive Friction. Final branding remains an ow
 Implementation status (2026-10-17)
 - Implemented: in-page blocking overlay, per-tab unlocks, local counts and ten arithmetic difficulty tiers; optional email/password accounts and automatic domain/enabled-list sync.
 - Hosted groundwork: Express API on Render Free at https://progressive-friction-api.onrender.com; Supabase supplies authentication and PostgreSQL. Owner confirmed hosted sync and roughly one-minute cold-start recovery.
-- Next: Phase 1 Enhancement — Progressive Challenge Levels. Levels 2–4, puzzles and the persistent timer are not implemented. Subscription processing, dashboard/analytics and motivational media remain future roadmap work.
+- Next: establish the required modular challenge foundation, then implement Phase 1 Enhancement — Progressive Challenge Levels. The modular foundation and four-level selection mechanism are not implemented; equations, puzzles and the persistent timer remain planned. Subscription processing, dashboard/analytics and motivational media remain future roadmap work.
 - Hosting is not product completion. Follow phases.md; store release is deferred pending intended features and release acceptance.
 Problem and intended outcome
 Traditional website blockers can be easy to ignore or disable. This product adds deliberate friction between an impulse and access. The intended outcome is to help users pause and reconsider unwanted browsing—not to claim guaranteed habit change or provide medical treatment.
@@ -21,13 +21,13 @@ Core user flow
 1. Install the Chrome extension.
 2. Choose the websites/domains to restrict.
 3. Navigate to a restricted website.
-4. The extension presents a math challenge.
-5. The user submits an answer.
-6. If correct, the website is temporarily unlocked.
+4. The extension selects a challenge module using the website’s progression.
+5. The user completes its interaction: an answer, puzzle or waiting task.
+6. After the shared completion flow validates and saves success, the website is temporarily unlocked.
 7. The user can browse that site during the active session.
 8. When the user leaves the website, the unlock ends.
-9. On the next access attempt, a new equation is presented.
-10. After each successful unlock, that website's difficulty increases.
+9. On the next access attempt, the appropriate challenge is presented; a persistent task resumes when its defined rules require it.
+10. Each successful unlock increments the website’s count once; progression rules choose its next level.
 11. The extension records relevant counts and progress.
 Session behavior
 Implemented session policy:
@@ -36,11 +36,30 @@ Implemented session policy:
 - Closing a tab ends that tab's session.
 - Navigating away from the restricted domain ends that tab's session.
 - Multiple tabs unlock independently. Browser restart or extension reload ends temporary unlocks but retains counts; a service-worker restart preserves active tab sessions.
-Math challenge progression
+## Required modular challenge architecture
+
+**Owner-approved architectural direction (2026-10-17). This is a mandatory foundation for the next implementation, not a description of code already built.** Do not extend the current arithmetic switch into a single component containing every challenge type.
+
+Separate these responsibilities:
+
+1. **Progression policy:** map each website's successful-unlock count to a level and select a registered challenge type. Keep count thresholds independent from challenge rendering and answer checking.
+2. **Challenge registry:** stable challenge identifiers and module versions, with a common interface for initialization, rendering, validation, state restoration and cleanup. Load the selected module on demand; do not initialize every game when a content script loads.
+3. **Independent modules:** arithmetic, equations, easy puzzles and persistent timer each own their interaction, validation and module-specific state. Modules request completion through the common flow; they must not increment counts or grant tab access independently.
+4. **Shared completion coordinator:** check that the attempt still belongs to the active tab/domain and is not already completed, then persist progression and temporary access consistently. Preserve duplicate-submission protection and the background writer. Stale results, navigation, storage failure and repeated callbacks must not create extra unlocks.
+5. **Versioned local state:** distinguish per-website progression, module/attempt state and temporary per-tab access sessions. Use stable identifiers and explicit schema versions so updates can migrate existing data. Preserve counts and configured websites; do not silently reset progression or active saved timer state. Detailed migration and timer ownership rules need design before implementation.
+6. **Lifecycle and performance:** stop module timers, animations, workers and listeners when disposed. Pause/save resumable tasks according to their rules. Heavy optional dependencies must not enter every page's initial challenge bundle; measure real Chrome behavior as well as unit tests.
+
+Adding a future challenge should normally mean a new module, a registry entry, relevant progression configuration and tests, rather than edits to every existing module. A module's own capabilities may require extra implementation, but the common unlock flow should remain reusable.
+
+Scope now is the foundation plus Levels 1–4 only. Camera recognition is excluded from the current roadmap and architecture implementation; no camera permission, recognition library, placeholder module or backend image pipeline is required. Any post-release proposal needs separate approval.
+
+Exact interface signatures, file layout, state schemas, attempt identity representation and migration policy are design work still to be completed. These requirements do not authorize silently deciding the open product rules below.
+
+## Challenge progression
 - Difficulty is tracked separately for each configured website.
-- Increase difficulty after every successful unlock.
+- Increment successful-unlock count after each success; choose challenge level using the separate progression policy. A level can span many unlocks.
 - Failed answers may be recorded separately but must not increase difficulty unless the owner explicitly changes this rule.
-- Use valid, solvable equations with reliable answer checking.
+- Use valid, solvable equations and puzzles with reliable module-specific checking; the waiting module completes only after its defined active duration.
 - Define a sensible maximum difficulty and avoid accidental impossible equations.
 - Prevent repeated submissions, page reloads, or navigation events from incrementing the unlock count more than once.
 - Current code advances arithmetic difficulty on each successful unlock and caps it at tier 10. This is distinct from the planned challenge levels.
@@ -162,7 +181,7 @@ MVP acceptance checklist
 Open decisions
 Keep this list current:
 - Product name and visual identity
-- Exact challenge-level boundaries, generator/puzzle design, migration and timer semantics (approved ranges above)
+- Exact modular interface/state schema, challenge-level boundaries, generator/puzzle design, migration and timer semantics (approved ranges above)
 - Payment provider and pricing
 - Final premium feature list
 - Data retention and account-deletion policy

@@ -1,14 +1,20 @@
 # Progressive Friction — Website Blocker
 
-A Chrome extension designed to interrupt mindless browsing habits by introducing intentional friction: requiring users to solve a math challenge before accessing self-restricted websites, with progressive difficulty increases after each unlock.
+A Chrome extension designed to interrupt mindless browsing habits by introducing intentional friction: requiring users to complete progressive challenges before accessing self-restricted websites. The current implementation is arithmetic-only; the next architecture supports independent challenge modules.
 
 ## Current scope and next phase
 
 Implemented: per-tab in-page blocking, local counts and ten arithmetic difficulty tiers, optional email/password accounts, and opt-in automatic website-list sync. Counts, difficulty and sessions remain device-local. The API is hosted on Render Free at https://progressive-friction-api.onrender.com with Supabase authentication/database services.
 
-Next is **Phase 1 Enhancement — Progressive Challenge Levels**: arithmetic, equations, easy puzzles and a persistent pause/resume timer. The four-level mechanism is not implemented yet. Subscription, dashboard/analytics and signature features remain on the roadmap; deployment does not mean the product is ready for the Chrome Web Store.
+Next is the **modular challenge foundation**, followed by **Phase 1 Enhancement — Progressive Challenge Levels**: arithmetic, equations, easy puzzles and a persistent pause/resume timer. The four-level mechanism is not implemented yet. Subscription, dashboard/analytics and signature features remain on the roadmap; deployment does not mean the product is ready for the Chrome Web Store.
 
 See [roadmap](brain/phases.md), [execution evidence](brain/progress.md), [account setup](extension/INTEGRATION.md), [browser testing](extension/TESTING.md), [deployment](backend/DEPLOYMENT.md) and [database migrations](backend/supabase/README.md).
+
+## Required architecture for the next implementation
+
+Separate progression rules, a stable challenge registry, independent on-demand modules, shared exactly-once completion and versioned local state. Adding a new module must not duplicate unlock/count logic or require rewriting existing games. Preserve website counts and settings during migration from the existing arithmetic code. Full requirements: [modular challenge architecture](brain/project.md#required-modular-challenge-architecture).
+
+Scope is the foundation plus arithmetic, equations, easy puzzles and persistent timer. Camera recognition is outside the current roadmap. This architecture is approved direction, not implemented functionality; no dependency or permission for speculative future challenges is being added.
 
 ## Project Structure
 

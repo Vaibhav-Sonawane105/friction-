@@ -2,7 +2,7 @@
 
 ## 1. Project Overview
 
-Status (2026-10-17): React/Vite/Tailwind MV3 extension, local arithmetic tiers, Express/Supabase accounts, automatic website-list sync and Render Free staging are implemented. Next is Phase 1 Enhancement — Progressive Challenge Levels. Algebra/calculus generators, mini-puzzles, timer, subscriptions, dashboard, analytics and motivational media below are planned, not current features. Store release is deferred; follow phases.md.
+Status (2026-10-17): React/Vite/Tailwind MV3 extension, local arithmetic tiers, Express/Supabase accounts, automatic website-list sync and Render Free staging are implemented. Next is the modular challenge foundation followed by Phase 1 Enhancement — Progressive Challenge Levels. Algebra/calculus generators, mini-puzzles, timer, subscriptions, dashboard, analytics and motivational media below are planned, not current features. Store release is deferred; follow phases.md.
 
 The Progressive Website Blocker is a Chrome extension that helps users control distractions by blocking selected websites, requiring math challenges to unlock them, and progressively increasing challenge difficulty for repeated unlocks.
 
@@ -17,6 +17,12 @@ The application will be developed in phases, beginning with a fully functional l
 - Avoid adding dependencies or services without a clear purpose.
 
 ---
+
+## Required challenge module structure
+
+See [project.md](project.md#required-modular-challenge-architecture) for the authoritative requirement. The React/JavaScript implementation must separate count-to-level policy, a stable module registry, on-demand challenge components/validators, one shared completion coordinator and versioned local state. Keep the background writer responsible for progression and access persistence; modules never mutate those records directly. The existing arithmetic generator/UI are the pre-migration baseline, not the architecture to copy for each new game.
+
+Each module owns its interaction and cleanup; only selected modules and their dependencies initialize. Persist resumable task state separately from temporary tab unlocks, with migration tests preserving user data. No new game engine or backend request is assumed necessary. Exact interfaces and file paths will be decided in the implementation design. Camera recognition is outside current scope and introduces no dependencies or permissions now.
 
 ## 2. Frontend Technologies
 
@@ -417,13 +423,14 @@ Supabase will manage the database and authentication services. It is not a repla
 ## 12. Architecture and Data Principles
 
 1. **Local-first blocking and challenges:** Website blocking, progressive challenge selection (Levels 1–4), puzzle verification, and Level 4 timer pause/resume mechanics must work entirely offline without requiring network access, backend requests, or user login. Backend outages or being logged out must never break core blocking or challenge completion.
-2. **Minimal synchronization:** Sync only settings and history required for account features.
-3. **Privacy by default:** Do not upload complete browsing histories or detailed analytics by default.
-4. **Secure authentication:** Protect account data using Supabase Auth and database authorization policies.
-5. **Server-controlled subscriptions:** Premium entitlements must be validated through trusted server-side operations.
-6. **Modular code:** Separate UI components, blocking services, challenge logic, storage operations, and backend communication.
-7. **Incremental development:** Add technologies only when their phase requires them.
-8. **Maintainability:** Prefer stable, documented APIs and avoid unnecessary dependencies.
+2. **Extensible challenge execution:** Keep module behavior separate from progression policy and shared completion; use versioned local state and selected-module loading.
+3. **Minimal synchronization:** Sync only settings and history required for account features.
+4. **Privacy by default:** Do not upload complete browsing histories or detailed analytics by default.
+5. **Secure authentication:** Protect account data using Supabase Auth and database authorization policies.
+6. **Server-controlled subscriptions:** Premium entitlements must be validated through trusted server-side operations.
+7. **Modular code:** Separate UI components, blocking services, challenge logic, storage operations, and backend communication.
+8. **Incremental development:** Add technologies only when their phase requires them.
+9. **Maintainability:** Prefer stable, documented APIs and avoid unnecessary dependencies.
 
 ---
 

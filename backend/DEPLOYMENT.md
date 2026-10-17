@@ -2,9 +2,13 @@
 
 The staging API is deployed at https://progressive-friction-api.onrender.com; Supabase remains the authentication and database provider. Owner confirmed hosted account actions, website-list sync and roughly one-minute idle-server recovery. The assistant observed public health/confirmation responses and authentication/input guards. See ../brain/progress.md for evidence and remaining live checks.
 
-This is completed infrastructure groundwork. The next product phase is progressive challenge levels; store release is deferred.
+This is completed infrastructure groundwork. The next product phase is the modular challenge foundation followed by Levels 1–4; store release is deferred.
 Render Free is for staging/hobby use. It sleeps after 15 idle minutes and waking
 can take about a minute. Verify the cold-start experience before a public release.
+
+## Boundary for upcoming challenge work
+
+The [required challenge architecture](../brain/project.md#required-modular-challenge-architecture) executes locally in the extension. Render continues to provide accounts and opted-in website-list sync; challenge selection, validation and timers must not depend on server wake-up. Module implementation does not by itself require new server dependencies, endpoints, environment variables or a paid instance. Keep offline checks in staging as the foundation is migrated. Camera recognition is outside the current roadmap.
 
 ## Create the service
 

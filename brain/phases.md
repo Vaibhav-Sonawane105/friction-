@@ -2,11 +2,11 @@ Development Phases & Progress Tracker
 Purpose
 This document tracks the implementation progress of the Progressive Website Blocker Chrome extension.
 It defines the development phases, their objectives, implementation tasks, completion criteria, and dependencies.
-Current Phase: Phase 1 Enhancement — Progressive Challenge Levels (next implementation; not yet implemented).
+Current Phase: Modular challenge foundation → Phase 1 Enhancement — Progressive Challenge Levels (next implementation; neither foundation nor four-level mechanism implemented yet).
 Current Status: Core arithmetic extension and account/website-sync foundations are implemented. Render Free staging works with owner-confirmed live acceptance. The intended product is not release-ready.
 Overall Status: Latest recorded automated results: 61 extension tests across 7 files and 72 backend tests across 6 files, plus extension lint/build. These are prior observed runs, not a fresh rerun for this documentation update. The separate unlock lifecycle regression suite remains absent; live account edge cases remain follow-ups (see progress.md).
 
-Agreed sequence: implement and verify progressive challenge Levels 1–4 next; then continue Phase 3 subscriptions, Phase 4 dashboard/analytics and Phase 5 signature features in order unless the owner changes priorities. Chrome Web Store preparation/publication is a later release decision, not the next phase merely because hosting works.
+Agreed sequence: first design and implement the modular foundation required by project.md, then implement and verify progressive challenge Levels 1–4; then continue Phase 3 subscriptions, Phase 4 dashboard/analytics and Phase 5 signature features in order unless the owner changes priorities. Chrome Web Store preparation/publication is a later release decision, not the next phase merely because hosting works.
 Current implementation uses ten arithmetic difficulty tiers capped at 10, increasing after each successful unlock. Those tiers are not the planned four challenge-type levels below.
 Development Rules
 1. Work on one phase at a time unless a dependency requires otherwise.
@@ -56,11 +56,16 @@ Level 1	0–20	Existing beginner-friendly arithmetic problems
 Level 2	21–30	Linear equations and introductory calculus-style problems, including solving for x
 Level 3	31–50	Very easy interactive mini-games and puzzles, such as patterns, sequences, memory, or spatial reasoning
 Level 4	51–70	Waiting challenge with a randomly or deliberately selected duration from 1 to 8 minutes
-Future levels	To be defined	Additional challenge types may be added later
+Future levels	To be defined	Additional modules require separate design/approval; no camera work is included
 
 
 The ranges above describe the intended progression. During implementation, define precisely whether the count refers to completed unlocks or the count shown before a challenge, and test every boundary to prevent off-by-one errors.
 Tasks
+- [ ] Design the module contract, progression policy and registry, shared completion coordinator, versioned local state and migration strategy as required by [project.md](project.md#required-modular-challenge-architecture).
+- [ ] Implement the reusable foundation and adapt existing arithmetic through its module interface before adding other challenge types.
+- [ ] Keep thresholds separate from rendering/validation. Load only the selected module and dispose its resources when leaving it.
+- [ ] Preserve website counts and settings during migration; prevent stale or duplicate module callbacks from completing an attempt twice.
+- [ ] Test registry selection, module lifecycle, state migration/restoration and shared completion independently of each game.
 - [ ] Update the challenge architecture to select a challenge type from the per-website progression level.
 - [ ] Preserve the current beginner-friendly arithmetic behavior for Level 1.
 - [ ] Add validated, solvable Level 2 equation generators and answer checking.
@@ -74,6 +79,9 @@ Tasks
 - [ ] Add unit and manual Chrome tests for each level and all count boundaries.
 - [ ] Evaluate copy/paste restrictions as supplemental friction only, not as a security guarantee.
 Completion Criteria
+- Progression, registry, module implementations, shared completion and persisted state are independently maintained; game modules do not own count increments or tab unlock writes.
+- A new challenge type can be registered without rewriting existing challenge modules or duplicating the unlock flow.
+- Migration preserves existing settings/counts; on-demand loading and cleanup are verified.
 - The correct challenge type is selected for each defined unlock-count range.
 - Progression is tracked independently for each configured website according to the existing per-website model.
 - Level 4 remaining time survives overlay closure, tab closure, navigation away, and browser/service-worker restarts as specified; elapsed time while away does not reduce the remaining time.
@@ -178,8 +186,10 @@ Future Updates
   - Optional cloud synchronization for preferences, website blocklists, and minimal unlock history with strict privacy guards (normalizeDomain).
   - 50/50 automated backend tests passing (Vitest + Supertest).
 Current Next Step
-1. Proceed with **Phase 1 Enhancement — Progressive Challenge Levels**. First define exact count boundaries, arithmetic-to-level migration, timer behavior across tabs, and behavior after count 70; then implement and test the four levels incrementally. These details remain open, not silently finalized by this documentation update.
+1. Start with the **modular challenge foundation**, then **Phase 1 Enhancement — Progressive Challenge Levels**. First define exact count boundaries, arithmetic-to-level migration, timer behavior across tabs, and behavior after count 70; then implement and test the four levels incrementally. These details remain open, not silently finalized by this documentation update.
 2. Keep blocking, challenge progression, puzzles and the planned Level 4 timer local-first. Backend outages or sign-out must not disrupt core behavior.
 3. Continue the subscription/dashboard/signature-feature roadmap after the level mechanism. Store release is deferred until intended product scope and release checks are satisfied and the owner authorizes it.
+
+Camera recognition is explicitly outside this roadmap. No camera permissions, dependencies or placeholder implementation belong to the current phase.
 
 2026-10-17 alignment: Render staging and safe wake-up handling are completed groundwork (see progress.md M013); the owner restored progressive challenge levels as the next priority. Historical dated test counts above describe their original milestones, not the current suite.

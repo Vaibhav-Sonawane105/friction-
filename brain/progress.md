@@ -8,10 +8,10 @@
 
 ## 1. Quick State Snapshot
 
-* **Current Active Phase:** Phase 1 Enhancement — Progressive Challenge Levels is next; design/implementation not yet started. Render staging is completed groundwork, not release completion.
+* **Current Active Phase:** Modular challenge foundation followed by Phase 1 Enhancement — Progressive Challenge Levels is next. Architecture direction approved; detailed interface design and implementation have not started. Render staging is completed groundwork, not release completion.
 * **Current Status:** API deployed at `https://progressive-friction-api.onrender.com`. Assistant verified public health/confirmation routes, signed-out access rejection, and login input validation. Owner confirmed hosted sign-in/account verification and website-list sync, then confirmed recovery after Render's roughly one-minute wake-up delay. Last implementation checks passed: 61/61 extension tests, 72/72 backend tests, extension lint and build. Live authenticated results are owner-reported; store publication and full production readiness are not established.
 * **Active Working Directory:** `extension/`
-* **Current Focus:** Follow phases.md: define and implement progressive challenge Levels 1–4 next, then continue subscriptions, dashboard/analytics and signature features unless the owner changes priorities. Store release is deferred. Owner authorized this project-wide Markdown synchronization; future brain edits and GitHub commits/pushes still require permission.
+* **Current Focus:** Follow the required modular architecture in project.md and sequence in phases.md: design/implement the reusable foundation first, then independent Levels 1–4, then continue subscriptions, dashboard/analytics and signature features unless the owner changes priorities. Store release is deferred. Owner authorized this project-wide Markdown synchronization; future brain edits and GitHub commits/pushes still require permission.
 
 ---
 
@@ -36,6 +36,7 @@
   * Testing: Last verified Vitest results: 61/61 extension tests across 7 files and 72/72 backend tests across 6 files. Five Render wake-up regressions were added. The separate unlock lifecycle test file remains absent; account/sync coverage does not restore those earlier lifecycle cases.
   * Linting: ESLint (0 errors, 0 warnings).
   * Storage: Local-first (`chrome.storage.local` with `localStorage` dev fallback). Background-worker writes are serialized; progression and unlock sessions are saved together. A browser-lifetime identifier in `chrome.storage.session` expires temporary unlocks after browser restart/extension reload while preserving them through worker restarts. Chrome 106+ is required.
+* **Required next challenge architecture:** Separate progression policy, stable module registry, on-demand independent challenge modules, shared exactly-once completion and versioned local state. This supersedes arithmetic-only architecture as the implementation direction; it has not yet been built. Preserve counts, settings, tab access rules and offline operation during migration. Camera recognition is excluded from the current roadmap. See project.md for requirements and open design details.
 * **Account & Sync Baseline:** Email/password authentication through Express/Supabase, with token refresh. Account tokens are held in trusted session storage, never returned to popup callers, and expire from device storage when Chrome closes or the extension reloads. Sign-in and device sync consent must then be renewed. Only domain/enabled settings sync; local counts, difficulty, tab sessions, and browsing history do not upload. Automatic sync uses a separate network queue, minute polling alarms, revision-checked cloud writes, three-way merging, and explicit conflict choices. Development defaults to localhost:5000; the ignored `extension/.env.production` selects `https://progressive-friction-api.onrender.com` for production builds. Render wake-up uses safe health reads before credentials/writes, with a bounded wait and a separate network queue.
 
 ---
@@ -43,10 +44,12 @@
 ## 3. Chronological Execution Graph
 
 ```text
-[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync API] ──► [M010: Authentication & Database Permission Hardening] ──► [M011: Unlock Lifecycle Hardening] ──► [M012: Accounts & Automatic Website Sync] ──► [M013: Render Free Staging & Probe Cleanup] ──► [M014: Roadmap & Documentation Alignment]
+[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync API] ──► [M010: Authentication & Database Permission Hardening] ──► [M011: Unlock Lifecycle Hardening] ──► [M012: Accounts & Automatic Website Sync] ──► [M013: Render Free Staging & Probe Cleanup] ──► [M014: Roadmap & Documentation Alignment] ──► [M015: Modular Challenge Architecture Requirement]
 ```
 
 ### Milestone Log
+
+Historical milestones record the code and decisions at their dates. M015 and the current project.md architecture supersede arithmetic-only implementation assumptions; historical descriptions are not the design to follow for new challenge work.
 
 #### `[M001]` Repository & Planning Initialization
 * **Date:** 2026-10-13
@@ -286,6 +289,16 @@
 
 ---
 
+#### `[M015]` Modular Challenge Architecture Requirement
+* **Date:** 2026-10-17
+* **Authorization:** Owner explicitly requested updating all project Markdown to make the modular foundation a central requirement. Documentation only; no code implementation, commit or push.
+* **Decision:** Separate progression rules, a registry with stable challenge identities/versions, independently loaded challenge modules, shared completion coordination and versioned local persistence. Modules own interaction, validation and cleanup but never independently increment progression or grant access. Preserve existing data and session/offline guarantees during migration.
+* **Scope:** Foundation plus arithmetic, equations, easy puzzles and persistent pause/resume timer (Levels 1–4). Camera recognition is completely outside the current roadmap; no implementation, permission, dependency or placeholder module is included.
+* **Status:** Required architecture is documented in project.md and reflected across all 11 project Markdown files, including module-aware UI/testing and backend boundaries. Current runtime remains arithmetic-only; exact interfaces, file layout, schema migration, boundaries and timer ownership still require design. No claim of modular functionality or new passing module tests.
+* **Next:** Design the foundation and unresolved level rules, then implement incrementally. Historical milestones and arithmetic test evidence below/above remain historical context, not instructions to perpetuate the old design.
+
+---
+
 ## 4. Current Work in Progress
 
 ### Phase 1 Checklist (Completed & Verified)
@@ -313,7 +326,9 @@
 - [x] **Task 2.9:** Implement optional cloud synchronization for settings and history while preserving offline-first blocking.
 
 
-### Phase 1 Enhancement — Progressive Challenge Levels (Next)
+### Modular Foundation → Phase 1 Enhancement — Progressive Challenge Levels (Next)
+- [ ] Design and implement progression policy, registry/module contract, shared completion coordinator and versioned local state; adapt arithmetic first without duplicating unlock logic.
+- [ ] Verify selected-module loading, lifecycle cleanup, exactly-once completion and data migration before expanding challenge types.
 - [ ] Define exact count boundaries, migration from arithmetic tiers, timer multi-tab policy, duration selection and behavior after 70.
 - [ ] Implement and verify Level 1 arithmetic selection and Level 2 equation generators.
 - [ ] Implement and verify Level 3 easy interactive puzzles.
@@ -337,4 +352,4 @@
 - [ ] Prepare the Chrome Web Store release only after intended product features, remaining acceptance checks and owner release approval; not the next active task.
 - [x] Audit and synchronize stale brain/project Markdown with owner approval (M014); keep future changes permission-gated.
 
-Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010/M011/M012/M013/M014, and the pre-release checklist.
+Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010/M011/M012/M013/M014/M015, and the pre-release checklist.

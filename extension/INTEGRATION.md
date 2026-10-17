@@ -7,13 +7,19 @@
 3. Development defaults to `http://localhost:5000`; an ignored `.env.local` can override it. Production builds currently read `VITE_API_URL=https://progressive-friction-api.onrender.com` from ignored `.env.production`. Mode-specific values override generic `.env.local` values; edit `.env.production` to change the production API and rebuild. HTTPS is required except for loopback. No API keys belong in the extension.
 4. Reload the unpacked extension from `extension/dist`, refresh existing website tabs, and open the popup's **Account & automatic sync** section. Sign up or sign in; if confirmation is required, follow the email confirmation and then sign in. Use **Verify account** to check the authenticated profile endpoint.
 
-Render Free staging is deployed; see ../backend/DEPLOYMENT.md. Deployment is groundwork: progressive challenge levels are next, and store release is deferred. Account requests execute in the extension worker using the existing host permissions; browser-preview/Vite webpages do not provide account controls.
+Render Free staging is deployed; see ../backend/DEPLOYMENT.md. Deployment is groundwork: the modular challenge foundation and then Levels 1–4 are next; store release is deferred. Account requests execute in the extension worker using the existing host permissions; browser-preview/Vite webpages do not provide account controls.
 
 ### Email confirmation redirect
 
 For hosted staging, Supabase **Authentication → URL Configuration** should use `https://progressive-friction-api.onrender.com/auth/confirmed` as Site URL and an allowed redirect. Use `http://localhost:5000/auth/confirmed` only when deliberately testing a running local API. Saved dashboard values and a fresh hosted confirmation-email flow still need verification. Signup uses Supabase's configured Site URL. The API serves an informational page there that directs users back to the extension to sign in; it does not consume tokens or assert that confirmation succeeded. Restart the backend after updating its source.
 
 The default Supabase redirect is `http://localhost:3000`. If nothing runs there, a successfully processed email link can still end at a browser connection-refused page. Try signing in through the extension; if Supabase reports the email is unconfirmed, check the user's confirmation status or request a fresh email. Previously issued links may still use the old redirect. Do not share confirmation URLs or their tokens. Use the hosted HTTPS confirmation-page URL instead of localhost when deploying.
+
+## Challenge architecture boundary
+
+The next implementation follows [the modular challenge requirement](../brain/project.md#required-modular-challenge-architecture). Modules initialize on demand, own interaction/validation/cleanup and submit completion to the shared worker-owned flow. Progression selection, count increments and temporary unlock writes must not be duplicated in modules. Versioned attempt/module state is local and separate from account sync.
+
+Existing domain/enabled-only sync must continue to preserve retained website counts and invalidate access for removed/disabled sites. Adding modules does not authorize uploading puzzle state, answers, timer state or unlock counts. Migration must be tested with existing synced/local lists and offline edits. Camera recognition is outside this phase.
 
 ## Behavior and privacy
 

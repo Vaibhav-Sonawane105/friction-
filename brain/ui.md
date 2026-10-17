@@ -31,9 +31,9 @@ The product should feel bold, high-contrast, playful, interactive, and unapologe
 
 ## UX Principles
 
-1. **The equation is the main interaction.** Make the challenge immediately understandable, readable, keyboard-accessible, and quick to answer.
+1. **The active challenge is the main interaction.** Keep arithmetic/equation input, puzzle controls and waiting progress understandable and keyboard-accessible. The required module architecture in [project.md](project.md#required-modular-challenge-architecture) owns the behavior; this file defines a shared visual language, not a single arithmetic-only layout.
 2. **Show progress without shaming by default.** The product can be intense and humorous, but core settings and analytics should stay respectful.
-3. **Explain the rules.** Users should understand that difficulty rises after each successful unlock and that access is temporary.
+3. **Explain the rules.** Show the current challenge level and explain that successful unlock counts select level ranges, while access remains temporary. Distinguish planned four-level progression from the current arithmetic tiers.
 4. **Keep friction intentional.** Avoid accidental difficulty increases from refreshes, same-domain navigation, or technical failures.
 5. **Clear feedback.** Provide visible states for wrong answers, correct answers, loading, errors, and temporarily unavailable backend services.
 6. **Accessible interactions.** Support keyboard navigation, visible focus indicators, semantic labels, sufficient text contrast, and reduced-motion preferences.
@@ -50,11 +50,22 @@ The product should feel bold, high-contrast, playful, interactive, and unapologe
 - Display free-plan limits upfront before users reach them.
 - Clarify local vs. cloud account storage.
 
-### Math Challenge
+### Modular Challenge Experience (planned; existing UI is arithmetic only)
+
+Use a shared shell for website identity, level, instructions, loading/error/saving feedback and leaving the page. Render the selected module inside it; do not force puzzle or waiting interactions into an equation input form. Preserve the visual tokens below; no redesign is approved by this architecture decision.
+
+- Arithmetic and equation modules use the equation/input rules below.
+- Puzzle modules supply appropriate accessible controls with clear completion feedback.
+- Timer module shows remaining time and pause/resume state without requiring an answer field.
+- Shared completion/saving feedback prevents repeat submissions; module changes clean up old interactions and resources.
+- Saved state restoration and module-load failure need understandable feedback; they must not silently reset progression or grant access.
+- Camera recognition is outside the current roadmap; no camera UI is part of this phase.
+
+### Arithmetic and Equation Modules
 - Display the equation prominently using **JejuGothic** typography inside a clean white container box with 1px black border and hard shadow.
 - Provide a clear input field and a submit button styled with neo-brutalist geometry.
 - Communicate incorrect answers clearly without revealing solutions unless intended.
-- Confirm success visually and display the next difficulty tier (e.g., using yellow/turquoise badge containers).
+- Confirm success visually and show the applicable level/progression state (e.g., using yellow/turquoise badge containers); do not assume the level changes after every completion.
 - Do not count page refreshes as new unlocks.
 
 ### Dashboard
