@@ -8,10 +8,10 @@
 
 ## 1. Quick State Snapshot
 
-* **Current Active Phase:** Pre-release hardening — Step 3: account and automatic website-sync integration implemented; ready for staging preparation
-* **Current Status:** Extension account controls and opt-in automatic website-list sync are implemented. Last assistant-run checks passed: 56/56 extension tests, 72/72 backend tests, extension lint and build. Owner confirmed the versioned-sync migration and SQL checks ran without errors, then confirmed sync across two Chrome profiles and the follow-up removal/offline/disable checks were working. Live results are owner-reported; production hosting and staging deployment remain unverified.
+* **Current Active Phase:** Pre-release hardening — Step 4: Render Free staging deployed; basic account/sync and cold-start acceptance owner-confirmed. Next: release preparation and remaining account edge cases.
+* **Current Status:** API deployed at `https://progressive-friction-api.onrender.com`. Assistant verified public health/confirmation routes, signed-out access rejection, and login input validation. Owner confirmed hosted sign-in/account verification and website-list sync, then confirmed recovery after Render's roughly one-minute wake-up delay. Last implementation checks passed: 61/61 extension tests, 72/72 backend tests, extension lint and build. Live authenticated results are owner-reported; store publication and full production readiness are not established.
 * **Active Working Directory:** `extension/`
-* **Current Focus:** Next: staging preparation and deployment verification, followed by Chrome Web Store release preparation. Synchronize all brain documents as the final documentation step only with owner approval. Read all brain files before executing new work; do not edit them or push to GitHub without permission.
+* **Current Focus:** Prepare the Chrome Web Store release while addressing remaining release checks below. Synchronize all brain documents as the final documentation step only with owner approval. Read all brain files before executing new work; do not edit them or push to GitHub without permission. Owner authorized this progress.md update and local test-artifact cleanup only; other brain documents remain untouched.
 
 ---
 
@@ -33,17 +33,17 @@
 * **Extension Standard:** Chrome Manifest V3 (`storage`, `tabs`, `webNavigation`, `alarms`, `content_scripts`, `web_accessible_resources`), minimum Chrome 106.
 * **Tech Stack:**
   * Frontend: React 19, Vite, Tailwind CSS v4 (`@tailwindcss/vite`), custom SVG icons from `public/assets/logos/`.
-  * Testing: Last verified Vitest results: 56/56 extension tests across 7 files and 72/72 backend tests across 6 files. The separate unlock lifecycle test file remains absent; account/sync coverage does not restore those earlier lifecycle cases.
+  * Testing: Last verified Vitest results: 61/61 extension tests across 7 files and 72/72 backend tests across 6 files. Five Render wake-up regressions were added. The separate unlock lifecycle test file remains absent; account/sync coverage does not restore those earlier lifecycle cases.
   * Linting: ESLint (0 errors, 0 warnings).
   * Storage: Local-first (`chrome.storage.local` with `localStorage` dev fallback). Background-worker writes are serialized; progression and unlock sessions are saved together. A browser-lifetime identifier in `chrome.storage.session` expires temporary unlocks after browser restart/extension reload while preserving them through worker restarts. Chrome 106+ is required.
-* **Account & Sync Baseline:** Email/password authentication through Express/Supabase, with token refresh. Account tokens are held in trusted session storage, never returned to popup callers, and expire from device storage when Chrome closes or the extension reloads. Sign-in and device sync consent must then be renewed. Only domain/enabled settings sync; local counts, difficulty, tab sessions, and browsing history do not upload. Automatic sync uses a separate network queue, minute polling alarms, revision-checked cloud writes, three-way merging, and explicit conflict choices. API defaults to localhost:5000 for development; HTTPS hosting remains to be configured.
+* **Account & Sync Baseline:** Email/password authentication through Express/Supabase, with token refresh. Account tokens are held in trusted session storage, never returned to popup callers, and expire from device storage when Chrome closes or the extension reloads. Sign-in and device sync consent must then be renewed. Only domain/enabled settings sync; local counts, difficulty, tab sessions, and browsing history do not upload. Automatic sync uses a separate network queue, minute polling alarms, revision-checked cloud writes, three-way merging, and explicit conflict choices. Development defaults to localhost:5000; the ignored `extension/.env.production` selects `https://progressive-friction-api.onrender.com` for production builds. Render wake-up uses safe health reads before credentials/writes, with a bounded wait and a separate network queue.
 
 ---
 
 ## 3. Chronological Execution Graph
 
 ```text
-[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync API] ──► [M010: Authentication & Database Permission Hardening] ──► [M011: Unlock Lifecycle Hardening] ──► [M012: Accounts & Automatic Website Sync]
+[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync API] ──► [M010: Authentication & Database Permission Hardening] ──► [M011: Unlock Lifecycle Hardening] ──► [M012: Accounts & Automatic Website Sync] ──► [M013: Render Free Staging & Probe Cleanup]
 ```
 
 ### Milestone Log
@@ -254,6 +254,27 @@
 
 ---
 
+#### `[M013]` Render Free Staging & Temporary Probe Cleanup
+* **Date:** 2026-10-17
+* **Summary:**
+  * Evaluated Cloudflare Workers using a throwaway adapter importing the real Express backend and Supabase SDK with simulated Supabase HTTP responses. Local and deployed route checks passed 22/22, plus 50/50 extra deployed requests. Cloudflare reported 74 requests, zero runtime errors, median CPU 4.375 ms and P99 28.942 ms. Runtime compatibility was demonstrated, but reliable headroom under the Free CPU limit was not established. These synthetic checks did not verify live Supabase permissions.
+  * Owner selected Render Free instead. Added root `render.yaml` for the existing backend (`npm ci --omit=dev`, `npm start`, `/health`, Free plan, automatic deployments off) and `backend/DEPLOYMENT.md` with setup and staging checks. Supabase remains the authentication/database provider; no Render database was added by the assistant.
+  * Added Render-origin readiness handling in `extension/src/services/account.js`: safe unauthenticated health reads before the first account request and after 12 minutes without API traffic; at most four 20-second attempts spaced to tolerate fast startup responses, with an overall maximum of roughly 83 seconds. Chrome session-storage calls renew worker activity between attempts. Account network work stays separate from local blocking; mutations and credentials are not blindly replayed on transport failure.
+  * Updated the popup loading message to explain wake-up delay. Added five regressions covering slow startup, bounded failure, no login replay, fast transient responses, and readiness rechecking after inactivity. A review found premature retry exhaustion for fast responses; it was fixed and the reviewer reported no remaining actionable findings in scope.
+  * Owner deployed the existing GitHub backend to `https://progressive-friction-api.onrender.com`. The assistant created ignored `extension/.env.production`, rebuilt the extension, and verified the hosted origin is embedded in `dist/background.js`. No assistant Git commit or push was performed; Render's dashboard configuration and deployed commit were not independently inspected after deployment.
+* **Verification:**
+  * Latest implementation runs passed **61/61 extension tests**, **72/72 backend tests**, ESLint, and production extension build. Backend HTTP tests required loopback access outside the sandbox. The hosted-origin build also passed. These are prior observed results, not a claim that documentation edits reran those suites.
+  * Assistant-observed Render responses: `/health` and `/auth/confirmed` HTTP 200; anonymous `/api/auth/me` and `/api/sync/website-snapshot` HTTP 401; malformed login input HTTP 400. The health route's `supabase: connected` label remains process-level evidence only, not proof of a live database query or RLS.
+  * Owner reported hosted account actions and automatic website-list sync were working. Owner later confirmed the idle-server recovery check worked and took about a minute. Exact browser/account edge-case steps were not independently observed; live refresh expiry and revocation failures remain follow-ups.
+  * Owner was instructed to configure Supabase Site URL and allowed redirect as `https://progressive-friction-api.onrender.com/auth/confirmed`. Exact saved dashboard values and a fresh hosted confirmation-email flow have not been independently verified.
+* **Cleanup (authorized by owner):**
+  * Audited production source and project files for probe fixtures/debug leftovers. Removed the ignored `cloudflare-spike.local/` folder: 1,961 temporary files totaling 311,107,708 bytes, including probe-only dependencies, mocks, logs, caches, scripts and builds. Key findings are retained in this milestone.
+  * Kept regression tests, SQL assertions/migrations, `extension/TESTING.md`, `extension/INTEGRATION.md`, deployment files, installed project dependencies and the active unpacked-extension build. Tracked logo drafts/originals were preserved as design assets.
+  * Local folder cleanup does not delete Cloudflare resources. The synthetic-only Worker `throwaway-api-compatibility-probe` was previously deployed at `https://throwaway-api-compatibility-probe.throwaway-cloudflare-api-probe.workers.dev`; remote removal has not been performed. Wrangler account login remains outside the project folder.
+* **State:** Basic Render staging acceptance complete with owner-reported live results. Continue release preparation and remaining checks; do not label the project production-ready. Other brain documents still need the agreed final synchronization with separate owner approval.
+
+---
+
 ## 4. Current Work in Progress
 
 ### Phase 1 Checklist (Completed & Verified)
@@ -290,11 +311,12 @@
 - [x] Verify authenticated two-profile sync (owner-confirmed).
 - [ ] Independently verify remaining live account edge cases, including expired-token refresh and logout/revocation failures, during staging.
 - [x] Stabilize unlock handling and verify real Chrome lifecycle behavior (owner-confirmed checklist completion; see M011).
-- [ ] Restore the absent unlock lifecycle regression suite before release (account/sync additions bring the current recorded extension total to 56, but do not restore those lifecycle cases).
+- [ ] Restore the absent unlock lifecycle regression suite before release (the current recorded extension total is 61, but account/sync/wake-up coverage does not restore those lifecycle cases).
 - [x] Complete extension account and opt-in automatic website-list sync integration (M012; owner-confirmed live acceptance).
 - [x] Obtain owner confirmation of the versioned-sync migration and SQL checks without errors.
-- [ ] Verify the integrated product in staging.
+- [x] Verify basic hosted account actions, website-list sync and idle-server recovery in Render staging (owner-reported; see M013 for independent checks and remaining limits).
+- [ ] Verify a fresh hosted confirmation-email flow and saved Supabase redirect configuration.
 - [ ] Prepare the Chrome Web Store release.
 - [ ] Synchronize all brain documents as the final documentation step, with owner approval before editing.
 
-Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010/M011/M012, and the pre-release checklist.
+Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010/M011/M012/M013, and the pre-release checklist.

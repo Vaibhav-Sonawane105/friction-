@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { apiOrigin, createAccountController } from './account';
 import { sameConfig } from './syncModel';
 
@@ -50,6 +50,79 @@ beforeEach(() => {
 });
 
 const login = () => controller.action('login', { email: 'a@example.com', password: 'not-a-real-password' });
+
+describe('Render wake-up', () => {
+  afterEach(() => vi.useRealTimers());
+  function useRender() {
+    controller = createAccountController({ sessionStore, stateStore, fetcher,
+      baseUrl: 'https://example.onrender.com', readLocal: async () => local, applyLocal: async () => {} });
+  }
+  const pendingUntilAborted = (_url, { signal }) => new Promise((_resolve, reject) => {
+    signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+  });
+
+  it('waits through a minute-long wake-up before sending login exactly once', async () => {
+    vi.useFakeTimers();
+    fetcher.mockImplementationOnce(pendingUntilAborted).mockImplementationOnce(pendingUntilAborted)
+      .mockImplementationOnce(pendingUntilAborted)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ status: 'ok' }) });
+    useRender();
+    const result = login();
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(calls).toHaveLength(0);
+    await vi.advanceTimersByTimeAsync(10000);
+    expect((await result).user.id).toBe('user-a');
+    expect(calls.filter(call => call.path === '/api/auth/login')).toHaveLength(1);
+    await controller.action('profile');
+    expect(fetcher.mock.calls.filter(([url]) => url.endsWith('/health'))).toHaveLength(4);
+  });
+
+  it('bounds an unavailable server wait without sending credentials or changing local data', async () => {
+    vi.useFakeTimers(); fetcher.mockImplementation(pendingUntilAborted); useRender();
+    const result = login().catch(error => error);
+    await vi.advanceTimersByTimeAsync(90000);
+    expect((await result).message).toMatch(/API unavailable/);
+    expect(fetcher).toHaveBeenCalledTimes(4);
+    expect(fetcher.mock.calls.every(([url, options]) => url.endsWith('/health') && !options.body && !options.headers?.Authorization)).toBe(true);
+    expect(local[0].successfulUnlockCount).toBe(8);
+    expect(sessionStore.data.pf_account_session).toBeUndefined();
+  });
+
+  it('does not replay a login if its response is lost after the server is ready', async () => {
+    fetcher.mockResolvedValueOnce({ ok: true, json: async () => ({ status: 'ok' }) })
+      .mockRejectedValueOnce(new Error('Connection lost'));
+    useRender();
+    await expect(login()).rejects.toThrow(/API unavailable/);
+    expect(fetcher.mock.calls.filter(([url]) => url.endsWith('/api/auth/login'))).toHaveLength(1);
+  });
+
+  it('allows a full wake-up interval even when temporary failures arrive immediately', async () => {
+    vi.useFakeTimers();
+    const sleeping = { ok: false, json: async () => ({ message: 'Starting' }) };
+    fetcher.mockResolvedValueOnce(sleeping).mockResolvedValueOnce(sleeping).mockResolvedValueOnce(sleeping)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ status: 'ok' }) });
+    useRender();
+    const result = login();
+    await vi.advanceTimersByTimeAsync(59000);
+    expect(calls).toHaveLength(0);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect((await result).user.id).toBe('user-a');
+  });
+
+  it('checks readiness again after inactivity and tolerates a temporary non-JSON loading page', async () => {
+    vi.useFakeTimers();
+    fetcher.mockResolvedValueOnce({ ok: true, json: async () => { throw new SyntaxError('HTML loading page'); } })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ status: 'ok' }) });
+    useRender();
+    const result = login();
+    await vi.advanceTimersByTimeAsync(20000);
+    expect((await result).user.id).toBe('user-a');
+    await vi.advanceTimersByTimeAsync(14 * 60000);
+    fetcher.mockResolvedValueOnce({ ok: true, json: async () => ({ status: 'ok' }) });
+    await controller.action('profile');
+    expect(fetcher.mock.calls.filter(([url]) => url.endsWith('/health'))).toHaveLength(3);
+  });
+});
 
 describe('account and automatic sync', () => {
   it('does not request the network while signed out or signed in without sync consent', async () => {

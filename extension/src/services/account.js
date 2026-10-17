@@ -17,6 +17,8 @@ export function apiOrigin(value) {
 export function createAccountController({ sessionStore, stateStore, readLocal, applyLocal, fetcher = fetch,
   baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000' }) {
   const origin = apiOrigin(baseUrl);
+  const usesRender = new URL(origin).hostname.endsWith('.onrender.com');
+  let readyAt = -Infinity;
   let tail = Promise.resolve();
   const serial = (task) => {
     const result = tail.then(task);
@@ -34,7 +36,33 @@ export function createAccountController({ sessionStore, stateStore, readLocal, a
       user: { id: data.user.id, email: data.user.email },
     } });
   };
+  async function waitForServer() {
+    if (!usesRender || Date.now() - readyAt < 12 * 60 * 1000) return;
+    // Wake with safe reads before sending credentials or a mutation. Keep each
+    // fetch below Chrome's 30-second service-worker response limit. This runs
+    // only for an account request, never as an artificial keep-alive service.
+    for (let attempt = 0; attempt < 4; attempt++) {
+      await getSession(); // A Chrome storage call also renews worker activity.
+      const startedAt = Date.now();
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 20000);
+      try {
+        const response = await fetcher(`${origin}/health`, {
+          method: 'GET', credentials: 'omit', cache: 'no-store', redirect: 'error', signal: controller.signal,
+        });
+        const data = await response.json();
+        if (response.ok && data.status === 'ok') { readyAt = Date.now(); return; }
+      } catch { /* Render may still be waking up. Retry only this safe read. */ }
+      finally { clearTimeout(timer); }
+      if (attempt < 3) {
+        const delay = Math.max(1000, 20000 - (Date.now() - startedAt));
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    throw new Error('API unavailable. The server may still be waking up. Local blocking still works; sync will retry.');
+  }
   async function request(path, { method = 'GET', body, token } = {}) {
+    await waitForServer();
     let response;
     try {
       response = await fetcher(`${origin}/api${path}`, {
@@ -43,8 +71,10 @@ export function createAccountController({ sessionStore, stateStore, readLocal, a
         ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
       });
     } catch {
+      readyAt = -Infinity;
       throw new Error('API unavailable. Local blocking still works; sync will retry.');
     }
+    readyAt = Date.now();
     let data;
     try { data = await response.json(); } catch { throw new Error('The API returned an invalid response.'); }
     if (!response.ok) {

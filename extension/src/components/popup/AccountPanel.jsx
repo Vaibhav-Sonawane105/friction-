@@ -83,7 +83,7 @@ export function AccountPanel({ onWebsitesChanged }) {
             </div>
           </form>
         )}
-        {busy && <p role="status">Working...</p>}
+        {busy && <p role="status">Connecting… The server may need about a minute to wake up. Local blocking still works.</p>}
         {(notice || account?.status === 'error') && <p role="status">{notice || account.message}</p>}
         {error && <p role="alert" className="text-[#F24822]">{error}</p>}
       </div>
