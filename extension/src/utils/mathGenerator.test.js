@@ -32,6 +32,17 @@ describe('Math Challenge Generator', () => {
     expect(validateAnswer('', 42)).toBe(false);
     expect(validateAnswer(null, 42)).toBe(false);
   });
+
+  it.each(['12-99', '12junk', '12.9', '12e2', '0xC', '12 0', '--12'])('rejects incomplete or non-integer answers %s', (answer) => {
+    expect(validateAnswer(answer, 12)).toBe(false);
+  });
+
+  it('accepts complete signed integers, including zero and whitespace', () => {
+    expect(validateAnswer(' -12 ', -12)).toBe(true);
+    expect(validateAnswer('0', 0)).toBe(true);
+    expect(validateAnswer('0012', 12)).toBe(true);
+    expect(validateAnswer('9007199254740993', 9007199254740992)).toBe(false);
+  });
 });
 
 describe('Domain Utility', () => {

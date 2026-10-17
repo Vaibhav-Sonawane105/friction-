@@ -1,10 +1,10 @@
-import { normalizeDomain } from '../utils/domain';
+import { normalizeDomain, isValidDomain } from '../utils/domain';
 
 export function websiteConfig(list) {
   if (!Array.isArray(list) || list.length > 2) throw new Error('Sync supports up to two websites. Choose which list to keep.');
   const result = list.map((item) => {
     if (!item || typeof item.domain !== 'string' || normalizeDomain(item.domain) !== item.domain ||
-      !/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(item.domain)) throw new Error('The website list contains an invalid domain.');
+      !isValidDomain(item.domain)) throw new Error('The website list contains an invalid domain.');
     return { domain: item.domain, enabled: item.enabled !== false };
   }).sort((a, b) => a.domain.localeCompare(b.domain));
   if (new Set(result.map((item) => item.domain)).size !== result.length) throw new Error('Duplicate website domains.');

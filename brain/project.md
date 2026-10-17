@@ -46,14 +46,14 @@ Separate these responsibilities:
 2. **Challenge registry:** stable challenge identifiers and module versions, with a common interface for initialization, rendering, validation, state restoration and cleanup. Load the selected module on demand; do not initialize every game when a content script loads.
 3. **Independent modules:** arithmetic, equations, easy puzzles and persistent timer each own their interaction, validation and module-specific state. Modules request completion through the common flow; they must not increment counts or grant tab access independently.
 4. **Shared completion coordinator:** check that the attempt still belongs to the active tab/domain and is not already completed, then persist progression and temporary access consistently. Preserve duplicate-submission protection and the background writer. Stale results, navigation, storage failure and repeated callbacks must not create extra unlocks.
-5. **Versioned local state:** distinguish per-website progression, module/attempt state and temporary per-tab access sessions. Use stable identifiers and explicit schema versions so updates can migrate existing data. Preserve counts and configured websites; do not silently reset progression or active saved timer state. Detailed migration and timer ownership rules need design before implementation.
+5. **Versioned local state:** distinguish per-website progression, module/attempt state and temporary per-tab access sessions. Use stable identifiers and explicit schema versions so updates can migrate existing data. Preserve counts and configured websites; do not silently reset progression or active saved timer state. Product migration and timer rules are approved below; their technical mechanics still need design.
 6. **Lifecycle and performance:** stop module timers, animations, workers and listeners when disposed. Pause/save resumable tasks according to their rules. Heavy optional dependencies must not enter every page's initial challenge bundle; measure real Chrome behavior as well as unit tests.
 
 Adding a future challenge should normally mean a new module, a registry entry, relevant progression configuration and tests, rather than edits to every existing module. A module's own capabilities may require extra implementation, but the common unlock flow should remain reusable.
 
 Scope now is the foundation plus Levels 1–4 only. Camera recognition is excluded from the current roadmap and architecture implementation; no camera permission, recognition library, placeholder module or backend image pipeline is required. Any post-release proposal needs separate approval.
 
-Exact interface signatures, file layout, state schemas, attempt identity representation and migration policy are design work still to be completed. These requirements do not authorize silently deciding the open product rules below.
+Exact interface signatures, file layout, state schemas and attempt identity representation still require technical design. Follow the approved product rules below.
 
 ## Challenge progression
 - Difficulty is tracked separately for each configured website.
@@ -64,7 +64,18 @@ Exact interface signatures, file layout, state schemas, attempt identity represe
 - Prevent repeated submissions, page reloads, or navigation events from incrementing the unlock count more than once.
 - Current code advances arithmetic difficulty on each successful unlock and caps it at tier 10. This is distinct from the planned challenge levels.
 - Approved next level design: Level 1 arithmetic at counts 0–20; Level 2 linear equations/introductory calculus-style problems at 21–30; Level 3 easy interactive puzzles at 31–50; Level 4 a 1–8 minute waiting challenge at 51–70, paused while away and resumed from local state.
-- Exact count semantics/boundaries, generators, puzzle choices, timer rules across multiple tabs, migration from existing arithmetic tiers, duration selection and behavior beyond 70 remain to be designed before implementation. See phases.md for tasks and acceptance criteria.
+## Approved level rules (2026-10-17; not implemented)
+
+- Select the next challenge using the website's completed successful-unlock count before that challenge: Level 1 at 0–20, Level 2 at 21–30, Level 3 at 31–50, Level 4 at 51–70 and every count above 70. A new website therefore receives 21 Level 1 completions. Completion increments the count once; the next attempt uses the resulting count.
+- Level 1 stays approachable without being trivial: addition, subtraction and small multiplication, gradually introducing two-operation expressions and exact division toward count 20. Use manageable numbers and whole-number answers; wrong answers never increase difficulty.
+- Level 2 randomly selects simple linear equations or introductory derivative questions with integer answers and clear instructions.
+- Level 3 starts with missing-item pattern puzzles and memory matching with three pairs and no time limit. Randomly choose a game for each new challenge. Each mini-game is independently registered and versioned, leaving room for more modules without rewriting existing games or the shared unlock flow.
+- Wrong answers and refreshes retain the selected challenge. Generate a new challenge after successful completion; saved waiting challenges retain their remaining time.
+- Level 4 selects a random duration of 1–8 whole minutes once per new waiting challenge. Persist its duration and remaining time; returning or refreshing must not reroll it. Continue Level 4 after 70, cap waits at eight minutes, and keep incrementing the count.
+- Keep one saved waiting timer per website, counting down in only one tab at a time. Pause when its challenge tab is hidden, Chrome is minimized, the user leaves the website, or the tab/browser closes. Resume saved remaining time on return; time spent away does not count. Completion unlocks only the completing tab, not every tab for that website.
+- Migration preserves configured websites and successful-unlock counts, replacing legacy arithmetic-tier selection with the new ranges. For example, an existing count of 35 selects Level 3. Preserve temporary-session lifecycle guarantees separately from saved challenge state.
+- These are approved product rules, not implemented functionality. Detailed module contracts, state schemas, timer ownership/handoff and race handling, generator bounds, exact puzzle content, and migration mechanics still require technical design and tests. Do not infer shared non-timer completion across tabs from the shared waiting timer.
+
 Motivational video
 The owner wants an anime motivational speech when the user tries to disable the extension, with the title:
 Ahh look at you, running from a war, what a coward
@@ -181,7 +192,7 @@ MVP acceptance checklist
 Open decisions
 Keep this list current:
 - Product name and visual identity
-- Exact modular interface/state schema, challenge-level boundaries, generator/puzzle design, migration and timer semantics (approved ranges above)
+- Exact module interfaces/state schemas, generator bounds, puzzle content, timer ownership/handoff and migration implementation mechanics (product rules approved above)
 - Payment provider and pricing
 - Final premium feature list
 - Data retention and account-deletion policy

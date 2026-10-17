@@ -2,9 +2,9 @@
 
 Run `npm test`, `npm run lint`, and `npm run build` from `extension/`.
 
-Current automated suites cover arithmetic, blocking/storage, account messages, sync merging and Render wake-up behavior. The separate unlockLifecycle.test.js suite previously covering duplicate requests, concurrent unlocks, navigation, restart and storage failures is absent. Do not claim those earlier automated cases currently run. Restore that coverage before release; the manual checks below remain useful and were previously owner-confirmed.
+Current automated suites cover arithmetic, domain validation, blocking/storage, account messages, sync merging and Render wake-up behavior. The restored `src/services/unlockLifecycle.test.js` adds 26 regression cases using asynchronous Chrome API mocks and the real background message handler. It covers duplicate/concurrent completions, concurrent settings edits, per-tab access, domain departures, committed/iframe navigation, tab closure, sender/document rejection, atomic write failure/retry, remove/toggle invalidation, offline completion and distinct worker/browser restarts. Worker restart is modeled by re-importing production modules with stored data retained; browser restart/reload additionally clears session storage. These tests do not execute Chrome itself or render React UI; retain the manual checks below.
 
-Latest recorded results: 61 extension tests across 7 files; lint/build passed. These are prior implementation results, not a rerun for this audit. Current challenges are ten arithmetic tiers. Planned Levels 1–4 require new boundary, puzzle, timer and migration tests; see ../brain/phases.md.
+The lifecycle suite is restored during preparation step 3. Fresh checkpoint verification passed 110 extension tests across 9 files, plus lint/build; see brain/progress.md M016. Current challenges are ten arithmetic tiers. Planned Levels 1–4 require new boundary, puzzle, timer and migration tests; see ../brain/phases.md.
 
 ## Required tests for the modular foundation and Levels 1–4 (not implemented yet)
 
@@ -16,7 +16,7 @@ Follow [project.md](../brain/project.md#required-modular-challenge-architecture)
 - Shared completion: valid active attempt succeeds once; duplicate/stale/cross-tab results cannot increment counts or unlock another tab.
 - Storage failures and safe retry; modules cannot bypass the common persistence flow.
 - Migration from existing arithmetic state without losing website settings or successful-unlock counts; restoration of resumable tasks after restart/update.
-- Puzzle keyboard interaction and actual Chrome responsiveness; timer pause/resume across navigation, closure and restart according to the finalized policy.
+- Puzzle keyboard interaction and actual Chrome responsiveness; timer pause/resume across navigation, closure and restart according to the approved rules in ../brain/project.md#approved-level-rules-2026-10-17-not-implemented.
 - Website-list sync preserves local module/progression state where appropriate; core challenges work offline.
 
 The existing manual checks below are the arithmetic baseline to preserve, not evidence the modular system exists. Extend them as each module is implemented. Camera recognition is excluded and needs no tests or scaffolding now.

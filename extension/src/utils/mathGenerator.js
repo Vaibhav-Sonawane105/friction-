@@ -150,11 +150,13 @@ export function generateChallenge(level = 1) {
 
 /**
  * Validates a user's answer against the expected answer.
- * Handles whitespace and numeric coercion.
+ * Accepts complete base-10 integer answers without truncation or precision loss.
  */
 export function validateAnswer(userAnswer, expectedAnswer) {
   if (userAnswer === null || userAnswer === undefined) return false;
-  const parsed = parseInt(String(userAnswer).trim(), 10);
-  if (isNaN(parsed)) return false;
-  return parsed === expectedAnswer;
+  if (typeof userAnswer !== 'string' && typeof userAnswer !== 'number') return false;
+  const answer = String(userAnswer).trim();
+  if (!/^-?\d+$/.test(answer)) return false;
+  const parsed = Number(answer);
+  return Number.isSafeInteger(parsed) && Number.isSafeInteger(expectedAnswer) && parsed === expectedAnswer;
 }

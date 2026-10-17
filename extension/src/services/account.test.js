@@ -125,6 +125,15 @@ describe('Render wake-up', () => {
 });
 
 describe('account and automatic sync', () => {
+  it('requires explicit local-list recovery from an oversized cloud snapshot', async () => {
+    await login(); remote = [a, b, { domain: 'example.com', enabled: true }];
+    const result = await controller.action('enable');
+    expect(result.status).toBe('conflict');
+    expect(result.message).toMatch(/two|limit/i);
+    expect(remote).toHaveLength(3); expect(local).toHaveLength(1);
+    await controller.action('resolve', { choice: 'local' });
+    expect(remote).toEqual([a]); expect(local[0].successfulUnlockCount).toBe(8);
+  });
   it('does not request the network while signed out or signed in without sync consent', async () => {
     await controller.action('sync'); expect(fetcher).not.toHaveBeenCalled();
     await login(); calls.length = 0;

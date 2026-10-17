@@ -1,4 +1,4 @@
--- Run as postgres in staging AFTER all three migrations. Ends with ROLLBACK.
+-- Run as postgres in staging AFTER all four migrations. Ends with ROLLBACK.
 BEGIN;
 INSERT INTO auth.users (id, email) VALUES
   ('f0000000-0000-4000-8000-000000000003', 'sync-a@example.invalid'),

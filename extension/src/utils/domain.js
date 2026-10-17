@@ -41,9 +41,14 @@ export function normalizeDomain(input) {
 }
 
 /**
- * Checks if a given URL or hostname matches a blocked domain.
- * Supports exact domain or subdomains (e.g. "m.youtube.com" matches "youtube.com").
+ * Validates a normalized hostname using the same label and length rules as the API.
  */
+export function isValidDomain(domain) {
+  return typeof domain === 'string' && domain.length <= 253 &&
+    /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/.test(domain);
+}
+
+/** Matches exact hosts or real subdomains, not suffix lookalikes. */
 export function isDomainMatch(urlOrHost, blockedDomain) {
   if (!urlOrHost || !blockedDomain) return false;
 

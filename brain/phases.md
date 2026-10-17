@@ -4,7 +4,7 @@ This document tracks the implementation progress of the Progressive Website Bloc
 It defines the development phases, their objectives, implementation tasks, completion criteria, and dependencies.
 Current Phase: Modular challenge foundation → Phase 1 Enhancement — Progressive Challenge Levels (next implementation; neither foundation nor four-level mechanism implemented yet).
 Current Status: Core arithmetic extension and account/website-sync foundations are implemented. Render Free staging works with owner-confirmed live acceptance. The intended product is not release-ready.
-Overall Status: Latest recorded automated results: 61 extension tests across 7 files and 72 backend tests across 6 files, plus extension lint/build. These are prior observed runs, not a fresh rerun for this documentation update. The separate unlock lifecycle regression suite remains absent; live account edge cases remain follow-ups (see progress.md).
+Overall Status: Fresh checkpoint verification: 110 extension tests across 9 files and 80 backend tests across 7 files passed, plus extension lint/build. Lifecycle regression coverage is restored. Owner reports migration/SQL scripts passed; independent hosted SQL verification, API redeployment and live account edge cases remain follow-ups (see progress.md M016).
 
 Agreed sequence: first design and implement the modular foundation required by project.md, then implement and verify progressive challenge Levels 1–4; then continue Phase 3 subscriptions, Phase 4 dashboard/analytics and Phase 5 signature features in order unless the owner changes priorities. Chrome Web Store preparation/publication is a later release decision, not the next phase merely because hosting works.
 Current implementation uses ten arithmetic difficulty tiers capped at 10, increasing after each successful unlock. Those tiers are not the planned four challenge-type levels below.
@@ -20,7 +20,7 @@ Development Rules
 9. When a phase is completed, test its acceptance criteria before moving forward.
 10. If requirements change, update the relevant documentation before implementing significant architectural changes.
 Phase 1 — Core Extension
-Status: Implemented; owner-confirmed browser acceptance. Missing lifecycle regression coverage remains a follow-up.
+Status: Implemented; owner-confirmed browser acceptance, with 26 restored automated lifecycle regression cases.
 Objective
 Build a functional Chrome extension that allows users to select distracting websites, block them, solve math challenges to unlock them temporarily, and experience increasing difficulty for repeated unlocks.
 Tasks
@@ -55,11 +55,11 @@ Level	Successful unlock count before the next challenge	Challenge type
 Level 1	0–20	Existing beginner-friendly arithmetic problems
 Level 2	21–30	Linear equations and introductory calculus-style problems, including solving for x
 Level 3	31–50	Very easy interactive mini-games and puzzles, such as patterns, sequences, memory, or spatial reasoning
-Level 4	51–70	Waiting challenge with a randomly or deliberately selected duration from 1 to 8 minutes
+Level 4	51 and above	Random 1–8 whole-minute waiting challenge, persisted and paused while hidden/away
 Future levels	To be defined	Additional modules require separate design/approval; no camera work is included
 
 
-The ranges above describe the intended progression. During implementation, define precisely whether the count refers to completed unlocks or the count shown before a challenge, and test every boundary to prevent off-by-one errors.
+The ranges use completed unlocks before the next challenge: 0–20 gives 21 Level 1 completions. Level 4 continues above 70. Product rules, challenge retention, migration and timer behavior are approved in project.md#approved-level-rules-2026-10-17-not-implemented; technical design and implementation remain pending.
 Tasks
 - [ ] Design the module contract, progression policy and registry, shared completion coordinator, versioned local state and migration strategy as required by [project.md](project.md#required-modular-challenge-architecture).
 - [ ] Implement the reusable foundation and adapt existing arithmetic through its module interface before adding other challenge types.
@@ -180,13 +180,13 @@ Future Updates
 - **2026-10-14**: Phase 1 Core Extension verified across all 5 browser scenarios with 20 passing Vitest tests.
 - **2026-10-15**: Phase 2 Backend & Authentication completed & verified:
   - Express API skeleton with ES Modules, dotenv, nodemon, and GET /health.
-  - Supabase client integration and verified live connectivity.
+  - Supabase client integration; historical health/session results did not prove live database connectivity or RLS (see M016).
   - Relational PostgreSQL schemas (profiles, user_settings, synced_websites, unlock_history) with RLS policies, indexes, and triggers.
   - Authentication endpoints (signup, login, me, logout) with JWT Bearer validation middleware and safe JSON error handling.
   - Optional cloud synchronization for preferences, website blocklists, and minimal unlock history with strict privacy guards (normalizeDomain).
   - 50/50 automated backend tests passing (Vitest + Supertest).
 Current Next Step
-1. Start with the **modular challenge foundation**, then **Phase 1 Enhancement — Progressive Challenge Levels**. First define exact count boundaries, arithmetic-to-level migration, timer behavior across tabs, and behavior after count 70; then implement and test the four levels incrementally. These details remain open, not silently finalized by this documentation update.
+1. Design the **modular challenge foundation** using the approved rules in project.md, then implement and test it before adding Levels 1–4. Count boundaries, migration policy, starter games, timer visibility/ownership policy, random duration and post-70 continuation are approved; interfaces, schemas and concurrency mechanics still need technical design.
 2. Keep blocking, challenge progression, puzzles and the planned Level 4 timer local-first. Backend outages or sign-out must not disrupt core behavior.
 3. Continue the subscription/dashboard/signature-feature roadmap after the level mechanism. Store release is deferred until intended product scope and release checks are satisfied and the owner authorizes it.
 

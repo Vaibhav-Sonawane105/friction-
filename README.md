@@ -14,7 +14,7 @@ See [roadmap](brain/phases.md), [execution evidence](brain/progress.md), [accoun
 
 Separate progression rules, a stable challenge registry, independent on-demand modules, shared exactly-once completion and versioned local state. Adding a new module must not duplicate unlock/count logic or require rewriting existing games. Preserve website counts and settings during migration from the existing arithmetic code. Full requirements: [modular challenge architecture](brain/project.md#required-modular-challenge-architecture).
 
-Scope is the foundation plus arithmetic, equations, easy puzzles and persistent timer. Camera recognition is outside the current roadmap. This architecture is approved direction, not implemented functionality; no dependency or permission for speculative future challenges is being added.
+Owner-approved [level rules](brain/project.md#approved-level-rules-2026-10-17-not-implemented) define boundaries, count-preserving migration, challenge retention, initial expandable puzzle selection and timer behavior. These rules are not implemented yet. Scope is the foundation plus arithmetic, equations, easy puzzles and persistent timer. Camera recognition is outside the current roadmap. This architecture is approved direction, not implemented functionality; no dependency or permission for speculative future challenges is being added.
 
 ## Project Structure
 
@@ -76,4 +76,4 @@ For local extension development, the API defaults to localhost:5000. The current
 
 ### Verification
 
-Run `npm test`, `npm run lint` and `npm run build` from `extension/`, and `npm test` from `backend/`. Last recorded passing implementation results were 61 extension tests and 72 backend tests plus lint/build; not rerun for this documentation audit. Live SQL/browser results are distinguished from mocked tests in progress.md. Missing lifecycle regression coverage and advanced-level tests remain follow-ups.
+Run `npm test`, `npm run lint` and `npm run build` from `extension/`, and `npm test` from `backend/`. Fresh checkpoint verification passed: 110 extension tests across 9 files, 80 backend tests across 7 files, and extension lint/build. Lifecycle coverage is restored; advanced-level tests are still planned. See progress.md M016 for local versus deployed scope and owner-reported SQL results.

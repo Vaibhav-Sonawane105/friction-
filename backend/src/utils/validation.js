@@ -81,7 +81,7 @@ export function normalizeDomain(input) {
  * Checks if a string is a valid domain name format.
  */
 export function isValidDomain(domain) {
-  if (!domain || typeof domain !== 'string') return false;
+  if (!domain || typeof domain !== 'string' || domain.length > 253) return false;
   const domainRegex = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/i;
   return domainRegex.test(domain);
 }

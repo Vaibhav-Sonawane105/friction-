@@ -27,7 +27,7 @@ These instructions apply whenever an AI assistant works on this project. Read th
 
 ## Required challenge architecture
 
-Follow [project.md — required modular challenge architecture](project.md#required-modular-challenge-architecture) before adding Levels 1–4. Separate progression policy, module registry, independently loaded challenge modules, shared exactly-once completion and versioned local state. Do not expand the arithmetic-only implementation into a monolithic multi-game component. New modules must preserve existing counts, tab/session behavior and offline blocking. Current code has not yet been migrated.
+Follow [project.md — required modular challenge architecture](project.md#required-modular-challenge-architecture) before adding Levels 1–4. Separate progression policy, module registry, independently loaded challenge modules, shared exactly-once completion and versioned local state. Do not expand the arithmetic-only implementation into a monolithic multi-game component. New modules must preserve existing counts, tab/session behavior and offline blocking. Current code has not yet been migrated. Follow the owner-approved level rules in [project.md](project.md#approved-level-rules-2026-10-17-not-implemented); product decisions are settled, while technical interfaces and state/concurrency design remain pending.
 
 Camera recognition is outside the current roadmap. Do not add its permissions, dependencies, scaffolding or implementation as part of this work.
 

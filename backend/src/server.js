@@ -1,6 +1,5 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { supabase } from './supabase.js';
 import authRouter from './routes/auth.js';
 import syncRouter from './routes/sync.js';
 
@@ -34,21 +33,15 @@ app.get(['/auth/confirmed', '/'], (req, res) => {
 <p>You can close this tab.</p></main></body></html>`);
 });
 
-// Health endpoint with live Supabase ping
-app.get('/health', async (req, res) => {
-  let supabaseStatus = 'disconnected';
-  try {
-    const { error } = await supabase.auth.getSession();
-    supabaseStatus = error ? `error: ${error.message}` : 'connected';
-  } catch (err) {
-    supabaseStatus = `failed: ${err.message}`;
-  }
-
+// Process liveness for Render and extension wake-up requests, not readiness.
+app.get('/health', (req, res) => {
+  res.set('Cache-Control', 'no-store');
   res.status(200).json({
     status: 'ok',
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
-    supabase: supabaseStatus
+    scope: 'process',
+    supabase: 'not_checked'
   });
 });
 

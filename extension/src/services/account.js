@@ -133,16 +133,24 @@ export function createAccountController({ sessionStore, stateStore, readLocal, a
       for (let attempt = 0; attempt < 3; attempt++) {
         const remote = await authorized('/sync/website-snapshot');
         const local = websiteConfig(await readLocal());
-        const remoteList = websiteConfig(remote.websites);
         if (!Number.isSafeInteger(remote.revision) || remote.revision < 0) throw new Error('Invalid cloud revision.');
+        const oversized = Array.isArray(remote.websites) && remote.websites.length > 2;
+        if (oversized && choice !== 'local') {
+          const cloud = remote.websites.flatMap(item => websiteConfig([item]));
+          await setState(session.user.id, { ...state, status: 'conflict', local, cloud,
+            cloudChoiceUnavailable: true,
+            message: 'The cloud list exceeds the two-website limit. Keep this device’s list to replace it, or manage the cloud list before retrying.' });
+          return status();
+        }
+        const remoteList = oversized ? null : websiteConfig(remote.websites);
         let merged;
         try { merged = choice === 'local' ? local : choice === 'cloud' ? remoteList : mergeWebsites(state.base, local, remoteList); }
         catch (error) {
-          await setState(session.user.id, { ...state, status: 'conflict', message: error.message, local, cloud: remoteList });
+          await setState(session.user.id, { ...state, status: 'conflict', cloudChoiceUnavailable: false, message: error.message, local, cloud: remoteList });
           return status();
         }
         let saved = remote;
-        if (!sameConfig(merged, remoteList)) {
+        if (oversized || !sameConfig(merged, remoteList)) {
           try {
             saved = await authorized('/sync/website-snapshot', { method: 'PUT', body: { revision: remote.revision, websites: merged } });
           } catch (error) { if (error.status === 409) continue; throw error; }

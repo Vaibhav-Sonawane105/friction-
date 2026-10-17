@@ -183,108 +183,16 @@ router.get('/websites', checkSyncEnabled, async (req, res) => {
   }
 });
 
-/**
- * POST /api/sync/websites
- * Synchronizes local website list with the cloud (sanitizes domains to avoid URL leaks).
- */
-router.post('/websites', checkSyncEnabled, async (req, res) => {
-  try {
-    const rawList = Array.isArray(req.body?.websites)
-      ? req.body.websites
-      : req.body?.domain
-        ? [req.body]
-        : [];
-
-    if (rawList.length === 0) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'No website entries provided for synchronization'
-      });
-    }
-
-    const validRecords = [];
-    for (const item of rawList) {
-      const cleanDomain = normalizeDomain(item.domain);
-      if (cleanDomain) {
-        validRecords.push({
-          user_id: req.user.id,
-          domain: cleanDomain,
-          enabled: typeof item.enabled === 'boolean' ? item.enabled : true,
-          label: typeof item.label === 'string' ? item.label.slice(0, 100) : null,
-          updated_at: new Date().toISOString()
-        });
-      }
-    }
-
-    if (validRecords.length === 0) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'None of the provided website domains were valid'
-      });
-    }
-
-    const { data, error } = await req.supabase
-      .from('synced_websites')
-      .upsert(validRecords, { onConflict: 'user_id,domain' })
-      .select('domain, enabled, label, updated_at');
-
-    if (error) {
-      return res.status(500).json({
-        error: 'DatabaseError',
-        message: 'Failed to sync websites'
-      });
-    }
-
-    return res.status(200).json({
-      syncedCount: validRecords.length,
-      websites: data,
-      message: 'Websites successfully synchronized'
-    });
-  } catch {
-    return res.status(500).json({
-      error: 'Internal Server Error',
-      message: 'Failed to synchronize websites'
-    });
-  }
-});
-
-/**
- * DELETE /api/sync/websites/:domain
- * Removes a domain from the user's cloud-synced list.
- */
-router.delete('/websites/:domain', checkSyncEnabled, async (req, res) => {
-  try {
-    const cleanDomain = normalizeDomain(req.params.domain);
-    if (!cleanDomain) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'Invalid domain specified'
-      });
-    }
-
-    const { error } = await req.supabase
-      .from('synced_websites')
-      .delete()
-      .eq('user_id', req.user.id)
-      .eq('domain', cleanDomain);
-
-    if (error) {
-      return res.status(500).json({
-        error: 'DatabaseError',
-        message: 'Failed to remove synced website'
-      });
-    }
-
-    return res.status(200).json({
-      message: `Domain ${cleanDomain} removed from cloud sync`
-    });
-  } catch {
-    return res.status(500).json({
-      error: 'Internal Server Error',
-      message: 'Failed to remove domain'
-    });
-  }
-});
+// Older writes cannot provide a revision or enforce atomic list replacement.
+// Authenticate first, but never query/mutate cloud data through these paths.
+function retiredWebsiteWrite(req, res) {
+  return res.status(410).json({
+    error: 'EndpointRetired',
+    message: 'Use GET/PUT /api/sync/website-snapshot with a revision and at most two websites.',
+  });
+}
+router.post('/websites', retiredWebsiteWrite);
+router.delete('/websites/:domain', retiredWebsiteWrite);
 
 /**
  * Helper to verify user has analytics_opt_in = true before logging history.

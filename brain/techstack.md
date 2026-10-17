@@ -141,7 +141,7 @@ Each module owns its interaction and cleanup; only selected modules and their de
 **Used for:**
 - User-selected website domains.
 - Per-website difficulty progression and cumulative unlock counts.
-- Level 4 countdown timer state (remaining duration, pause-on-exit, resume-on-return per domain).
+- Level 4: one persisted timer per website, one counting tab, random 1–8 whole minutes selected once; pause while hidden/minimized/away, resume saved time, and unlock only the completing tab. See approved rules in project.md.
 - Temporary unlock session records.
 - Local preferences and focus settings.
 
@@ -304,7 +304,7 @@ Charts will use data needed for meaningful user insights. Detailed cloud analyti
 
 ## 8. Testing and Quality Assurance
 
-Latest recorded implementation checks: 61 extension tests across 7 files, 72 backend tests across 6 files, extension lint/build. These were not rerun for this documentation-only audit. Tests listed for advanced levels below are intended coverage, not implemented tests. The separate unlockLifecycle.test.js regression suite is absent and remains a follow-up.
+Latest checkpoint checks: 110 extension tests across 9 files, 80 backend tests across 7 files, extension lint/build passed. The restored unlockLifecycle.test.js has 26 cases using asynchronous Chrome mocks and the real background handler; it does not replace real Chrome acceptance. Advanced-level tests below remain planned.
 
 ### Vitest
 **Purpose:** Unit testing for JavaScript modules.
@@ -313,7 +313,7 @@ Latest recorded implementation checks: 61 extension tests across 7 files, 72 bac
 - Progressive challenge generators and solvers (Level 1 arithmetic, Level 2 linear/calculus equations).
 - Answer validation and puzzle state (Level 3 sequences, patterns, memory).
 - Level 4 countdown timer pause/resume math and state transitions.
-- Unlock-count boundary calculations (0–20, 21–30, 31–50, 51–70).
+- Unlock-count boundaries using completed unlocks before each attempt: 0–20, 21–30, 31–50, 51–70, and continued Level 4 above 70; preserve existing counts during migration.
 - Difficulty progression and unlock counts.
 - Unlock-session expiry calculations.
 - Website-domain normalization.

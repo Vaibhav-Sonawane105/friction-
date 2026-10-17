@@ -38,8 +38,9 @@ Choose a region close to the Supabase project's region when available.
 ## Connect the extension and confirmation emails
 
 1. Check `https://progressive-friction-api.onrender.com/health` returns HTTP 200. This is
-   process liveness only: the current `supabase: connected` field does not prove
-   database connectivity or RLS. Verify authenticated operations separately.
+   process liveness only: `scope: process` and `supabase: not_checked` explicitly
+   leave database connectivity and RLS unverified. Verify authenticated operations
+   separately. This response change requires deploying the updated API.
 2. In Supabase Authentication URL Configuration, add the exact
    `https://progressive-friction-api.onrender.com/auth/confirmed` redirect URL. Set the Site URL
    to that hosted confirmation page for default confirmation links. Preserve
@@ -77,3 +78,7 @@ Automated tests simulate wake-up. Basic live account/sync/cold-start acceptance 
 
 References: https://render.com/docs/free and
 https://render.com/docs/blueprint-spec.
+
+## Deploying the snapshot-only write fix
+
+The next backend deployment retires unversioned POST/DELETE website writes with 410; the current extension uses the versioned snapshot endpoints. Apply migration `20261017000004_snapshot_only_website_writes.sql` and run the rollback checks described in `supabase/README.md`, then manually deploy the updated API after the owner approves the GitHub commit/push. No live migration or redeployment is performed by the local fix. Verify actual endpoint retirement and normal two-profile sync after deployment. Reload the rebuilt extension to expose explicit recovery for a pre-existing oversized cloud list.

@@ -2,7 +2,7 @@
 
 ## Local setup
 
-1. Apply backend Supabase migrations in order, including `20261015000003_versioned_website_sync.sql`. Run `backend/supabase/tests/versioned_sync.sql` and `permissions.sql` in staging as `postgres`. Both end with `ROLLBACK`; run `ROLLBACK;` separately if an error leaves the transaction aborted.
+1. Apply backend Supabase migrations in order, including `20261015000003_versioned_website_sync.sql` and `20261017000004_snapshot_only_website_writes.sql`. Run `backend/supabase/tests/versioned_sync.sql`, `permissions.sql` and `snapshot_only_writes.sql` in staging as `postgres`. Both end with `ROLLBACK`; run `ROLLBACK;` separately if an error leaves the transaction aborted.
 2. Keep Supabase configuration in `backend/.env`. Start the API with `npm start` from `backend/` (default port 5000).
 3. Development defaults to `http://localhost:5000`; an ignored `.env.local` can override it. Production builds currently read `VITE_API_URL=https://progressive-friction-api.onrender.com` from ignored `.env.production`. Mode-specific values override generic `.env.local` values; edit `.env.production` to change the production API and rebuild. HTTPS is required except for loopback. No API keys belong in the extension.
 4. Reload the unpacked extension from `extension/dist`, refresh existing website tabs, and open the popup's **Account & automatic sync** section. Sign up or sign in; if confirmation is required, follow the email confirmation and then sign in. Use **Verify account** to check the authenticated profile endpoint.
@@ -50,3 +50,5 @@ For live checks, use two Chrome profiles/devices with the extension and the same
 Live SQL tests and two-device checks require the configured Supabase project and running API; passing mocked tests alone does not verify them.
 
 References: [Supabase refreshSession](https://supabase.com/docs/reference/javascript/auth-refreshsession), [Chrome extension network requests](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests).
+
+Approved level product rules live in [project.md](../brain/project.md#approved-level-rules-2026-10-17-not-implemented). Existing counts migrate locally; challenge and timer state remain outside cloud sync. The new legacy-write retirement and process-only health response require deploying the updated backend.

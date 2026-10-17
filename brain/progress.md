@@ -8,8 +8,8 @@
 
 ## 1. Quick State Snapshot
 
-* **Current Active Phase:** Modular challenge foundation followed by Phase 1 Enhancement — Progressive Challenge Levels is next. Architecture direction approved; detailed interface design and implementation have not started. Render staging is completed groundwork, not release completion.
-* **Current Status:** API deployed at `https://progressive-friction-api.onrender.com`. Assistant verified public health/confirmation routes, signed-out access rejection, and login input validation. Owner confirmed hosted sign-in/account verification and website-list sync, then confirmed recovery after Render's roughly one-minute wake-up delay. Last implementation checks passed: 61/61 extension tests, 72/72 backend tests, extension lint and build. Live authenticated results are owner-reported; store publication and full production readiness are not established.
+* **Current Active Phase:** Preparation steps 1–7 complete locally; level product rules approved. Next: technical design of the modular challenge foundation, then implementation and Levels 1–4. No modular runtime or new levels have been built.
+* **Current Status:** Render staging remains deployed at `https://progressive-friction-api.onrender.com`; prior hosted acceptance is owner-reported. Fresh checkpoint checks: 110/110 extension tests across 9 files, 80/80 backend tests across 7 files, extension lint and build passed. New validation, legacy-write retirement and diagnostics changes are local and await backend redeployment. Owner reports migration 4 and SQL checks ran without errors; assistant did not independently execute hosted SQL.
 * **Active Working Directory:** `extension/`
 * **Current Focus:** Follow the required modular architecture in project.md and sequence in phases.md: design/implement the reusable foundation first, then independent Levels 1–4, then continue subscriptions, dashboard/analytics and signature features unless the owner changes priorities. Store release is deferred. Owner authorized this project-wide Markdown synchronization; future brain edits and GitHub commits/pushes still require permission.
 
@@ -33,7 +33,7 @@
 * **Extension Standard:** Chrome Manifest V3 (`storage`, `tabs`, `webNavigation`, `alarms`, `content_scripts`, `web_accessible_resources`), minimum Chrome 106.
 * **Tech Stack:**
   * Frontend: React 19, Vite, Tailwind CSS v4 (`@tailwindcss/vite`), custom SVG icons from `public/assets/logos/`.
-  * Testing: Last verified Vitest results: 61/61 extension tests across 7 files and 72/72 backend tests across 6 files. Five Render wake-up regressions were added. The separate unlock lifecycle test file remains absent; account/sync coverage does not restore those earlier lifecycle cases.
+  * Testing: Fresh checkpoint passed 110 extension / 80 backend tests plus extension lint/build. Restored lifecycle suite has 26 cases using asynchronous Chrome mocks and the real background handler; actual Chrome and advanced-level acceptance remain distinct.
   * Linting: ESLint (0 errors, 0 warnings).
   * Storage: Local-first (`chrome.storage.local` with `localStorage` dev fallback). Background-worker writes are serialized; progression and unlock sessions are saved together. A browser-lifetime identifier in `chrome.storage.session` expires temporary unlocks after browser restart/extension reload while preserving them through worker restarts. Chrome 106+ is required.
 * **Required next challenge architecture:** Separate progression policy, stable module registry, on-demand independent challenge modules, shared exactly-once completion and versioned local state. This supersedes arithmetic-only architecture as the implementation direction; it has not yet been built. Preserve counts, settings, tab access rules and offline operation during migration. Camera recognition is excluded from the current roadmap. See project.md for requirements and open design details.
@@ -44,7 +44,7 @@
 ## 3. Chronological Execution Graph
 
 ```text
-[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync API] ──► [M010: Authentication & Database Permission Hardening] ──► [M011: Unlock Lifecycle Hardening] ──► [M012: Accounts & Automatic Website Sync] ──► [M013: Render Free Staging & Probe Cleanup] ──► [M014: Roadmap & Documentation Alignment] ──► [M015: Modular Challenge Architecture Requirement]
+[M001: Initial Setup] ──► [M002: Folder Structure] ──► [M003: Dependencies & Theme] ──► [M004: Phase 1 Core Implemented] ──► [M005: In-Page Blur Overlay & Neo-Brutalist UI] ──► [M006: Backend & Supabase Integration] ──► [M007: Database Schema & RLS Policies] ──► [M008: Supabase Auth & JWT Middleware] ──► [M009: Optional Cloud Sync API] ──► [M010: Authentication & Database Permission Hardening] ──► [M011: Unlock Lifecycle Hardening] ──► [M012: Accounts & Automatic Website Sync] ──► [M013: Render Free Staging & Probe Cleanup] ──► [M014: Roadmap & Documentation Alignment] ──► [M015: Modular Challenge Architecture Requirement] ──► [M016: Preparation Fixes & Approved Level Rules]
 ```
 
 ### Milestone Log
@@ -299,6 +299,21 @@ Historical milestones record the code and decisions at their dates. M015 and the
 
 ---
 
+#### `[M016]` Preparation Fixes & Approved Level Rules
+* **Date:** 2026-10-17
+* **Authorization:** Owner approved steps sequentially and explicitly authorized this affected-document/progress update. No authorization to commit, push or deploy was given.
+* **Step 1 — Validation:** Strict whole-integer answer validation rejects partial/coerced/unsafe values. Domain validation is shared across local settings and sync, with backend length checks and regression coverage.
+* **Step 2 — Legacy sync permissions:** Legacy website POST/DELETE routes return 410; versioned snapshot replacement remains supported. Migration `20261017000004_snapshot_only_website_writes.sql` revokes direct client DML and confines replacement to the caller-scoped, consent/revision/limit-checked RPC. Oversized cloud lists require an explicit valid local-list recovery instead of silent trimming. Owner reports all migration/SQL scripts completed without errors; not independently observed. Backend redeployment is pending.
+* **Step 3 — Lifecycle tests:** Added 26 cases for duplicate/concurrent completion, per-tab navigation/access, stale or untrusted senders, storage failure/retry, settings invalidation, offline operation, worker restart and browser/reload expiry. Tests use Chrome mocks and real background message handling; they do not run Chrome itself.
+* **Step 4 — Cleanup:** Removed seven unreferenced legacy UI components; kept active BlockedChallengeCard/BlockedOverlay and popup UI. No redesign. Production content bundle is approximately 27.48 kB, stylesheet 24.65 kB (uncompressed build output).
+* **Step 5 — Visual specification:** With owner approval, ui.md now describes current mixed 1/2px borders, component-specific hard shadows, larger corner hierarchy and decorative gradient glow; working appearance preserved.
+* **Step 6 — Diagnostics:** Health now reports process liveness with `supabase: not_checked`; no session lookup masquerades as a live ping. Table checker no longer claims RLS enforcement, distinguishes unsuccessful reads from proven missing tables and exits nonzero on failures. Four diagnostic regression tests added; hosted response awaits deployment.
+* **Step 7 — Product rules approved:** Completed-count selection at 0–20 / 21–30 / 31–50 / 51–70; Level 4 continues above 70. Preserve existing counts during migration. Level 1 gradually increases manageable arithmetic; Level 2 randomly selects linear equations or introductory derivatives with integer answers. Level 3 initially selects patterns or three-pair memory without a time limit; independently registered modules permit more mini-games. Retain challenges after wrong answers/refreshes. New waiting tasks randomly choose 1–8 whole minutes once; persist remaining time, one timer per website and one counting tab, pause hidden/minimized/away/closed, and unlock only the completing tab. See project.md for authoritative approved rules.
+* **Verification:** Fresh runs passed 110/110 extension tests (9 files), 80/80 backend tests (7 files), extension ESLint and production build. Documentation consistency/diff checks performed. No new hosted SQL/browser acceptance or advanced-level behavior is claimed.
+* **Next:** Design module interfaces, schema/migration mechanics, attempt ownership and timer handoff/races; review the technical design and implementation plan before building the modular foundation. Preserve offline operation and exactly-once per-tab completion. Camera recognition remains excluded. Remaining staging account/confirmation checks and API redeployment stay open; store release remains deferred.
+
+---
+
 ## 4. Current Work in Progress
 
 ### Phase 1 Checklist (Completed & Verified)
@@ -317,9 +332,9 @@ Historical milestones record the code and decisions at their dates. M015 and the
 ### Phase 2 Checklist — Backend & Authentication (Completed & Verified)
 - [x] **Task 2.1:** Backend directory setup, Node.js/Express, dotenv, and nodemon.
 - [x] **Task 2.2:** Environment security (`.env.example`, `.gitignore` for `.env` & `node_modules`).
-- [x] **Task 2.3:** Health endpoint (`GET /health`) with live status check.
+- [x] **Task 2.3:** Process-liveness endpoint (`GET /health`); local fix explicitly reports Supabase as not checked. Deployment pending.
 - [x] **Task 2.4:** Supabase SDK installation & client configuration (`@supabase/supabase-js`).
-- [x] **Task 2.5:** Verified live backend-to-Supabase connectivity.
+- [ ] **Task 2.5:** Independently verify hosted database readiness separately; historical local-session health reads did not prove connectivity or RLS.
 - [x] **Task 2.6:** Configure PostgreSQL tables & schemas (users, profiles, settings, unlock history).
 - [x] **Task 2.7:** Implement Supabase Auth endpoints (signup, login, session token validation).
 - [x] **Task 2.8:** Configure Row Level Security (RLS) policies for data isolation.
@@ -329,7 +344,7 @@ Historical milestones record the code and decisions at their dates. M015 and the
 ### Modular Foundation → Phase 1 Enhancement — Progressive Challenge Levels (Next)
 - [ ] Design and implement progression policy, registry/module contract, shared completion coordinator and versioned local state; adapt arithmetic first without duplicating unlock logic.
 - [ ] Verify selected-module loading, lifecycle cleanup, exactly-once completion and data migration before expanding challenge types.
-- [ ] Define exact count boundaries, migration from arithmetic tiers, timer multi-tab policy, duration selection and behavior after 70.
+- [x] Approve count boundaries, count-preserving migration, starter games, timer visibility/ownership policy, duration selection and post-70 behavior (M016). Technical state/concurrency design remains pending.
 - [ ] Implement and verify Level 1 arithmetic selection and Level 2 equation generators.
 - [ ] Implement and verify Level 3 easy interactive puzzles.
 - [ ] Implement and verify Level 4 local persistent pause/resume timer.
@@ -339,12 +354,12 @@ Historical milestones record the code and decisions at their dates. M015 and the
 - [x] Implement request-isolated authentication clients and token-scoped profile reads.
 - [x] Bind logout to the validated caller session and handle failures.
 - [x] Prepare database permission migration and rollback-based SQL assertions.
-- [x] Pass backend regression suite (latest recorded result: 72/72).
+- [x] Pass backend regression suite (fresh checkpoint: 80/80).
 - [x] Obtain owner confirmation that Supabase permission assertions completed without errors.
 - [x] Verify authenticated two-profile sync (owner-confirmed).
 - [ ] Independently verify remaining live account edge cases, including expired-token refresh and logout/revocation failures, during staging.
 - [x] Stabilize unlock handling and verify real Chrome lifecycle behavior (owner-confirmed checklist completion; see M011).
-- [ ] Restore the absent unlock lifecycle regression suite before release (the current recorded extension total is 61, but account/sync/wake-up coverage does not restore those lifecycle cases).
+- [x] Restore unlock lifecycle regression coverage: 26 cases, included in the fresh 110-test extension suite; not a substitute for real Chrome testing.
 - [x] Complete extension account and opt-in automatic website-list sync integration (M012; owner-confirmed live acceptance).
 - [x] Obtain owner confirmation of the versioned-sync migration and SQL checks without errors.
 - [x] Verify basic hosted account actions, website-list sync and idle-server recovery in Render staging (owner-reported; see M013 for independent checks and remaining limits).
@@ -352,4 +367,4 @@ Historical milestones record the code and decisions at their dates. M015 and the
 - [ ] Prepare the Chrome Web Store release only after intended product features, remaining acceptance checks and owner release approval; not the next active task.
 - [x] Audit and synchronize stale brain/project Markdown with owner approval (M014); keep future changes permission-gated.
 
-Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010/M011/M012/M013/M014/M015, and the pre-release checklist.
+Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010/M011/M012/M013/M014/M015/M016, and the pre-release checklist.

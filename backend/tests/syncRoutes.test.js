@@ -166,101 +166,18 @@ describe('Sync Endpoints (/api/sync)', () => {
       expect(res.body.websites).toEqual(mockWebsites);
     });
 
-    it('sanitizes full URLs down to clean domains before syncing', async () => {
-      vi.spyOn(supabase, 'from').mockImplementation((table) => {
-        if (table === 'user_settings') {
-          return {
-            select: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                maybeSingle: vi.fn().mockResolvedValue({
-                  data: { sync_enabled: true },
-                  error: null
-                })
-              })
-            })
-          };
-        }
-        if (table === 'synced_websites') {
-          return {
-            upsert: vi.fn().mockImplementation((records) => {
-              // Assert that the record passed to DB is normalized to domain only
-              expect(records[0].domain).toBe('youtube.com');
-              return {
-                select: vi.fn().mockResolvedValue({
-                  data: [{ domain: 'youtube.com', enabled: true }],
-                  error: null
-                })
-              };
-            })
-          };
-        }
+    it.each([{}, { websites: [] }, { websites: [{ domain: 'a.com' }, { domain: 'b.com' }, { domain: 'c.com' }] }])(
+      'retires legacy POST writes regardless of payload %j', async body => {
+        const from = vi.spyOn(supabase, 'from');
+        const res = await request(app).post('/api/sync/websites')
+          .set('Authorization', `Bearer ${validToken}`).send(body);
+        expect(res.status).toBe(410); expect(from).not.toHaveBeenCalled();
       });
-
-      const res = await request(app)
-        .post('/api/sync/websites')
-        .set('Authorization', `Bearer ${validToken}`)
-        .send({
-          websites: [
-            { domain: 'https://www.youtube.com/watch?v=12345&t=10s', enabled: true }
-          ]
-        });
-
-      expect(res.status).toBe(200);
-      expect(res.body.syncedCount).toBe(1);
-    });
-
-    it('returns 400 when empty or invalid website list is submitted', async () => {
-      vi.spyOn(supabase, 'from').mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            maybeSingle: vi.fn().mockResolvedValue({
-              data: { sync_enabled: true },
-              error: null
-            })
-          })
-        })
-      });
-
-      const res = await request(app)
-        .post('/api/sync/websites')
-        .set('Authorization', `Bearer ${validToken}`)
-        .send({ websites: [] });
-
-      expect(res.status).toBe(400);
-      expect(res.body.message).toContain('No website entries');
-    });
-
-    it('deletes a domain from synced websites', async () => {
-      vi.spyOn(supabase, 'from').mockImplementation((table) => {
-        if (table === 'user_settings') {
-          return {
-            select: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                maybeSingle: vi.fn().mockResolvedValue({
-                  data: { sync_enabled: true },
-                  error: null
-                })
-              })
-            })
-          };
-        }
-        if (table === 'synced_websites') {
-          return {
-            delete: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                eq: vi.fn().mockResolvedValue({ error: null })
-              })
-            })
-          };
-        }
-      });
-
-      const res = await request(app)
-        .delete('/api/sync/websites/youtube.com')
+    it('retires legacy DELETE writes', async () => {
+      const from = vi.spyOn(supabase, 'from');
+      const res = await request(app).delete('/api/sync/websites/youtube.com')
         .set('Authorization', `Bearer ${validToken}`);
-
-      expect(res.status).toBe(200);
-      expect(res.body.message).toContain('youtube.com removed');
+      expect(res.status).toBe(410); expect(from).not.toHaveBeenCalled();
     });
   });
 

@@ -16,6 +16,18 @@ beforeEach(() => {
 });
 const authorized = (method, path) => request(app)[method](path).set('Authorization', 'Bearer test-token');
 
+describe('retired unversioned website writes', () => {
+  it.each(['post', 'delete'])('rejects %s without querying or mutating the database', async method => {
+    const from = vi.fn();
+    vi.spyOn(clients, 'createScopedClient').mockReturnValue({ from, rpc });
+    const path = method === 'delete' ? '/api/sync/websites/example.com' : '/api/sync/websites';
+    const result = await authorized(method, path).send({ websites: ['a.com', 'b.com', 'c.com'].map(domain => ({ domain })) });
+    expect(result.status).toBe(410);
+    expect(result.body.message).toContain('/api/sync/website-snapshot');
+    expect(from).not.toHaveBeenCalled(); expect(rpc).not.toHaveBeenCalled();
+  });
+});
+
 describe('refresh endpoint', () => {
   it('validates refresh tokens before calling Supabase', async () => {
     expect((await request(app).post('/api/auth/refresh').send({ refresh_token: {} })).status).toBe(400);

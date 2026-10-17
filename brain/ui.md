@@ -1,6 +1,6 @@
 # UI / UX Guidelines
 
-This file defines the visual and interaction direction for the Chrome extension and its companion web dashboard. The visual system uses a bold **Neo-Brutalism** aesthetic featuring crisp black borders, hard offset shadows, vibrant accent fills, and distinct typography pairing.
+This file defines the visual and interaction direction for the Chrome extension and its planned companion web dashboard. The visual system uses a bold **Neo-Brutalism** aesthetic featuring crisp black borders, hard offset shadows, vibrant accent fills, and distinct typography pairing. The implemented popup and arithmetic overlay are the current visual baseline; future interface areas below are design guidance, not claims of completed features.
 
 ## Product feel
 
@@ -9,14 +9,14 @@ The product should feel bold, high-contrast, playful, interactive, and unapologe
 ## Visual Direction & Style System
 
 ### Color Palette
-- **Canvas / Background Surfaces:** Clean light neutral (`#F5F5F5`, `#FFFFFF`).
-- **Borders & Outlines:** Solid black (`#000000`, 1px solid).
+- **Canvas / Background Surfaces:** Popup canvas `#F5F5F5`, white cards `#FFFFFF`, overlay surface `#F4F4F6`, and equation solution bar `#ECECEC`.
+- **Borders & Outlines:** Black (`#000000`), with widths chosen by component role as described below.
 - **Primary Accents & Fills:**
   - **Turquoise (`#4ECDC4`):** Primary action highlights, active states, and success buttons (e.g., "Leave" button).
   - **Red / Coral (`#F24822`):** Warning states, restricted icon highlights, and alert text.
   - **Yellow (`#FBE76D`):** Status indicators, tier badges (e.g., "Tier 3 equation").
   - **Soft Pink (`#FFB8B5`):** Secondary highlights and container accents.
-  - **Dark Neutral Text (`#000000` / `#4F4F4F` / `#757575`):** High-contrast typography and secondary descriptions.
+  - **Dark Neutral Text (`#000000` / `#555555` / `#757575`):** High-contrast typography and secondary descriptions; input placeholders also use `#888888`.
 - **Signature Gradient (Backdrops/Frames):**
   - Linear Gradient: `0%` (`#80E8FF`), `33%` (`#FFCBAA`), `70%` (`#D9B7F9`), `100%` (`#FF699B`).
 
@@ -25,9 +25,17 @@ The product should feel bold, high-contrast, playful, interactive, and unapologe
 - **Istok Web:** Used for all body copy, descriptive text, input placeholder labels, secondary stats, and standard navigation items.
 
 ### Neo-Brutalism Component Rules (Boxes & Containers)
-- **Borders:** Every box, card, container, and button must feature a strict **1px solid black (`#000000`) border**.
-- **Hard Drop Shadows:** Apply a solid drop shadow effect with **X = 6px, Y = 4px, Color = Solid Black (`#000000`)**. No soft or blurred gradients on shadows.
-- **Corner Radius:** Rounded corners strictly set between **4px and 6px** depending on the component size.
+- **Borders:** Main popup controls, domain rows, header/footer separators, and challenge controls use **2px black borders**. Compact domain icons, tier tags, remove buttons, and account-panel controls use **1px black borders**. The empty-domain state uses a 2px dashed border. Do not add borders to every layout wrapper.
+- **Hard Drop Shadows:** Match the component's existing shadow rather than applying one universal offset. The overlay tokens in [`extension/src/index.css`](../extension/src/index.css) are `shadow-brutal-card` (7px / 6px black), `shadow-brutal-header` (4px / 4px black), `shadow-brutal-badge` (3px / 3px black), `shadow-brutal-input` (4px / 4px hot pink), and `shadow-brutal-submit` (4px / 4px turquoise). These shadows have no blur.
+- **Popup Shadows:** Compact controls use smaller hard shadows: header icons/status 2px / 2px black, domain rows and add button 3px / 3px black, domain input 3px / 3px hot pink, remove button 1px / 1px black, and account panel/actions 3px / 2px black.
+- **Corner Radius:** Preserve the existing size hierarchy: compact controls use `rounded` / `rounded-md` / `rounded-lg` (4 / 6 / 8px); challenge controls and the empty state use `rounded-xl` (12px); the equation card uses 12px, increasing to `rounded-2xl` (16px) at the small breakpoint. The overlay's outer gradient wrapper uses 36px and its inner surface uses 30px. Circular status dots remain circular.
+- **Gradient Glow Exception:** The overlay's outer gradient frame deliberately uses soft cyan/pink glow shadows. The no-blur rule applies to component drop shadows, not this decorative frame.
+
+### Current Layout Baseline
+- **Popup:** 380px wide, minimum height 460px, with compact spacing and controls suited to the extension popup.
+- **Challenge Overlay:** Centered frame with maximum width 780px, a 6px gradient surround, and an inner surface with 44px vertical / 48px horizontal padding and minimum height 640px. The injected overlay dims and blurs the underlying page; the standalone blocked page uses the same challenge card.
+- **Equation Controls:** Keep the large centered equation and equally sized answer/submit controls; allow the control row to wrap. Preserve responsive typography and card-radius changes rather than applying popup sizing to the overlay.
+- These dimensions describe the current implementation, not a guarantee that every small viewport has been verified. Accessibility and responsive-layout principles below remain requirements for future changes.
 
 ## UX Principles
 
@@ -56,13 +64,13 @@ Use a shared shell for website identity, level, instructions, loading/error/savi
 
 - Arithmetic and equation modules use the equation/input rules below.
 - Puzzle modules supply appropriate accessible controls with clear completion feedback.
-- Timer module shows remaining time and pause/resume state without requiring an answer field.
+- Timer module shows remaining time and pause/resume state without requiring an answer field. Pause while hidden/minimized or away; restore the saved timer without rerolling its duration. Follow the [approved level rules](project.md#approved-level-rules-2026-10-17-not-implemented).
 - Shared completion/saving feedback prevents repeat submissions; module changes clean up old interactions and resources.
 - Saved state restoration and module-load failure need understandable feedback; they must not silently reset progression or grant access.
 - Camera recognition is outside the current roadmap; no camera UI is part of this phase.
 
 ### Arithmetic and Equation Modules
-- Display the equation prominently using **JejuGothic** typography inside a clean white container box with 1px black border and hard shadow.
+- Display the equation prominently using **JejuGothic** typography inside a clean white container with a 2px black border, responsive 12–16px corners, and `shadow-brutal-card`.
 - Provide a clear input field and a submit button styled with neo-brutalist geometry.
 - Communicate incorrect answers clearly without revealing solutions unless intended.
 - Confirm success visually and show the applicable level/progression state (e.g., using yellow/turquoise badge containers); do not assume the level changes after every completion.
@@ -86,4 +94,4 @@ Use a shared shell for website identity, level, instructions, loading/error/savi
 
 ## Component Consistency
 
-Before adding a new component, reuse existing neo-brutalist button and card structures (1px black border, X=6 / Y=4 solid shadow, 4–6px border radius). Maintain consistent spacing scales, font segregation (JejuGothic vs. Istok Web), and accessibility focus states across both the Chrome extension popup and web dashboard.
+Before adding a new component, reuse the active popup components or [`BlockedChallengeCard`](../extension/src/components/blocked/BlockedChallengeCard.jsx), and use the shared tokens in [`extension/src/index.css`](../extension/src/index.css). Select borders, shadows, and radii by component role using the baseline above. Maintain consistent spacing scales, font segregation (JejuGothic vs. Istok Web), and accessibility focus states. Future dashboard and challenge-module designs should extend this visual language; they do not require an automatic restyle of the current interface.

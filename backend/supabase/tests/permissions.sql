@@ -1,4 +1,4 @@
--- Run as postgres in a staging Supabase SQL editor AFTER both migrations.
+-- Run as postgres in a staging Supabase SQL editor AFTER all four migrations.
 -- Any exception means failure. All fixtures and writes are rolled back.
 BEGIN;
 
@@ -44,8 +44,9 @@ $$;
 
 UPDATE public.user_settings SET sync_enabled = true, analytics_opt_in = true
   WHERE user_id = 'f0000000-0000-4000-8000-000000000001';
-INSERT INTO public.synced_websites (user_id, domain)
-  VALUES ('f0000000-0000-4000-8000-000000000001', 'example.com');
+SELECT public.replace_website_snapshot(
+  (public.get_website_snapshot()->>'revision')::bigint,
+  '[{"domain":"example.com","enabled":true}]'::jsonb);
 INSERT INTO public.unlock_history (user_id, domain)
   VALUES ('f0000000-0000-4000-8000-000000000001', 'example.com');
 

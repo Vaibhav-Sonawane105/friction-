@@ -3,7 +3,7 @@
  * Handles local persistence via chrome.storage.local with browser localStorage fallback.
  */
 
-import { normalizeDomain } from '../utils/domain';
+import { normalizeDomain, isValidDomain } from '../utils/domain';
 import { sameConfig, websiteConfig } from './syncModel';
 
 export const FREE_TIER_DOMAIN_LIMIT = 2;
@@ -72,7 +72,7 @@ export async function getBlockedDomains() {
  */
 async function addBlockedDomainLocal(rawDomain) {
   const domain = normalizeDomain(rawDomain);
-  if (!domain) {
+  if (!isValidDomain(domain)) {
     throw new Error('Please enter a valid website domain.');
   }
 

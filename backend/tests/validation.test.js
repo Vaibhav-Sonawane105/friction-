@@ -9,6 +9,12 @@ import {
   isValidChallengeType
 } from '../src/utils/validation.js';
 
+it('rejects hostnames over 253 characters while accepting the boundary', () => {
+  const domain = [63, 63, 63, 61].map(n => 'a'.repeat(n)).join('.');
+  expect(isValidDomain(domain)).toBe(true);
+  expect(isValidDomain(`${domain}a`)).toBe(false);
+});
+
 describe('Validation Utilities', () => {
   describe('isValidEmail', () => {
     it('accepts valid email addresses', () => {

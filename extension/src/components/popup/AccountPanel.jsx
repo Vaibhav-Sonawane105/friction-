@@ -70,7 +70,7 @@ export function AccountPanel({ onWebsitesChanged }) {
               <p>Cloud: {account.cloud?.map((item) => `${item.domain}${item.enabled ? '' : ' (off)'}`).join(', ') || 'empty'}</p>
               <p>The list you choose replaces the other. Local challenge counts are preserved for retained domains.</p>
               <button className={button} disabled={busy} onClick={() => run('resolve', { choice: 'local' })}>Keep this device’s list</button>{' '}
-              <button className={button} disabled={busy} onClick={() => run('resolve', { choice: 'cloud' })}>Keep cloud list</button>
+              <button className={button} disabled={busy || account.cloudChoiceUnavailable} onClick={() => run('resolve', { choice: 'cloud' })}>Keep cloud list</button>
             </div>}
           </>
         ) : (

@@ -12,15 +12,25 @@ This directory contains version-controlled PostgreSQL migrations for the Progres
 
 After applying migration 3 in staging, run `tests/versioned_sync.sql` as `postgres`. It checks revision conflicts, all-or-nothing replacements, removals, invalid input, consent, revision protection, settings upserts, and anonymous denial, then rolls back its fixtures. Re-run `tests/permissions.sql` too. The owner reported both SQL verification scripts completed without errors; that execution was not directly observed by the assistant. Their presence alone does not prove a different database is configured correctly.
 
+## Snapshot-only website writes (migration 4; deployment pending)
+
+Apply `migrations/20261017000004_snapshot_only_website_writes.sql` after migrations 1–3, as postgres. It changes permissions only; it does not trim or delete stored lists. Direct client INSERT/UPDATE/DELETE privileges (including column grants) are revoked. The existing revision-checked, consent-checked replacement RPC becomes SECURITY DEFINER so it alone can perform authenticated writes. It derives user ownership from auth.uid(), not a supplied user ID. Keep this function owned by the trusted migration role, never authenticated/anon.
+
+The API retires POST `/api/sync/websites` and DELETE `/api/sync/websites/:domain` with HTTP 410. Use GET/PUT `/api/sync/website-snapshot`; replacing the full list atomically supports additions and removals and enforces at most two domains. Legacy GET remains available behind consent. Apply the migration before declaring database enforcement live, and deploy the updated API before claiming legacy endpoints return 410 in Render. Current extension clients already use the snapshot API.
+
+After migration 4, run `tests/snapshot_only_writes.sql`, `tests/versioned_sync.sql` and `tests/permissions.sql` as postgres. Each rolls back its fixtures. If a script fails, run `ROLLBACK;` before retrying. The new script verifies direct-write denial, bounded RPC writes, stale revisions, consent, isolation, anonymous denial and recovery from pre-existing three-site data. It does not simulate concurrent database transactions; the existing per-user row lock serializes RPC replacements. No SQL execution is claimed by merely preparing these scripts.
+
+Existing oversized cloud lists are preserved until the user explicitly chooses the valid local list in the extension conflict UI. No automatic truncation occurs. The oversized cloud choice is disabled. Keep another copy of any domains you intend to reconfigure before explicitly replacing a list.
+
 ## Security verification
 
-Apply all three migrations in filename order. Then run `tests/permissions.sql` as `postgres` in a staging project's SQL editor. It verifies profile protection, per-user isolation, opt-in enforcement, anonymous denial, and trusted billing updates. The script creates temporary test users inside a transaction and ends with `ROLLBACK`; if it fails, roll back the failed transaction before retrying. Do not treat a successful table SELECT or the API's unit tests as proof that these database checks passed.
+Apply all four migrations in filename order. Then run `tests/permissions.sql` as `postgres` in a staging project's SQL editor. It verifies profile protection, per-user isolation, opt-in enforcement, anonymous denial, and trusted billing updates. The script creates temporary test users inside a transaction and ends with `ROLLBACK`; if it fails, roll back the failed transaction before retrying. Do not treat a successful table SELECT or the API's unit tests as proof that these database checks passed.
 
 The owner reported applying the migrations and running the permission/versioned-sync checks without errors. Keep the distinction between owner-reported execution and independent verification. The schema checker and /health do not prove RLS enforcement.
 
 ## Scope and evidence
 
-The extension syncs only domain/enabled configuration. Unlock-history tables/endpoints exist behind analytics opt-in, but the extension does not upload history or share unlock counts. Subscriptions and billing processing are planned. Despite its printed labels, `npm run db:check` only attempts table reads; it does not establish RLS correctness.
+The extension syncs only domain/enabled configuration. Unlock-history tables/endpoints exist behind analytics opt-in, but the extension does not upload history or share unlock counts. Subscriptions and billing processing are planned. `npm run db:check` attempts anonymous table reads and exits nonzero if any fail. Successful reads do not prove RLS enforcement, applied migrations, write permissions or user isolation. Failures may indicate configuration, connectivity, permission or schema problems. Use the SQL checks above for permission verification.
 
 ## Modular challenge boundary
 
