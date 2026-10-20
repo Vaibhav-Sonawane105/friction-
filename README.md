@@ -8,6 +8,8 @@ Implemented: per-tab in-page blocking, local counts and ten arithmetic difficult
 
 Next is the **modular challenge foundation**, followed by **Phase 1 Enhancement — Progressive Challenge Levels**: arithmetic, equations, easy puzzles and a persistent pause/resume timer. The four-level mechanism is not implemented yet. Subscription, dashboard/analytics and signature features remain on the roadmap; deployment does not mean the product is ready for the Chrome Web Store.
 
+Development update: the modular foundation, arithmetic adapter and temporary testing panel are implemented in a separate development build, pending real Chrome acceptance. Run `npm run build:challenge-dev` from `extension/` and load `extension/dist-dev`; the popup lets you set counts, jump to level boundaries and reset a selected website's challenge. Levels 2–4 remain unavailable until their modules are implemented. Default `npm run build` keeps the existing production arithmetic behavior and verifies that development controls are excluded. See [development testing instructions](extension/TESTING.md#modular-foundation-development-build).
+
 See [roadmap](brain/phases.md), [execution evidence](brain/progress.md), [account setup](extension/INTEGRATION.md), [browser testing](extension/TESTING.md), [deployment](backend/DEPLOYMENT.md) and [database migrations](backend/supabase/README.md).
 
 ## Required architecture for the next implementation

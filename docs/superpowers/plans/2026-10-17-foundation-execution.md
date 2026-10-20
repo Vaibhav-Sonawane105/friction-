@@ -1,0 +1,32 @@
+# SDD ledger — plan: docs/superpowers/plans/2026-10-17-modular-challenge-foundation.md
+
+- Owner explicitly authorized implementation on main. NEVER commit or push without a new explicit owner instruction.
+- Baseline: b95e727; 110 extension tests passed before implementation. Initial working changes: untracked docs/spec and plan.
+- Ruling: use this persistent ledger rather than shell-only skill helper scripts on Windows; preserve it because no commits are authorized. Cost: manual task bookkeeping.
+- Pre-flight Tasks 1→3: registry exposes lazy model loaders and pure model methods; coordinator consumes these signatures unchanged.
+- Pre-flight Tasks 2→3→4: snapshot writes remain queue-owned; trusted context comes only from background sender validation.
+- Pre-flight Tasks 4→5: __PF_CHALLENGE_DEV__ gates new flow and panel; default production retains legacy challenges until all modules exist.
+- Task 1: complete — missing-module RED observed, 146/146 extension tests GREEN. Lazy view created with model to keep registry imports resolvable; rendering integration remains Task 4.
+- Task 2: in progress.
+- Task 2 diagnosis: existing storage helper defaulted explicit undefined to null, incorrectly treating missing schema as corrupt. Changed its default to undefined; legacy suites restored. Migration/schema coverage GREEN, 152/152 tests. Storage integration is also covered by upcoming real background-message tests.
+- Task 3: in progress.
+- Task 3: complete — missing coordinator RED, all 160 tests GREEN including response loss and latest-count completions.
+- Task 4: message integration and shared shell implemented. Real-background RED→GREEN; 168 tests, lint and default production build passed. Browser rendering acceptance remains Task 6.
+- Task 5: in progress. Ruling: add a popup-only INSPECT control for panel state; it is read-only and uses the same development-only authorization. Cost if wrong: unnecessary read request.
+- Task 2: complete — migration, settings invalidation and production cleanup exercised through real storage/background handlers.
+- Task 4: automated integration complete; standalone reset notifications and status normalization added. Browser visual/keyboard acceptance remains pending.
+- Task 5: complete — count boundary controls, one-shot override recovery, selected-domain resets and production gates verified. Default and development builds pass; release verifier scans every JavaScript chunk. Development outputs are ignored by Git.
+- Independent review: three substantive findings, no deferred minor findings.
+- Final: fixed standalone committed refresh discarding attempts/access — standalone refresh/status regression RED→GREEN.
+- Final: fixed stale document during asynchronous completion — replacement-during-read regression RED→GREEN with context checked immediately before commit/receipt response.
+- Final: fixed saved development state reviving after production — startup cleanup/switch-back regression RED→GREEN.
+- Final: fixed completed attempt without session being mistaken for access — coordinator regression RED→GREEN.
+- Final: fixed inconsistent saved arithmetic prompts/answers — persisted-state validation regression RED→GREEN.
+- Ruling: Retry reloads the authoritative saved challenge instead of blindly replaying a potentially expired action; prevents stale-attempt retry loops. Cost: an answer may need re-entry after a save failure.
+- Task 6: automated verification and test guide written; real Chrome acceptance pending. Only in-app browser was exposed and it timed out at 127.0.0.1:4173. No browser installation, permission changes or user Chrome data changes performed.
+- Scope handoff: equations → independent pattern/memory modules → reviewed waiting timer → full-range production activation → remove temporary controls after owner testing. No claims that later modules or short timers are implemented.
+- Final verification: 199/199 tests across 17 files; lint exit 0; default production build and all-9-chunk exclusion scan exit 0; development build exit 0; git diff --check exit 0 (only existing CRLF conversion notices). HEAD remains b95e727. Nothing staged, committed or pushed. Preview process stopped after the inaccessible-browser check.
+- Owner follow-up: developer controls were initially absent in the production copy; after loading dist-dev, controls and configured domain were visible but blocking failed. Do not treat the earlier broad manual-pass message as acceptance of this development path.
+- Bug reproduction: executed actual dist-dev background.js in a DOM-free VM with dynamic imports rejected. CHECK_TAB_STATUS failed with `document is not defined` (RED). Vite wrapped worker lazy imports in its browser preload helper; MV3 also prohibits dynamic imports themselves.
+- Fix: statically link the worker runtime and pure model registry, share module metadata with the browser registry, and use a build-time disabled worker alias for production. Views remain lazy. No browser permissions or dependencies added.
+- Regression GREEN: build:challenge-dev now runs the emitted worker sandbox automatically and verifies blocking, model creation, completion and popup inspection. All 199 unit tests, lint, production build and release exclusion scan passed again. Chrome reload/retest by owner remains pending. No commits or pushes.

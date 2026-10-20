@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/verify-production-build.js",
+    "build:challenge-dev": "vite build --mode challenge-dev && node --experimental-vm-modules scripts/verify-development-worker.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run"

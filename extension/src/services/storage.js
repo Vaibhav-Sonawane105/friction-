@@ -5,12 +5,14 @@
 
 import { normalizeDomain, isValidDomain } from '../utils/domain';
 import { sameConfig, websiteConfig } from './syncModel';
+import { migrateChallengeState, sanitizeProductionState, validateChallengeState } from './challengeState';
 
 export const FREE_TIER_DOMAIN_LIMIT = 2;
 
 const STORAGE_KEYS = {
   BLOCKED_DOMAINS: 'pf_blocked_domains',
   UNLOCK_SESSIONS: 'pf_unlock_sessions',
+  CHALLENGE_STATE: 'pf_challenge_state',
 };
 
 // In-memory or localStorage fallback for development outside Chrome extension environment
@@ -21,7 +23,7 @@ function isChromeStorageAvailable() {
   );
 }
 
-async function getFromStorage(key, defaultValue = null) {
+async function getFromStorage(key, defaultValue = undefined) {
   if (isChromeStorageAvailable()) {
     return new Promise((resolve, reject) => {
       chrome.storage.local.get([key], (result) => {
@@ -167,7 +169,8 @@ async function recordSuccessfulUnlockLocal(domain) {
 export async function getUnlockSessions() {
   const sessions = await getFromStorage(STORAGE_KEYS.UNLOCK_SESSIONS, {});
   const epoch = await getSessionEpoch();
-  return Object.fromEntries(Object.entries(sessions || {}).filter(([, session]) => session.epoch === epoch));
+  return Object.fromEntries(Object.entries(sessions || {}).filter(([, session]) => session.epoch === epoch &&
+    (typeof __PF_CHALLENGE_DEV__ !== 'undefined' && __PF_CHALLENGE_DEV__ || !session.developmentTest)));
 }
 
 /**
@@ -290,6 +293,13 @@ export const setTabUnlocked = (...args) => mutate('setTabUnlocked', args);
 export const clearTabSession = (...args) => mutate('clearTabSession', args);
 
 async function setValues(values) {
+  // Settings and sync invalidate challenge identities in the same logical commit.
+  if (values[STORAGE_KEYS.BLOCKED_DOMAINS] && !Object.hasOwn(values, STORAGE_KEYS.CHALLENGE_STATE)) {
+    const stored = await getFromStorage(STORAGE_KEYS.CHALLENGE_STATE, undefined);
+    if (stored !== undefined) values[STORAGE_KEYS.CHALLENGE_STATE] = migrateChallengeState({
+      domains: values[STORAGE_KEYS.BLOCKED_DOMAINS], stored, epoch: await getSessionEpoch(),
+    });
+  }
   if (isChromeStorageAvailable()) {
     await new Promise((resolve, reject) => chrome.storage.local.set(values, () => {
       if (chrome.runtime?.lastError) reject(new Error(chrome.runtime.lastError.message));
@@ -298,4 +308,37 @@ async function setValues(values) {
   } else {
     for (const [key, value] of Object.entries(values)) await setToStorage(key, value);
   }
+}
+
+// Internal worker/coordinator primitives. Never listed in runtime mutation operations.
+export async function readChallengeSnapshot() {
+  const domains = await getBlockedDomains();
+  const sessions = await getUnlockSessions();
+  const epoch = await getSessionEpoch();
+  const stored = await getFromStorage(STORAGE_KEYS.CHALLENGE_STATE, undefined);
+  let challengeState = migrateChallengeState({ domains, stored, epoch });
+  const development = typeof __PF_CHALLENGE_DEV__ !== 'undefined' && __PF_CHALLENGE_DEV__;
+  if (!development) challengeState = sanitizeProductionState(challengeState, sessions).challengeState;
+  return { domains, sessions, challengeState, epoch };
+}
+
+export async function writeChallengeSnapshot({ domains, sessions, challengeState }) {
+  await setValues({ [STORAGE_KEYS.BLOCKED_DOMAINS]: domains, [STORAGE_KEYS.UNLOCK_SESSIONS]: sessions,
+    [STORAGE_KEYS.CHALLENGE_STATE]: challengeState });
+}
+
+export async function cleanupDevelopmentState() {
+  const stored = await getFromStorage(STORAGE_KEYS.CHALLENGE_STATE, undefined);
+  const sessions = await getFromStorage(STORAGE_KEYS.UNLOCK_SESSIONS, {});
+  const cleanSessions = Object.fromEntries(Object.entries(sessions || {}).filter(([, session]) => !session.developmentTest));
+  const values = {};
+  if (JSON.stringify(sessions) !== JSON.stringify(cleanSessions)) values[STORAGE_KEYS.UNLOCK_SESSIONS] = cleanSessions;
+  if (stored !== undefined) {
+    try {
+      validateChallengeState(stored);
+      const clean = sanitizeProductionState(stored, cleanSessions).challengeState;
+      if (JSON.stringify(clean) !== JSON.stringify(stored)) values[STORAGE_KEYS.CHALLENGE_STATE] = clean;
+    } catch { /* Preserve unsupported/corrupt records for explicit recovery. */ }
+  }
+  if (Object.keys(values).length) await setValues(values);
 }

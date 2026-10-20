@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Header } from '../components/popup/Header';
 import { LimitNotice } from '../components/popup/LimitNotice';
 import { DomainForm } from '../components/popup/DomainForm';
@@ -9,6 +9,9 @@ import {
   addBlockedDomain,
   removeBlockedDomain,
 } from '../services/storage';
+
+const DevelopmentPanel = typeof __PF_CHALLENGE_DEV__ !== 'undefined' && __PF_CHALLENGE_DEV__
+  ? lazy(() => import('../dev/ChallengePanel')) : null;
 
 export function PopupPage() {
   const [domains, setDomains] = useState([]);
@@ -71,6 +74,7 @@ export function PopupPage() {
         )}
       </div>
       <AccountPanel onWebsitesChanged={loadDomains} />
+      {DevelopmentPanel && <Suspense fallback={<p role="status">Loading development controls…</p>}><DevelopmentPanel domains={domains} /></Suspense>}
       <footer className="pt-2 border-t-2 border-black text-[11px] text-[#555555] flex items-center justify-between font-medium">
         <span>Solves grant temporary access</span>
         <span>Manifest V3</span>

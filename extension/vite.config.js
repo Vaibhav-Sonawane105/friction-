@@ -4,12 +4,20 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  define: mode === 'test' ? {} : { __PF_CHALLENGE_DEV__: mode === 'challenge-dev' },
+  resolve: {
+    alias: {
+      '#challenge-runtime': resolve(import.meta.dirname, mode === 'challenge-dev' || mode === 'test'
+        ? 'src/services/challengeWorker.js' : 'src/services/challengeWorker.disabled.js'),
+    },
+  },
   plugins: [
     tailwindcss(),
     react(),
   ],
   build: {
+    outDir: mode === 'challenge-dev' ? 'dist-dev' : 'dist',
     rollupOptions: {
       input: {
         popup: resolve(import.meta.dirname, 'index.html'),
@@ -32,4 +40,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));

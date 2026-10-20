@@ -4,6 +4,7 @@ import inlineStyles from './index.css?inline';
 
 let overlayHost = null;
 let overlayRoot = null;
+let overlayDomain = null;
 
 /**
  * Pauses background audio/video if running on a site like YouTube while blocked.
@@ -26,8 +27,10 @@ function pauseHostMedia() {
  */
 function mountBlockedOverlay({ domain, difficultyLevel, tabId }) {
   if (overlayHost) {
-    return; // Already mounted
+    if (overlayDomain === domain) return;
+    unmountBlockedOverlay();
   }
+  overlayDomain = domain;
 
   // Create host container
   overlayHost = document.createElement('div');
@@ -129,6 +132,7 @@ function unmountBlockedOverlay() {
     overlayHost.remove();
     overlayHost = null;
   }
+  overlayDomain = null;
 }
 
 /**
@@ -195,6 +199,7 @@ window.addEventListener('pageshow', evaluateCurrentPage);
 if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
   chrome.runtime.onMessage.addListener((message) => {
     if (message?.type === 'TAB_URL_UPDATED') {
+      if (typeof __PF_CHALLENGE_DEV__ !== 'undefined' && __PF_CHALLENGE_DEV__ && message.resetChallenge) unmountBlockedOverlay();
       evaluateCurrentPage();
     }
   });

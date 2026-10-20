@@ -8,10 +8,10 @@
 
 ## 1. Quick State Snapshot
 
-* **Current Active Phase:** Preparation steps 1–7 complete locally; level product rules approved. Next: technical design of the modular challenge foundation, then implementation and Levels 1–4. No modular runtime or new levels have been built.
-* **Current Status:** Render staging remains deployed at `https://progressive-friction-api.onrender.com`; prior hosted acceptance is owner-reported. Fresh checkpoint checks: 110/110 extension tests across 9 files, 80/80 backend tests across 7 files, extension lint and build passed. New validation, legacy-write retirement and diagnostics changes are local and await backend redeployment. Owner reports migration 4 and SQL checks ran without errors; assistant did not independently execute hosted SQL.
+* **Current Active Phase:** Modular challenge foundation and Level 1 arithmetic adapter implemented in the separate development build. Developer controls and blocking are owner-confirmed working after the MV3 worker fix. Next: Level 2 linear equations and introductory derivatives, then Level 3 puzzles and Level 4 persistent timer. Default production builds still use the legacy arithmetic flow until every level is ready.
+* **Current Status:** M017 records the foundation, development controls, build restrictions and verification. Latest implementation checks passed 199/199 extension tests across 17 files, extension lint, production build/exclusion scan and development build/worker sandbox. Backend checkpoint remains 80/80 tests; a fresh pre-commit run is recorded in M017. Render staging remains deployed at `https://progressive-friction-api.onrender.com`; prior hosted acceptance and migration/SQL results are owner-reported. Earlier backend validation/diagnostics changes still await redeployment; this extension work makes no new hosted acceptance claim.
 * **Active Working Directory:** `extension/`
-* **Current Focus:** Follow the required modular architecture in project.md and sequence in phases.md: design/implement the reusable foundation first, then independent Levels 1–4, then continue subscriptions, dashboard/analytics and signature features unless the owner changes priorities. Store release is deferred. Owner authorized this project-wide Markdown synchronization; future brain edits and GitHub commits/pushes still require permission.
+* **Current Focus:** Extend the shared coordinator/registry with Level 2 next, preserving counts, per-tab access, refresh retention and offline operation. Continue other levels before subscriptions, dashboard/analytics and signature features. Store release is deferred. On 2026-10-20 the owner explicitly authorized this progress.md update and committing/pushing the current implementation to GitHub; this is not standing permission for future brain edits, commits or pushes. Other brain documents retain older pre-implementation descriptions and need a separately authorized alignment update.
 
 ---
 
@@ -33,10 +33,10 @@
 * **Extension Standard:** Chrome Manifest V3 (`storage`, `tabs`, `webNavigation`, `alarms`, `content_scripts`, `web_accessible_resources`), minimum Chrome 106.
 * **Tech Stack:**
   * Frontend: React 19, Vite, Tailwind CSS v4 (`@tailwindcss/vite`), custom SVG icons from `public/assets/logos/`.
-  * Testing: Fresh checkpoint passed 110 extension / 80 backend tests plus extension lint/build. Restored lifecycle suite has 26 cases using asynchronous Chrome mocks and the real background handler; actual Chrome and advanced-level acceptance remain distinct.
+  * Testing: Foundation verification passed 199 extension tests across 17 files; backend checkpoint is 80 tests across 7 files. Development builds additionally execute their emitted worker in a DOM-free sandbox rejecting dynamic imports. Restored legacy lifecycle coverage remains included; actual Chrome and advanced-level acceptance remain distinct.
   * Linting: ESLint (0 errors, 0 warnings).
   * Storage: Local-first (`chrome.storage.local` with `localStorage` dev fallback). Background-worker writes are serialized; progression and unlock sessions are saved together. A browser-lifetime identifier in `chrome.storage.session` expires temporary unlocks after browser restart/extension reload while preserving them through worker restarts. Chrome 106+ is required.
-* **Required next challenge architecture:** Separate progression policy, stable module registry, on-demand independent challenge modules, shared exactly-once completion and versioned local state. This supersedes arithmetic-only architecture as the implementation direction; it has not yet been built. Preserve counts, settings, tab access rules and offline operation during migration. Camera recognition is excluded from the current roadmap. See project.md for requirements and open design details.
+* **Challenge architecture:** The development build now separates progression policy, shared module metadata, browser/worker registries, independent arithmetic model/view, completion coordinator and versioned local attempts. Interactive views load on demand. MV3 workers statically import pure models and invoke only the selected model; worker dynamic imports and DOM preload helpers are unsupported. A build-time alias excludes development worker/control code from production. Preserve counts, settings, tab access and offline operation; camera recognition remains excluded. See M017 and the approved spec/plan in docs/superpowers/.
 * **Account & Sync Baseline:** Email/password authentication through Express/Supabase, with token refresh. Account tokens are held in trusted session storage, never returned to popup callers, and expire from device storage when Chrome closes or the extension reloads. Sign-in and device sync consent must then be renewed. Only domain/enabled settings sync; local counts, difficulty, tab sessions, and browsing history do not upload. Automatic sync uses a separate network queue, minute polling alarms, revision-checked cloud writes, three-way merging, and explicit conflict choices. Development defaults to localhost:5000; the ignored `extension/.env.production` selects `https://progressive-friction-api.onrender.com` for production builds. Render wake-up uses safe health reads before credentials/writes, with a bounded wait and a separate network queue.
 
 ---
@@ -48,6 +48,8 @@
 ```
 
 ### Milestone Log
+
+Graph continuation: `[M016: Preparation Fixes & Approved Level Rules] → [M017: Modular Foundation, Development Controls & MV3 Worker Fix]`.
 
 Historical milestones record the code and decisions at their dates. M015 and the current project.md architecture supersede arithmetic-only implementation assumptions; historical descriptions are not the design to follow for new challenge work.
 
@@ -314,6 +316,23 @@ Historical milestones record the code and decisions at their dates. M015 and the
 
 ---
 
+#### `[M017]` Modular Foundation, Development Controls & MV3 Worker Fix
+* **Implementation:** 2026-10-17; owner confirmation and progress update: 2026-10-20.
+* **Authorization:** Owner approved the foundation design/plan and temporary testing controls, chose work directly on main, and prohibited autonomous commits/pushes. On 2026-10-20 the owner explicitly requested this progress.md update and committing the implementation to GitHub. Only this brain file is updated in this turn; future commits/pushes require a new explicit request.
+* **Implemented in the development build:**
+  * Pure count policy at 0–20 / 21–30 / 31–50 / 51+, stable module metadata and versioned registries, a bounded Level 1 arithmetic model/view and shared challenge shell.
+  * Versioned local attempts and domain generations, count-preserving migration, saved-prompt retention through refresh, revision checks and background-owned validated completion. Counts, access and receipts share one logical storage commit; duplicate callbacks and lost-response retries do not count twice. Stale documents are rechecked before commit.
+  * Per-tab attempts/access, settings/sync invalidation, remove/re-add protection, worker/browser restart handling, corrupt/unsupported-state preservation and production cleanup of development test attempts/access.
+  * Temporary popup controls to inspect local state, set exact successful-unlock counts, jump to counts 0/21/31/51, force an available challenge and reset only the selected website. Controls invalidate that domain's old attempts/access; other websites are preserved. Test count changes remain local and persist until explicitly changed again.
+  * `npm run build:challenge-dev` outputs `extension/dist-dev`; default `npm run build` outputs `extension/dist` and verifies that development controls are absent from every emitted JavaScript chunk. Production retains its existing complete legacy arithmetic flow until all new modules are implemented.
+* **Blocking defect and correction:** The first built development worker called Vite's DOM-dependent preload helper and failed status checks with `document is not defined`; MV3 also disallows dynamic worker imports. The emitted-worker regression reproduced this failure. Runtime and pure models are now statically linked through a worker registry, with shared metadata and a production-disabled build alias. Browser views remain lazy. The development build automatically executes its emitted worker without DOM APIs and with dynamic imports rejected, checking blocking, challenge creation/completion and popup inspection.
+* **Verification:**
+  * Fresh pre-commit verification: 199/199 extension tests across 17 files, 80/80 backend tests across 7 files, extension lint, both builds, production exclusion scan and emitted-development-worker sandbox passed. The initial backend run was denied local HTTP connections by the sandbox; the permitted rerun outside the sandbox passed all 80 tests. Tests cover boundary mapping, models, migration, concurrent/duplicate completions, lost responses, refresh/standalone navigation, mid-request document replacement, sync retention/disable, reset invalidation and test-state cleanup.
+  * Owner initially reported manual checks passed, then clarified developer controls had not been visible. After switching to dist-dev, controls were visible and the website was listed, but blocking failed. After the worker fix and reload instructions, the owner confirmed on 2026-10-20 that they were working. Record this as owner-reported acceptance of developer controls and blocking, not independent assistant observation of every Chrome checklist case.
+  * The assistant's in-app browser could not reach the local preview server. Automated Chrome mocks and the worker sandbox do not replace real Chrome UI/lifecycle acceptance; retain the detailed checklist in extension/TESTING.md.
+* **Scope remaining:** Level 2 equations/derivatives, independent pattern and memory games, actual waiting timer and short-duration timer testing are not implemented. Later-level count jumps intentionally report unavailable modules. Full-range production activation and removal of temporary controls follow implementation and owner testing of all levels. No new dependencies, permissions, backend deployment or cloud challenge data were introduced.
+* **References:** `docs/superpowers/specs/2026-10-17-modular-challenge-foundation-design.md`, `docs/superpowers/plans/2026-10-17-modular-challenge-foundation.md`, and execution ledger in the same plans directory.
+
 ## 4. Current Work in Progress
 
 ### Phase 1 Checklist (Completed & Verified)
@@ -341,11 +360,12 @@ Historical milestones record the code and decisions at their dates. M015 and the
 - [x] **Task 2.9:** Implement optional cloud synchronization for settings and history while preserving offline-first blocking.
 
 
-### Modular Foundation → Phase 1 Enhancement — Progressive Challenge Levels (Next)
-- [ ] Design and implement progression policy, registry/module contract, shared completion coordinator and versioned local state; adapt arithmetic first without duplicating unlock logic.
-- [ ] Verify selected-module loading, lifecycle cleanup, exactly-once completion and data migration before expanding challenge types.
+### Modular Foundation → Phase 1 Enhancement — Progressive Challenge Levels (Active)
+- [x] Implement the foundation and arithmetic adapter in the separate development build, with approved spec/plan and automated migration/completion coverage (M017).
+- [x] Verify static MV3 worker loading, lazy browser views and exactly-once completion automatically; owner confirms development controls and blocking work. Detailed real-Chrome checklist remains separate.
 - [x] Approve count boundaries, count-preserving migration, starter games, timer visibility/ownership policy, duration selection and post-70 behavior (M016). Technical state/concurrency design remains pending.
-- [ ] Implement and verify Level 1 arithmetic selection and Level 2 equation generators.
+- [x] Implement and automatically verify Level 1 arithmetic selection in the development flow.
+- [ ] Implement and verify Level 2 linear-equation and introductory derivative generators.
 - [ ] Implement and verify Level 3 easy interactive puzzles.
 - [ ] Implement and verify Level 4 local persistent pause/resume timer.
 - [ ] Verify boundary transitions, offline operation, navigation/restarts and duplicate-completion protection. Detailed tasks remain in phases.md.
@@ -367,4 +387,4 @@ Historical milestones record the code and decisions at their dates. M015 and the
 - [ ] Prepare the Chrome Web Store release only after intended product features, remaining acceptance checks and owner release approval; not the next active task.
 - [x] Audit and synchronize stale brain/project Markdown with owner approval (M014); keep future changes permission-gated.
 
-Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010/M011/M012/M013/M014/M015/M016, and the pre-release checklist.
+Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010–M017, and the pre-release checklist.

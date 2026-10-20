@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { BlockedChallengeCard } from './BlockedChallengeCard';
 import { generateChallenge } from '../../utils/mathGenerator';
 import {
   completeUnlock,
   getBlockedDomains,
 } from '../../services/storage';
+
+const DevelopmentChallengeHost = typeof __PF_CHALLENGE_DEV__ !== 'undefined' && __PF_CHALLENGE_DEV__
+  ? lazy(() => import('./ChallengeHost')) : null;
 
 export function BlockedOverlay({
   domain,
@@ -20,6 +23,7 @@ export function BlockedOverlay({
   useEffect(() => {
     // If difficulty level wasn't provided or we want to double check from storage
     const loadLevel = async () => {
+      if (DevelopmentChallengeHost) return;
       try {
         const domains = await getBlockedDomains();
         const found = domains.find((d) => d.domain === domain);
@@ -87,13 +91,15 @@ export function BlockedOverlay({
       }}
     >
       <div className="w-full max-w-[780px] my-auto">
-        <BlockedChallengeCard
+        {DevelopmentChallengeHost ? <Suspense fallback={<div className="bg-white border-2 border-black rounded-xl p-8" role="status">Loading challenge…</div>}>
+          <DevelopmentChallengeHost domain={domain} onUnlocked={onUnlocked} onLeave={handleLeave} />
+        </Suspense> : <BlockedChallengeCard
           domain={domain}
           difficultyLevel={difficultyLevel}
           challenge={challenge}
           onSuccess={handleSuccess}
           onLeave={handleLeave}
-        />
+        />}
       </div>
     </div>
   );
