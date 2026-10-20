@@ -23,7 +23,7 @@ const coordinator = createChallengeCoordinator({ readSnapshot: readChallengeSnap
 
 export async function getChallenge(context) {
   const override = await getDevelopmentOverride(context);
-  const result = await coordinator.getChallenge(context, { developmentTest: true, moduleId: override?.moduleId, overrideId: override?.id });
+  const result = await coordinator.getChallenge(context, { developmentTest: true, moduleId: override?.moduleId, variant: override?.variant, overrideId: override?.id });
   await consumeDevelopmentOverride(context, result, override);
   return result;
 }

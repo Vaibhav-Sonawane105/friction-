@@ -27,7 +27,11 @@ These instructions apply whenever an AI assistant works on this project. Read th
 
 ## Required challenge architecture
 
-Follow [project.md — required modular challenge architecture](project.md#required-modular-challenge-architecture) before adding Levels 1–4. Separate progression policy, module registry, independently loaded challenge modules, shared exactly-once completion and versioned local state. Do not expand the arithmetic-only implementation into a monolithic multi-game component. New modules must preserve existing counts, tab/session behavior and offline blocking. Current code has not yet been migrated. Follow the owner-approved level rules in [project.md](project.md#approved-level-rules-2026-10-17-not-implemented); product decisions are settled, while technical interfaces and state/concurrency design remain pending.
+Extend the implemented development foundation described in [project.md](project.md#required-modular-challenge-architecture) and progress.md M017. Keep progression policy, module registry, independent challenge modules, shared exactly-once completion and versioned local state separate. Do not duplicate unlock/count logic inside games. The foundation and arithmetic adapter run in `dist-dev`; default `dist` retains legacy arithmetic until all new levels are ready. Follow the [approved level rules](project.md#approved-level-rules-2026-10-17); Level 2 equations/derivatives are next, with puzzles and the timer still unimplemented. Reuse the approved spec and current interfaces rather than redesigning the foundation.
+
+MV3 workers must statically import their runtime and pure models; they cannot call dynamic imports or DOM-dependent preload helpers. Only the selected model executes. Browser views remain lazy through the separate browser registry, sharing metadata with the worker registry. Keep the emitted-worker sandbox check in `npm run build:challenge-dev` and production exclusion check in `npm run build`.
+
+Current owner workflow: work on main; do not stage, commit or push. Supply a suggested commit message when requested; the owner handles GitHub. Read all six brain files before starting work. Update progress.md only after successful implementation and the owner's explicit approval, except when the owner directly requests a documentation synchronization such as this one. Documentation permission is not permission for future automatic updates.
 
 Camera recognition is outside the current roadmap. Do not add its permissions, dependencies, scaffolding or implementation as part of this work.
 

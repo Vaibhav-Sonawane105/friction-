@@ -1,7 +1,7 @@
 # Modular challenge foundation
 
 Date: 2026-10-17
-Status: Proposed technical design for owner review. Product direction approved; implementation has not started.
+Status (2026-10-20): approved design implemented for the development foundation, Level 1 arithmetic and temporary controls. M017 records 199 passing extension tests and owner confirmation that controls/blocking work after the MV3 fix. Detailed browser checklist items remain separately tracked; Levels 2–4 are unimplemented. This document describes their required future integration where noted.
 
 Owner-approved addition: temporary development-only challenge testing controls (2026-10-17).
 
@@ -38,7 +38,7 @@ File boundaries may be split further for clarity during planning; authority and 
 
 ## Module contract
 
-Each registry entry declares `id`, `version`, `level`, `persistence` and separate `loadModel()` / `loadView()` functions. IDs are `arithmetic`, `equations`, `pattern`, `memory`, `wait`; only implemented modules are registered as available. Future modules are described here, not added as placeholder code.
+Shared metadata declares `id`, `version`, `level` and `persistence`. The browser registry supplies separate `loadModel()` / `loadView()` loaders; the worker registry supplies `loadModel()` backed by statically imported pure models and has no view dependency. IDs are `arithmetic`, `equations`, `pattern`, `memory`, `wait`; only arithmetic is currently registered as available. Future modules are described here, not added as placeholder code.
 
 A model exports pure functions:
 

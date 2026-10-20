@@ -57,4 +57,20 @@ const completed = await send({ type: 'CHALLENGE_ACTION', attemptId: attempt.atte
 if (!completed.success || !completed.completed || local.pf_blocked_domains[0].successfulUnlockCount !== 1) throw new Error(`Built development worker failed completion: ${JSON.stringify(completed)}`);
 const inspected = await send({ type: 'PF_DEV_CHALLENGE_CONTROL', operation: 'INSPECT', domain: 'example.com' }, { id: 'test-extension', url: 'chrome-extension://test-extension/index.html' });
 if (!inspected.success || inspected.count !== 1) throw new Error(`Built development controls failed: ${JSON.stringify(inspected)}`);
-console.log('Development worker verified: blocks, creates and completes a challenge, and serves controls without DOM APIs or dynamic imports.');
+const popup = { id: 'test-extension', url: 'chrome-extension://test-extension/index.html' };
+for (const [variant, count] of [['linear', 21], ['derivative', 30]]) {
+  const changed = await send({ type: 'PF_DEV_CHALLENGE_CONTROL', operation: 'SET_COUNT', domain: 'example.com', count }, popup);
+  if (!changed.success) throw new Error(`Built Level 2 count setup failed: ${JSON.stringify(changed)}`);
+  const forced = await send({ type: 'PF_DEV_CHALLENGE_CONTROL', operation: 'PREPARE_CHALLENGE', domain: 'example.com', moduleId: 'equations', variant }, popup);
+  if (!forced.success) throw new Error(`Built Level 2 variant setup failed: ${JSON.stringify(forced)}`);
+  const question = await send({ type: 'GET_CHALLENGE' });
+  if (!question.success || question.moduleId !== 'equations' || question.state.variant !== variant) throw new Error(`Built Level 2 selection failed: ${JSON.stringify(question)}`);
+  const solution = local.pf_challenge_state.attempts[question.attemptId].state.answer;
+  const action = answer => ({ type: 'CHALLENGE_ACTION', attemptId: question.attemptId, revision: question.revision, action: { type: 'submit', answer: String(answer) } });
+  const wrong = await send(action(solution + 1));
+  const restored = await send({ type: 'GET_CHALLENGE' });
+  if (!wrong.success || wrong.completed || restored.attemptId !== question.attemptId || JSON.stringify(restored.state) !== JSON.stringify(question.state)) throw new Error('Built Level 2 did not retain the question after a wrong answer.');
+  const result = await send(action(solution)), duplicate = await send(action(solution));
+  if (!result.success || !result.completed || !duplicate.success || local.pf_blocked_domains[0].successfulUnlockCount !== count + 1) throw new Error('Built Level 2 completion did not count exactly once.');
+}
+console.log('Development worker verified: arithmetic and both Level 2 variants block, restore and complete exactly once, without DOM APIs or dynamic imports.');

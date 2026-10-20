@@ -3,6 +3,10 @@ const modules = {
     id: 'arithmetic', version: 1, level: 1, persistence: 'tab',
     instructions: 'Solve this arithmetic challenge to unlock temporary browsing access.',
   },
+  equations: {
+    id: 'equations', version: 1, level: 2, persistence: 'tab', variants: ['linear', 'derivative'],
+    instructions: 'Solve a linear equation or evaluate an introductory derivative to unlock temporary access.',
+  },
 };
 
 export function getModuleMetadata(id, version = 1) {

@@ -14,7 +14,7 @@ After applying migration 3 in staging, run `tests/versioned_sync.sql` as `postgr
 
 ## Snapshot-only website writes (migration 4; deployment pending)
 
-Apply `migrations/20261017000004_snapshot_only_website_writes.sql` after migrations 1�3, as postgres. It changes permissions only; it does not trim or delete stored lists. Direct client INSERT/UPDATE/DELETE privileges (including column grants) are revoked. The existing revision-checked, consent-checked replacement RPC becomes SECURITY DEFINER so it alone can perform authenticated writes. It derives user ownership from auth.uid(), not a supplied user ID. Keep this function owned by the trusted migration role, never authenticated/anon.
+Apply `migrations/20261017000004_snapshot_only_website_writes.sql` after migrations 1–3, as postgres. It changes permissions only; it does not trim or delete stored lists. Direct client INSERT/UPDATE/DELETE privileges (including column grants) are revoked. The existing revision-checked, consent-checked replacement RPC becomes SECURITY DEFINER so it alone can perform authenticated writes. It derives user ownership from auth.uid(), not a supplied user ID. Keep this function owned by the trusted migration role, never authenticated/anon.
 
 The API retires POST `/api/sync/websites` and DELETE `/api/sync/websites/:domain` with HTTP 410. Use GET/PUT `/api/sync/website-snapshot`; replacing the full list atomically supports additions and removals and enforces at most two domains. Legacy GET remains available behind consent. Apply the migration before declaring database enforcement live, and deploy the updated API before claiming legacy endpoints return 410 in Render. Current extension clients already use the snapshot API.
 
@@ -34,9 +34,9 @@ The extension syncs only domain/enabled configuration. Unlock-history tables/end
 
 ## Modular challenge boundary
 
-The next extension implementation follows [project.md](../../brain/project.md#required-modular-challenge-architecture): separate progression policy, registry, independent modules, shared completion and versioned local state. This decision does not move challenge execution or state into Supabase. Do not add cloud writes for answers, puzzles, countdown state or unlock counts as part of module work.
+The implemented development foundation follows [project.md](../../brain/project.md#required-modular-challenge-architecture): separate progression policy, registries, independent arithmetic, shared completion and versioned local state. Level 2 and later modules must reuse this flow. None of this moves challenge execution/state into Supabase; do not add cloud writes for answers, puzzles, countdown state or unlock counts.
 
-The existing unlock_history difficulty_tier constraint (1–10) represents the arithmetic-era API schema; it is not the new challenge-level contract. Extension uploads remain unimplemented. Any future analytics schema change needs explicit design and migration; do not repurpose fields silently. Current migrations/SQL assertions remain the account/sync baseline. Camera recognition is outside current scope.
+The existing unlock_history difficulty_tier constraint (1â€“10) represents the arithmetic-era API schema; it is not the new challenge-level contract. Extension uploads remain unimplemented. Any future analytics schema change needs explicit design and migration; do not repurpose fields silently. Current migrations/SQL assertions remain the account/sync baseline. Camera recognition is outside current scope.
 
 ## Authentication behavior
 

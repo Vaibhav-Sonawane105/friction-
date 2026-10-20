@@ -43,7 +43,8 @@ export function createChallengeCoordinator({ readSnapshot, writeSnapshot, regist
       if (!choices.includes(moduleId)) throw new Error('The selected challenge does not belong to this level.');
       const descriptor = registry.getModuleDescriptor(moduleId);
       const model = await descriptor.loadModel();
-      const state = model.createState({ count: entry.successfulUnlockCount, random });
+      if (options.variant !== undefined && !descriptor.variants?.includes(options.variant)) throw new Error('The selected challenge variant is unavailable.');
+      const state = model.createState({ count: entry.successfulUnlockCount, random, variant: options.variant });
       model.validateState(state);
       const attempt = { id: uuid(), domain: context.domain, generation, epoch: snapshot.epoch, tabId: context.tabId,
         level, count: entry.successfulUnlockCount, moduleId, moduleVersion: descriptor.version, persistence: descriptor.persistence,

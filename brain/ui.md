@@ -6,6 +6,8 @@ This file defines the visual and interaction direction for the Chrome extension 
 
 The product should feel bold, high-contrast, playful, interactive, and unapologetically striking. It avoids generic minimalist corporate design in favor of tactile neo-brutalism elements—strong borders, solid black drop shadows, and vibrant badge accents—while keeping core settings and blocking mechanics completely clear and functional.
 
+Status (2026-10-20): production retains the legacy arithmetic overlay. Development adds a shared ChallengeShell/ChallengeHost, independent arithmetic view and yellow temporary testing panel. Owner confirms development controls and blocking work; this is not evidence that every responsive/accessibility checklist item has been observed. Level 2, puzzles and the timer remain planned. Extend these components with the existing visual tokens.
+
 ## Visual Direction & Style System
 
 ### Color Palette
@@ -58,18 +60,20 @@ The product should feel bold, high-contrast, playful, interactive, and unapologe
 - Display free-plan limits upfront before users reach them.
 - Clarify local vs. cloud account storage.
 
-### Modular Challenge Experience (planned; existing UI is arithmetic only)
+### Modular Challenge Experience (shared shell and arithmetic implemented in development)
 
-Use a shared shell for website identity, level, instructions, loading/error/saving feedback and leaving the page. Render the selected module inside it; do not force puzzle or waiting interactions into an equation input form. Preserve the visual tokens below; no redesign is approved by this architecture decision.
+The development build uses a shared shell for level, instructions, loading/error/saving feedback and Leave. Render the selected module inside it; do not force future puzzle/timer interactions into an equation input form. Retry reloads authoritative saved state; a failed-save answer may need re-entry, while its saved prompt is retained. Preserve the visual tokens below; no redesign is approved.
 
 - Arithmetic and equation modules use the equation/input rules below.
 - Puzzle modules supply appropriate accessible controls with clear completion feedback.
-- Timer module shows remaining time and pause/resume state without requiring an answer field. Pause while hidden/minimized or away; restore the saved timer without rerolling its duration. Follow the [approved level rules](project.md#approved-level-rules-2026-10-17-not-implemented).
+- Timer module shows remaining time and pause/resume state without requiring an answer field. Pause while hidden/minimized or away; restore the saved timer without rerolling its duration. Follow the [approved level rules](project.md#approved-level-rules-2026-10-17).
 - Shared completion/saving feedback prevents repeat submissions; module changes clean up old interactions and resources.
 - Saved state restoration and module-load failure need understandable feedback; they must not silently reset progression or grant access.
 - Camera recognition is outside the current roadmap; no camera UI is part of this phase.
 
 ### Arithmetic and Equation Modules
+
+Arithmetic is implemented in development; Level 2 equations/derivatives are next. Use clear question-specific instructions and a labelled answer field. Numeric evaluation of a derivative is a proposed Level 2 representation, not a finalized generator contract yet.
 - Display the equation prominently using **JejuGothic** typography inside a clean white container with a 2px black border, responsive 12–16px corners, and `shadow-brutal-card`.
 - Provide a clear input field and a submit button styled with neo-brutalist geometry.
 - Communicate incorrect answers clearly without revealing solutions unless intended.
@@ -93,5 +97,7 @@ Use a shared shell for website identity, level, instructions, loading/error/savi
 - Maintain transparent pricing, billing terms, and cancellation flows without dark patterns.
 
 ## Component Consistency
+
+The temporary development panel appears below the account section in the `dist-dev` popup. It supports website selection, exact count edits, level jumps to 0/21/31/51, implemented-module selection and selected-domain reset. Unimplemented levels must be clearly unavailable. The panel and handlers are absent from production; remove them after all levels have passed owner testing. It is a local build tool, not personally authenticated access.
 
 Before adding a new component, reuse the active popup components or [`BlockedChallengeCard`](../extension/src/components/blocked/BlockedChallengeCard.jsx), and use the shared tokens in [`extension/src/index.css`](../extension/src/index.css). Select borders, shadows, and radii by component role using the baseline above. Maintain consistent spacing scales, font segregation (JejuGothic vs. Istok Web), and accessibility focus states. Future dashboard and challenge-module designs should extend this visual language; they do not require an automatic restyle of the current interface.

@@ -2,7 +2,7 @@
 
 ## 1. Project Overview
 
-Status (2026-10-17): React/Vite/Tailwind MV3 extension, local arithmetic tiers, Express/Supabase accounts, automatic website-list sync and Render Free staging are implemented. Next is the modular challenge foundation followed by Phase 1 Enhancement — Progressive Challenge Levels. Algebra/calculus generators, mini-puzzles, timer, subscriptions, dashboard, analytics and motivational media below are planned, not current features. Store release is deferred; follow phases.md.
+Status (2026-10-20): production retains legacy arithmetic; the separate development build implements the modular foundation, Level 1 adapter and temporary test controls. Level 2 equations/derivatives are next; puzzles, timer, subscriptions, dashboard/analytics and motivational media remain planned. Accounts, website-list sync and Render staging are implemented. Store release is deferred; see progress.md M017 for evidence.
 
 The Progressive Website Blocker is a Chrome extension that helps users control distractions by blocking selected websites, requiring math challenges to unlock them, and progressively increasing challenge difficulty for repeated unlocks.
 
@@ -22,7 +22,7 @@ The application will be developed in phases, beginning with a fully functional l
 
 See [project.md](project.md#required-modular-challenge-architecture) for the authoritative requirement. The React/JavaScript implementation must separate count-to-level policy, a stable module registry, on-demand challenge components/validators, one shared completion coordinator and versioned local state. Keep the background writer responsible for progression and access persistence; modules never mutate those records directly. The existing arithmetic generator/UI are the pre-migration baseline, not the architecture to copy for each new game.
 
-Each module owns its interaction and cleanup; only selected modules and their dependencies initialize. Persist resumable task state separately from temporary tab unlocks, with migration tests preserving user data. No new game engine or backend request is assumed necessary. Exact interfaces and file paths will be decided in the implementation design. Camera recognition is outside current scope and introduces no dependencies or permissions now.
+The implemented foundation uses shared `challenges/catalog.js` metadata, lazy browser `registry.js`, static `workerRegistry.js`, independent arithmetic model/view, `services/challenges.js` coordinator and `challengeState.js` schema/migration. MV3 forbids dynamic imports and DOM APIs in the worker; statically link pure models, invoking only the selected one. Keep browser views lazy. Local attempt state is separate from temporary tab access. No new engine/backend dependency is needed; camera recognition remains excluded.
 
 ## 2. Frontend Technologies
 
@@ -241,6 +241,8 @@ The build must support:
 
 Implemented in extension/vite.config.js: popup, standalone blocked-page, background and content-script entries with stable background.js/content-main.js names. Public manifest/loader/assets are copied into dist. No extension build plugin is used. VITE_API_URL is embedded at build time; ignored .env.production selects Render for production builds.
 
+`npm run build:challenge-dev` sets the explicit development build constant, outputs `dist-dev`, and checks the actual emitted worker in a DOM-free sandbox rejecting dynamic imports. A build-time runtime alias excludes developer worker/control code from production. Default `npm run build` outputs `dist` and scans every emitted JavaScript chunk for control leakage. The development mode does not automatically read `.env.production`; configure `VITE_API_URL` deliberately for hosted development testing. Both build directories are ignored by Git.
+
 **Phase:** 1
 
 ### Chrome Developer Mode
@@ -304,7 +306,7 @@ Charts will use data needed for meaningful user insights. Detailed cloud analyti
 
 ## 8. Testing and Quality Assurance
 
-Latest checkpoint checks: 110 extension tests across 9 files, 80 backend tests across 7 files, extension lint/build passed. The restored unlockLifecycle.test.js has 26 cases using asynchronous Chrome mocks and the real background handler; it does not replace real Chrome acceptance. Advanced-level tests below remain planned.
+Latest recorded checks (M017): 199 extension tests across 17 files, 80 backend tests across 7 files, extension lint, both builds, release exclusion scan and emitted-worker sandbox passed. The 26-case legacy lifecycle suite remains included. Owner confirms development controls/blocking after the worker fix; advanced-level tests below remain planned and mocks/sandbox do not replace full Chrome acceptance.
 
 ### Vitest
 **Purpose:** Unit testing for JavaScript modules.
@@ -438,7 +440,7 @@ Supabase will manage the database and authentication services. It is not a repla
 
 The following technical decisions should be finalized when their implementation phase approaches:
 
-- Exact equation generators and difficulty ceilings for advanced challenge tiers.
+- Level 2 generator bounds and question representation for simple linear equations and introductory derivatives; use the existing shared completion and local model contracts.
 - Exact Level 3 interactive puzzle mechanics and accessible UI representations.
 - Long-term production hosting/readiness beyond current Render Free staging. Email/password auth with worker-owned session storage is already implemented.
 - Final payment provider selection (Razorpay vs Stripe) and pricing tiers.

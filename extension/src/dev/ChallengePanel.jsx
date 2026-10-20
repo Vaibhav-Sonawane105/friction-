@@ -38,6 +38,8 @@ export default function ChallengePanel({ domains }) {
   const visible = info?.domain === domain ? info : null;
   const modules = visible?.modules || [];
   const choice = modules.includes(moduleId) ? moduleId : modules[0] || '';
+  const variants = visible?.variants?.[choice] || [];
+  const selectedVariant = variants.includes(variant) ? variant : '';
   const inputClass = 'border-2 border-black rounded bg-white px-2 py-1 w-full';
   const buttonClass = 'border-2 border-black rounded bg-white px-2 py-1 disabled:opacity-40';
   return <section className="border-2 border-black rounded-xl bg-[#FBE76D] p-3 shadow-[3px_2px_0_black] text-xs flex flex-col gap-3" aria-label="Development challenge controls">
@@ -58,9 +60,9 @@ export default function ChallengePanel({ domains }) {
           {!modules.length && <option value="">Module not implemented yet</option>}
           {modules.map(id => <option key={id} value={id}>{id}</option>)}
         </select></label>
-        {visible?.variants?.[choice]?.length > 0 && <label>Variant<select className={inputClass} value={variant} onChange={event => setVariant(event.target.value)}><option value="">Random</option>{visible.variants[choice].map(value => <option key={value}>{value}</option>)}</select></label>}
+        {variants.length > 0 && <label>Question type<select className={inputClass} value={selectedVariant} onChange={event => setVariant(event.target.value)}><option value="">Random</option>{variants.map(value => <option key={value} value={value}>{value === 'linear' ? 'Linear equation' : value === 'derivative' ? 'Derivative at a point' : value}</option>)}</select></label>}
         {choice === 'wait' && <label>Test duration in seconds<input className={inputClass} type="number" min="1" max="480" step="1" value={seconds} onChange={event => setSeconds(event.target.value)} /></label>}
-        <button type="button" className={buttonClass} disabled={!choice} onClick={() => act('PREPARE_CHALLENGE', { moduleId: choice, ...(variant ? { variant } : {}), ...(choice === 'wait' ? { durationSeconds: Number(seconds) } : {}) })}>Prepare next challenge</button>
+        <button type="button" className={buttonClass} disabled={!choice} onClick={() => act('PREPARE_CHALLENGE', { moduleId: choice, ...(selectedVariant ? { variant: selectedVariant } : {}), ...(choice === 'wait' ? { durationSeconds: Number(seconds) } : {}) })}>Prepare next challenge</button>
         <button type="button" className={buttonClass} onClick={() => act('RESET_CHALLENGE')}>Reset challenge (keep count)</button>
       </fieldset>
       <p>Changes replace this website’s attempts and end its temporary access. Other websites are preserved.</p>

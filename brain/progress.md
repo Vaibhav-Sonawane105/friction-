@@ -8,10 +8,10 @@
 
 ## 1. Quick State Snapshot
 
-* **Current Active Phase:** Modular challenge foundation and Level 1 arithmetic adapter implemented in the separate development build. Developer controls and blocking are owner-confirmed working after the MV3 worker fix. Next: Level 2 linear equations and introductory derivatives, then Level 3 puzzles and Level 4 persistent timer. Default production builds still use the legacy arithmetic flow until every level is ready.
-* **Current Status:** M017 records the foundation, development controls, build restrictions and verification. Latest implementation checks passed 199/199 extension tests across 17 files, extension lint, production build/exclusion scan and development build/worker sandbox. Backend checkpoint remains 80/80 tests; a fresh pre-commit run is recorded in M017. Render staging remains deployed at `https://progressive-friction-api.onrender.com`; prior hosted acceptance and migration/SQL results are owner-reported. Earlier backend validation/diagnostics changes still await redeployment; this extension work makes no new hosted acceptance claim.
+* **Current Active Phase:** Development Levels 1–2 implemented; owner reports testing Level 2 successfully. Next: Level 3 missing-item patterns and three-pair memory matching, then Level 4 persistent timer. UI polish is explicitly deferred until all levels are implemented and must be verified before production activation. Default production retains legacy arithmetic until the complete modular flow is ready.
+* **Current Status:** M019 records Level 2 and owner testing. Latest implementation verification passed 215/215 extension tests across 20 files, lint, production build/exclusion scan and development build/emitted-worker checks for arithmetic and both Level 2 variants. These are observed implementation results, not a new run during this log update. Backend remains unchanged at its M017 checkpoint of 80/80 tests. Render staging and prior hosted acceptance remain as recorded; earlier backend redeployment/live-account follow-ups are still open.
 * **Active Working Directory:** `extension/`
-* **Current Focus:** Extend the shared coordinator/registry with Level 2 next, preserving counts, per-tab access, refresh retention and offline operation. Continue other levels before subscriptions, dashboard/analytics and signature features. Store release is deferred. On 2026-10-20 the owner explicitly authorized this progress.md update and committing/pushing the current implementation to GitHub; this is not standing permission for future brain edits, commits or pushes. Other brain documents retain older pre-implementation descriptions and need a separately authorized alignment update.
+* **Current Focus:** Design/implement Level 3 through the existing independent-module/shared-completion interfaces; preserve counts, per-tab access, retention and offline operation. Complete Level 4, then polish/test the UI before full-range production activation. Store release is deferred. Read all six brain files before work. Owner handles staging, commits and pushes; assistant supplies commit messages only. Update progress.md after successful execution and explicit owner approval. This request authorizes the current log update only; other brain summaries still need separately authorized Level 2 alignment.
 
 ---
 
@@ -24,7 +24,7 @@
   * Encapsulated within an isolated Shadow DOM (`#progressive-friction-root`) preventing host website CSS resets/rules from interfering.
   * Fullscreen backdrop with heavy blur (`backdrop-filter: blur(16px) brightness(0.65)`) and dark overlay tint (`rgba(0, 0, 0, 0.45)`).
   * Automatically pauses autoplaying host media (audio/video) and locks host scrolling while blocked.
-  * Solved challenge smoothly fades out overlay, unlocks the tab session, and restores page scrolling.
+  * Legacy production completion fades out the overlay; modular development completion dismisses it after confirmed persistence. Both grant temporary per-tab access and restore page scrolling.
 * **UI Theme:** **Neo-Brutalism & Signature Gradient Glow**:
   * Crisp 2px solid black borders, hard offset black drop shadows (`shadow-brutal-card`, `shadow-brutal-header`, `shadow-brutal-badge`).
   * Outer glowing gradient card frame (`linear-gradient(135deg, #80E8FF 0%, #FFCBAA 33%, #D9B7F9 70%, #FF699B 100%)`).
@@ -33,10 +33,10 @@
 * **Extension Standard:** Chrome Manifest V3 (`storage`, `tabs`, `webNavigation`, `alarms`, `content_scripts`, `web_accessible_resources`), minimum Chrome 106.
 * **Tech Stack:**
   * Frontend: React 19, Vite, Tailwind CSS v4 (`@tailwindcss/vite`), custom SVG icons from `public/assets/logos/`.
-  * Testing: Foundation verification passed 199 extension tests across 17 files; backend checkpoint is 80 tests across 7 files. Development builds additionally execute their emitted worker in a DOM-free sandbox rejecting dynamic imports. Restored legacy lifecycle coverage remains included; actual Chrome and advanced-level acceptance remain distinct.
+  * Testing: Latest Level 2 verification passed 215 extension tests across 20 files; unchanged backend checkpoint is 80 tests across 7 files. Development builds execute their emitted worker in a DOM-free sandbox rejecting dynamic imports, exercising arithmetic and both equation variants. Restored legacy lifecycle coverage remains included. Owner-reported Chrome results and assistant automated evidence remain distinct.
   * Linting: ESLint (0 errors, 0 warnings).
   * Storage: Local-first (`chrome.storage.local` with `localStorage` dev fallback). Background-worker writes are serialized; progression and unlock sessions are saved together. A browser-lifetime identifier in `chrome.storage.session` expires temporary unlocks after browser restart/extension reload while preserving them through worker restarts. Chrome 106+ is required.
-* **Challenge architecture:** The development build now separates progression policy, shared module metadata, browser/worker registries, independent arithmetic model/view, completion coordinator and versioned local attempts. Interactive views load on demand. MV3 workers statically import pure models and invoke only the selected model; worker dynamic imports and DOM preload helpers are unsupported. A build-time alias excludes development worker/control code from production. Preserve counts, settings, tab access and offline operation; camera recognition remains excluded. See M017 and the approved spec/plan in docs/superpowers/.
+* **Challenge architecture:** The development build separates policy, shared metadata, browser/worker registries, independent arithmetic/equations models and views, shared completion and versioned local attempts. Level 2 includes linear and derivative-at-a-point variants, randomly selected or forced once through developer controls. Views remain lazy; MV3 worker models are statically linked and only the selected model executes. A build-time alias excludes this development flow/controls from production. No symbolic parser, new dependency, permission or cloud challenge data is required; camera recognition remains excluded. See M017/M019 and foundation references in docs/superpowers/.
 * **Account & Sync Baseline:** Email/password authentication through Express/Supabase, with token refresh. Account tokens are held in trusted session storage, never returned to popup callers, and expire from device storage when Chrome closes or the extension reloads. Sign-in and device sync consent must then be renewed. Only domain/enabled settings sync; local counts, difficulty, tab sessions, and browsing history do not upload. Automatic sync uses a separate network queue, minute polling alarms, revision-checked cloud writes, three-way merging, and explicit conflict choices. Development defaults to localhost:5000; the ignored `extension/.env.production` selects `https://progressive-friction-api.onrender.com` for production builds. Render wake-up uses safe health reads before credentials/writes, with a bounded wait and a separate network queue.
 
 ---
@@ -49,7 +49,7 @@
 
 ### Milestone Log
 
-Graph continuation: `[M016: Preparation Fixes & Approved Level Rules] → [M017: Modular Foundation, Development Controls & MV3 Worker Fix]`.
+Graph continuation: `[M016: Preparation Fixes & Approved Level Rules] → [M017: Modular Foundation, Development Controls & MV3 Worker Fix] → [M018: Documentation Synchronization & Owner Workflow] → [M019: Level 2 Equations & Owner Testing]`.
 
 Historical milestones record the code and decisions at their dates. M015 and the current project.md architecture supersede arithmetic-only implementation assumptions; historical descriptions are not the design to follow for new challenge work.
 
@@ -333,6 +333,32 @@ Historical milestones record the code and decisions at their dates. M015 and the
 * **Scope remaining:** Level 2 equations/derivatives, independent pattern and memory games, actual waiting timer and short-duration timer testing are not implemented. Later-level count jumps intentionally report unavailable modules. Full-range production activation and removal of temporary controls follow implementation and owner testing of all levels. No new dependencies, permissions, backend deployment or cloud challenge data were introduced.
 * **References:** `docs/superpowers/specs/2026-10-17-modular-challenge-foundation-design.md`, `docs/superpowers/plans/2026-10-17-modular-challenge-foundation.md`, and execution ledger in the same plans directory.
 
+#### `[M018]` Documentation Synchronization & Owner Workflow
+* **Date:** 2026-10-20.
+* **Authorization:** Owner explicitly requested updating brain files to match implementation and related documents before beginning the next phase. This is documentation-only permission, including this log entry; no staging, commit, push or new product implementation is authorized.
+* **Aligned:** All six brain documents now distinguish the implemented development foundation/Level 1/test controls from legacy production arithmetic and unimplemented Levels 2–4. Updated related README, testing, integration, deployment and foundation reference documents where stale; retained historical milestones and their dated test evidence.
+* **Technical correction retained:** Static worker runtime/pure-model imports under MV3, lazy browser views, shared metadata, production exclusion alias, emitted-worker regression and local-only challenge state. No new dependency, permission, API or product rule introduced.
+* **Verification scope:** Documentation consistency and local Markdown link checks only. The 199 extension / 80 backend tests, lint and both-build results remain M017's observed evidence, not a new run in this documentation task. Owner confirmation covers controls/blocking after the fix; broader Chrome UI/lifecycle acceptance remains distinct.
+* **Next:** Review/approve the short Level 2 design, then implement and test it through the existing module/coordinator interfaces. The numerical derivative-evaluation example remains a proposal; approved product rules already require simple linear/introductory derivative questions with integer answers. Do not mark Level 2 implemented until code and verification exist.
+* **Workflow:** Work on main, without staging, committing or pushing; owner handles GitHub. Read every brain file before new work. After future successful execution, obtain explicit owner approval before updating progress.md. Do not treat this synchronization as standing approval for future brain edits.
+
+#### `[M019]` Level 2 Equations & Owner Testing
+* **Date:** 2026-10-20.
+* **Authorization:** Owner requested the next phase after brain-file synchronization and subsequently reported testing all Level 2 checks. Owner explicitly requested this progress.md update and a commit message. No staging, commit or push is authorized or performed; the owner handles GitHub.
+* **Implemented in `dist-dev`:**
+  * Registered `equations` version 1 for completed counts 21–30, with randomly selected `linear` and `derivative` variants. Added a pure model and independent lazy view while reusing the common completion/attempt flow.
+  * Linear questions use `ax + b = rhs`, coefficient 1–9, offset -12–12 and a constructed integer solution -9–9, ensuring one solvable answer. Derivative questions use `f(x) = ax² + bx + c`, a = 1–5, b/c = -9–9 and evaluation point 0–5; the requested answer is numeric, e.g. f′(2), rather than a symbolic expression. Answers range from -9 to 59.
+  * Validated saved parameters/answers and strict integer submissions, including zero and negative answers. Wrong answers retain the saved question. Refresh/worker restart restore the same variant, function/equation and evaluation point. Modules do not mutate counts/access themselves.
+  * Developer panel now exposes Random, Linear equation and Derivative at a point. The trusted override passes the selected variant into generation, is consumed only after persistence, and does not become a permanent preference. Returning to arithmetic ignores an incompatible remembered variant.
+  * Worker registry statically links the pure equations model; browser registry loads its view on demand. Extended emitted-worker checks to force both variants, retain wrong-answer state and verify duplicate completions increment once without DOM APIs/dynamic imports.
+* **Verification evidence:**
+  * Observed implementation runs: 215/215 extension tests across 20 files, lint, both builds, production exclusion scan and emitted-development-worker checks passed. Coverage includes deterministic maths and bounded random samples, corrupt state, integer input, static accessible view markup, registry parity, forced variants, refresh/worker restoration, write-failure retry, duplicate completion, per-tab access and count 20→21 / 30→31 transitions. Backend code was unchanged; 80/80 remains its earlier verified checkpoint.
+  * Independent read-only code review reported no actionable correctness findings. This does not replace browser testing.
+  * Owner stated they tested all supplied checks and thought it would work. Record Level 2 acceptance as owner-reported, not independent assistant observation of Chrome or every possible edge case.
+* **UI decision:** Owner noticed development UI/layout issues and agreed to postpone polishing until every level is implemented. Existing production still uses the previous challenge UI and shared stylesheet was not changed by Level 2. The new modular UI must be polished and verified before it is activated in production; development-only layout defects do not automatically disappear at release.
+* **Scope / next:** Level 3 patterns and three-pair memory matching are next; Level 4 timer is still unimplemented. Count 31+ intentionally reports unavailable modules in development. Existing access granted by completing count 30 remains until departure; the next visit selects Level 3. Full-range production activation, UI acceptance and removal of temporary controls remain pending. No backend deployment, dependency or permission change was introduced.
+* **Documentation limits:** Only progress.md is edited in this turn. Related README/testing notes were updated with the implementation; other brain files still contain the earlier Level-2-next snapshot and need explicit permission before synchronization. This log update does not authorize future automatic updates. No tests are claimed rerun for this documentation-only task.
+
 ## 4. Current Work in Progress
 
 ### Phase 1 Checklist (Completed & Verified)
@@ -363,12 +389,14 @@ Historical milestones record the code and decisions at their dates. M015 and the
 ### Modular Foundation → Phase 1 Enhancement — Progressive Challenge Levels (Active)
 - [x] Implement the foundation and arithmetic adapter in the separate development build, with approved spec/plan and automated migration/completion coverage (M017).
 - [x] Verify static MV3 worker loading, lazy browser views and exactly-once completion automatically; owner confirms development controls and blocking work. Detailed real-Chrome checklist remains separate.
-- [x] Approve count boundaries, count-preserving migration, starter games, timer visibility/ownership policy, duration selection and post-70 behavior (M016). Technical state/concurrency design remains pending.
+- [x] Approve count boundaries, migration policy, starter games, timer visibility/ownership policy, duration selection and post-70 behavior (M016). Foundation state/concurrency is implemented; timer-specific mechanics remain pending.
 - [x] Implement and automatically verify Level 1 arithmetic selection in the development flow.
-- [ ] Implement and verify Level 2 linear-equation and introductory derivative generators.
+- [x] Implement Level 2 linear equations and numeric derivatives with automated verification and owner-reported testing (M019).
 - [ ] Implement and verify Level 3 easy interactive puzzles.
 - [ ] Implement and verify Level 4 local persistent pause/resume timer.
 - [ ] Verify boundary transitions, offline operation, navigation/restarts and duplicate-completion protection. Detailed tasks remain in phases.md.
+- [ ] Polish and verify the shared modular UI after all levels are implemented, before activating it in production (owner-approved deferral).
+- [ ] Activate the complete modular production flow and remove temporary controls only after all levels and UI pass acceptance.
 
 ### Completed Groundwork & Remaining Release Checks
 - [x] Implement request-isolated authentication clients and token-scoped profile reads.
@@ -387,4 +415,4 @@ Historical milestones record the code and decisions at their dates. M015 and the
 - [ ] Prepare the Chrome Web Store release only after intended product features, remaining acceptance checks and owner release approval; not the next active task.
 - [x] Audit and synchronize stale brain/project Markdown with owner approval (M014); keep future changes permission-gated.
 
-Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010–M017, and the pre-release checklist.
+Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010–M019, and the pre-release checklist.

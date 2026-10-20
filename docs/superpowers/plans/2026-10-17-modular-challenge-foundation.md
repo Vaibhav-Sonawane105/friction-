@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-17-modular-challenge-foundation-design.md`
 
+**Execution status (2026-10-20):** the foundation, arithmetic adapter and testing controls are implemented in development; see the adjacent execution ledger and progress.md M017. Checkboxes below preserve the original task plan rather than serving as a fresh completion report. Owner confirms controls/blocking; remaining real-Chrome checklist cases are not silently marked passed. Later modules and production activation are separate work. The MV3 correction below supersedes the original assumption that worker code could use dynamic imports.
+
 ## Global Constraints
 
 - Counts select levels: 0–20 arithmetic, 21–30 equations, 31–50 puzzles, 51+ waiting. Jump targets are 0, 21, 31, 51.
@@ -90,7 +92,7 @@ Create `extension/src/dev/ChallengePanel.jsx`, `challengeControls.js`, and build
 - [ ] Run the focused file; confirm failures before implementation.
 - [ ] Add Vite constant `__PF_CHALLENGE_DEV__`, true only for explicit mode `challenge-dev`. Add `build:challenge-dev` command targeting `dist-dev`; default build remains `dist` with false constant. Configure test globals explicitly where the runtime gate is imported.
 - [ ] Implement popup panel with domain selector, count editor, four jump buttons, implemented-module selector and reset. Show derived level, pending override, development label and local-count persistence notice. Unimplemented levels can have their count set but show unavailable in the challenge UI. Duration/variant controls appear only as matching modules become available.
-- [ ] Add development-only dynamic imports in popup and worker. Validate exact popup sender URL/extension ID. Serialize count/reset mutations, rotate selected domain generation, revoke selected-domain access, clear replaced attempt/timer and receipts, commit once, then notify affected tabs. Preserve website configuration and do not schedule cloud sync for these actions.
+- [ ] Lazy-load popup/browser views, but statically link the development worker runtime/pure models through a production-disabled build alias. MV3 workers must not call dynamic imports or DOM preload helpers. Validate exact popup sender URL/extension ID. Serialize count/reset mutations, rotate the selected domain generation, revoke its access, clear replaced attempts/receipts, persist once, then notify affected tabs. Preserve configuration and do not schedule cloud sync for test actions.
 - [ ] Handle session override persistence failure before changing persistent state. Consume overrides by storing their identity on the saved attempt before clearing session metadata; replay after a failed cleanup must recognize consumption instead of applying it twice.
 - [ ] Add production bundle verifier checking every emitted JavaScript chunk for distinctive panel/operation sentinels and test handler chunk names; invoke it after default build. Verify no test registration path exists in a production-mode handler test. Add retained-state transition test proving production rejects development test attempts/access.
 - [ ] Run `npm test`, lint, development build, default build and production verifier. Both outputs must build, development controls must exist only in `dist-dev`, and release checks must pass without excluding emitted chunks from inspection.

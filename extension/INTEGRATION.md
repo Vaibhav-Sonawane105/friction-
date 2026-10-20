@@ -7,7 +7,9 @@
 3. Development defaults to `http://localhost:5000`; an ignored `.env.local` can override it. Production builds currently read `VITE_API_URL=https://progressive-friction-api.onrender.com` from ignored `.env.production`. Mode-specific values override generic `.env.local` values; edit `.env.production` to change the production API and rebuild. HTTPS is required except for loopback. No API keys belong in the extension.
 4. Reload the unpacked extension from `extension/dist`, refresh existing website tabs, and open the popup's **Account & automatic sync** section. Sign up or sign in; if confirmation is required, follow the email confirmation and then sign in. Use **Verify account** to check the authenticated profile endpoint.
 
-Render Free staging is deployed; see ../backend/DEPLOYMENT.md. Deployment is groundwork: the modular challenge foundation and then Levels 1–4 are next; store release is deferred. Account requests execute in the extension worker using the existing host permissions; browser-preview/Vite webpages do not provide account controls.
+Render Free staging is deployed; see ../backend/DEPLOYMENT.md. The modular foundation/Level 1 and temporary controls run in `dist-dev`; production `dist` retains legacy arithmetic. Level 2 is next, followed by puzzles/timer and full-range activation; store release is deferred. Account requests execute in the extension worker using existing permissions; browser-preview webpages do not provide account controls.
+
+For challenge development, run `npm run build:challenge-dev` and load `extension/dist-dev`. This separately loaded extension has its own local configuration/account state. The `challenge-dev` mode does not load `.env.production`; to test the hosted API, set `VITE_API_URL` in an ignored `.env.challenge-dev.local` deliberately and rebuild. Do not assume the production origin was copied or enable cloud sync just to transfer local test counts.
 
 ### Email confirmation redirect
 
@@ -17,7 +19,7 @@ The default Supabase redirect is `http://localhost:3000`. If nothing runs there,
 
 ## Challenge architecture boundary
 
-The next implementation follows [the modular challenge requirement](../brain/project.md#required-modular-challenge-architecture). Modules initialize on demand, own interaction/validation/cleanup and submit completion to the shared worker-owned flow. Progression selection, count increments and temporary unlock writes must not be duplicated in modules. Versioned attempt/module state is local and separate from account sync.
+Extend the implemented [modular foundation](../brain/project.md#required-modular-challenge-architecture): pure worker models are statically linked and only the selected model executes; browser views load on demand. Modules submit validated actions to the shared worker-owned coordinator. Never duplicate count/access writes in modules. Versioned attempts remain local and separate from account sync.
 
 Existing domain/enabled-only sync must continue to preserve retained website counts and invalidate access for removed/disabled sites. Adding modules does not authorize uploading puzzle state, answers, timer state or unlock counts. Migration must be tested with existing synced/local lists and offline edits. Camera recognition is outside this phase.
 
@@ -51,4 +53,4 @@ Live SQL tests and two-device checks require the configured Supabase project and
 
 References: [Supabase refreshSession](https://supabase.com/docs/reference/javascript/auth-refreshsession), [Chrome extension network requests](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests).
 
-Approved level product rules live in [project.md](../brain/project.md#approved-level-rules-2026-10-17-not-implemented). Existing counts migrate locally; challenge and timer state remain outside cloud sync. The new legacy-write retirement and process-only health response require deploying the updated backend.
+Approved level product rules live in [project.md](../brain/project.md#approved-level-rules-2026-10-17). Existing counts migrate locally; challenge and timer state remain outside cloud sync. The new legacy-write retirement and process-only health response require deploying the updated backend.

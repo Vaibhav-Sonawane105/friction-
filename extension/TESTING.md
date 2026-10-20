@@ -4,29 +4,31 @@ Run `npm test`, `npm run lint`, and `npm run build` from `extension/`.
 
 ## Modular foundation development build
 
-The modular foundation and arithmetic adapter are available only in the explicit development build. Default production builds retain the legacy arithmetic flow until all four levels exist. Equations, pattern/memory puzzles and the waiting module are not implemented yet; selecting their counts displays an unavailable message, never an arithmetic substitute.
+The modular foundation, arithmetic adapter and Level 2 equations are available only in the explicit development build. Default production builds retain the legacy arithmetic flow until all four levels exist. Pattern/memory puzzles and the waiting module remain unimplemented; selecting their counts displays an unavailable message, never an arithmetic substitute. Level 2 automated verification is complete; owner Chrome acceptance is pending.
 
 From `extension/`, run `npm run build:challenge-dev`. Load **`C:\Crome Extention\extension\dist-dev`** as an unpacked extension in Chrome. This is a separate output from production `dist`; rebuilding development does not overwrite production. Reload the extension and refresh existing site tabs after a build. Use one build at a time when checking blocking to avoid two extensions overlaying the same page.
 
 Open the popup and use **Development challenge controls**:
 
 1. Select a configured website. Set an exact count or jump to 0, 21, 31 or 51 using the level buttons.
-2. Check arithmetic at counts 0 and 20, then exact transition boundaries 21, 30, 31, 50, 51, 70 and 71. Only Level 1 is playable in this slice. The panel shows the derived level and available modules.
-3. Use **Prepare next challenge** to force an implemented module once. It resets existing challenges/access for that website; refresh must retain the generated prompt. Puzzle/variant selectors and short-duration controls become usable when their modules are implemented.
+2. Check arithmetic at counts 0 and 20, then equations at 21 and 30. Counts 31/50/51/70/71 still report unavailable modules. The panel shows the derived level and available modules.
+3. Use **Prepare next challenge** to force an implemented module once. It resets existing challenges/access for that website; refresh must retain the generated prompt. For equations, **Question type** offers Random, Linear equation, or Derivative at a point. Short-duration controls become usable when the waiting module is implemented.
 4. Use **Reset challenge (keep count)** to clear that website's attempts and pending choice without removing it or changing its count. Other websites must retain their data. A late answer from before the reset must not unlock or increment anything.
 5. Counts changed for testing remain local and persist. Return each website to its desired count explicitly after testing; removing the testing panel does not automatically undo count edits.
 
 Production `npm run build` scans every emitted JavaScript chunk and fails if development controls leak into it. Production includes neither the panel nor its mutation handlers. It removes saved development test attempts/access on startup while preserving counts and ordinary state. Do not use a runtime toggle or hidden password to enable testing in production.
 
-`npm run build:challenge-dev` also executes the emitted background worker in a DOM-free sandbox that rejects dynamic imports, matching those MV3 restrictions. It checks blocking, challenge creation/completion and popup control inspection. This caught the development-only `document is not defined` failure caused by Vite's preload helper. Worker code and pure validators now use static imports; browser views still load on demand. The sandbox uses Node's experimental VM-module flag and may print its standard experimental-feature notice; it is not a Chrome acceptance test.
+`npm run build:challenge-dev` also executes the emitted background worker in a DOM-free sandbox that rejects dynamic imports, matching those MV3 restrictions. It checks blocking, arithmetic and both forced Level 2 question types, prompt retention, duplicate completion and popup inspection. This caught the earlier `document is not defined` failure caused by Vite's preload helper. Worker code/pure models use static imports; browser views remain lazy. The sandbox uses Node's experimental VM-module flag and may print its standard notice; it is not a Chrome acceptance test.
 
 After rebuilding, click **Reload** on the installed `dist-dev` extension at `chrome://extensions`, then refresh existing restricted-site tabs. A separately loaded `dist-dev` extension has its own website list; configure the website in that copy's popup.
 
-### Automated evidence and pending browser acceptance
+### Automated evidence and browser acceptance scope
+
+Level 2 verification adds model, static view-markup, registry parity and real-background-handler cases. Latest run: 215 passing extension tests across 20 files, lint, production build/exclusion scan and development build/emitted-worker smoke. No live Level 2 Chrome acceptance is claimed. The 199-test evidence below remains the earlier foundation checkpoint.
 
 The foundation adds progression, model, migration, coordinator, real-background-handler, development-control and build-verifier tests. Coverage includes simultaneous completions, persisted-write/response-loss retry, stale documents during processing, standalone refresh, worker/browser restart, sync retention/disable, count-change invalidation and production test-state cleanup. Run the suite for the current total; the implementation verification currently includes 199 passing tests across 17 files.
 
-**Real Chrome acceptance remains pending.** The available in-app browser timed out connecting to the local preview server, and it did not expose the installed Chrome extension. Automated Chrome API mocks are not browser acceptance. Before considering the foundation accepted:
+**Owner confirms controls and blocking work in Chrome after the MV3 worker fix (2026-10-20).** This does not independently establish every detailed UI/lifecycle case below. The assistant's in-app browser timed out connecting to the local preview and did not expose the installed extension. Keep the following repeatable acceptance checklist and record results separately from mocked/sandbox tests:
 
 - Test the injected overlay and `chrome-extension://<development-extension-id>/blocked.html?target=https%3A%2F%2Fexample.com` after configuring `example.com`.
 - Verify keyboard submission, visible focus, small-window layout, loading/error Retry, wrong/correct feedback and no duplicate submission. Retry reloads saved state; after a failed save, the prompt remains the same and you can submit again. A response lost after a successful save must restore completed access without another increment.
@@ -39,7 +41,17 @@ After the remaining levels pass their own acceptance, remove the temporary panel
 
 Current automated suites cover arithmetic, domain validation, blocking/storage, account messages, sync merging and Render wake-up behavior. The restored `src/services/unlockLifecycle.test.js` adds 26 regression cases using asynchronous Chrome API mocks and the real background message handler. It covers duplicate/concurrent completions, concurrent settings edits, per-tab access, domain departures, committed/iframe navigation, tab closure, sender/document rejection, atomic write failure/retry, remove/toggle invalidation, offline completion and distinct worker/browser restarts. Worker restart is modeled by re-importing production modules with stored data retained; browser restart/reload additionally clears session storage. These tests do not execute Chrome itself or render React UI; retain the manual checks below.
 
-The lifecycle suite is restored during preparation step 3. Fresh checkpoint verification passed 110 extension tests across 9 files, plus lint/build; see brain/progress.md M016. Current challenges are ten arithmetic tiers. Planned Levels 1–4 require new boundary, puzzle, timer and migration tests; see ../brain/phases.md.
+The 26-case lifecycle suite was restored in M016. M017 recorded 199 tests; the Level 2 run above supersedes that count. Production retains ten arithmetic tiers; development now supports Levels 1–2. Puzzle/timer behavior still needs its own tests. Brain implementation status will be updated only after owner approval.
+
+## Level 2 Chrome acceptance (pending owner testing)
+
+1. Run `npm run build:challenge-dev`, reload the installed `dist-dev` extension at `chrome://extensions` and refresh the restricted-site tabs.
+2. In the popup select the configured website and click **Level 2 (21)**. Select **equations**, choose **Linear equation**, then **Prepare next challenge**. The site should ask for x, with one integer solution. For example, `2x + 3 = 11` requires `4`; negative and zero solutions are valid.
+3. Enter a wrong answer, refresh and confirm the same equation remains. A correct answer unlocks only that tab and moves count 21 to 22 once. Repeated Enter/clicks must not increment again.
+4. Reset count to 21, select **Derivative at a point**, then prepare again. Read the evaluation point: for example `f(x) = 2x² + 3x + 1` at x = 2 requires the numeric derivative `11`, not a symbolic expression. Confirm wrong answers/refresh preserve the function and point, and success increments once.
+5. Select **Random**, prepare a new challenge and check both types across several fresh attempts. Forced selection is consumed only after the attempt is saved; it is not a permanent preference. Switch back to Level 1 and check arithmetic still prepares normally.
+6. Set count 20, complete arithmetic, leave the domain and return: the next question is Level 2. Set count 30, complete an equation, leave/return: count 31 shows Level 3 unavailable. Existing unlocked access still lasts until departure.
+7. Repeat with two tabs, offline and after stopping/restarting the worker. Confirm per-tab access, one count per completion, no question reroll on refresh and preservation of the website list/counts. Include the standalone blocked page, keyboard submission and narrow-window layout.
 
 ## Required tests for full Levels 1–4 (foundation automated coverage added; remaining modules pending)
 
@@ -51,10 +63,10 @@ Follow [project.md](../brain/project.md#required-modular-challenge-architecture)
 - Shared completion: valid active attempt succeeds once; duplicate/stale/cross-tab results cannot increment counts or unlock another tab.
 - Storage failures and safe retry; modules cannot bypass the common persistence flow.
 - Migration from existing arithmetic state without losing website settings or successful-unlock counts; restoration of resumable tasks after restart/update.
-- Puzzle keyboard interaction and actual Chrome responsiveness; timer pause/resume across navigation, closure and restart according to the approved rules in ../brain/project.md#approved-level-rules-2026-10-17-not-implemented.
+- Puzzle keyboard interaction and actual Chrome responsiveness; timer pause/resume across navigation, closure and restart according to the approved rules in ../brain/project.md#approved-level-rules-2026-10-17.
 - Website-list sync preserves local module/progression state where appropriate; core challenges work offline.
 
-The existing manual checks below are the arithmetic baseline to preserve, not evidence the modular system exists. Extend them as each module is implemented. Camera recognition is excluded and needs no tests or scaffolding now.
+The manual checks below remain the arithmetic baseline to preserve. The modular foundation has separate automated and owner-reported evidence above; extend acceptance as each later module is implemented. Camera recognition is excluded and needs no tests or scaffolding now.
 
 ## Manual Chrome checks
 

@@ -1,22 +1,22 @@
 # Progressive Friction — Website Blocker
 
-A Chrome extension designed to interrupt mindless browsing habits by introducing intentional friction: requiring users to complete progressive challenges before accessing self-restricted websites. The current implementation is arithmetic-only; the next architecture supports independent challenge modules.
+A Chrome extension designed to interrupt mindless browsing habits by introducing intentional friction before accessing self-restricted websites. Production currently uses legacy arithmetic; a separate development build implements the modular foundation and Level 1 arithmetic.
 
 ## Current scope and next phase
 
 Implemented: per-tab in-page blocking, local counts and ten arithmetic difficulty tiers, optional email/password accounts, and opt-in automatic website-list sync. Counts, difficulty and sessions remain device-local. The API is hosted on Render Free at https://progressive-friction-api.onrender.com with Supabase authentication/database services.
 
-Next is the **modular challenge foundation**, followed by **Phase 1 Enhancement — Progressive Challenge Levels**: arithmetic, equations, easy puzzles and a persistent pause/resume timer. The four-level mechanism is not implemented yet. Subscription, dashboard/analytics and signature features remain on the roadmap; deployment does not mean the product is ready for the Chrome Web Store.
+The development build now includes **Level 2: simple linear equations and introductory derivatives**, with automated verification complete and owner Chrome testing pending. Next after acceptance are independent Level 3 puzzles and the Level 4 persistent timer. Those modules and full-range production activation remain unimplemented. Subscriptions, dashboard/analytics and signature features remain later work; the product is not ready for the Chrome Web Store.
 
-Development update: the modular foundation, arithmetic adapter and temporary testing panel are implemented in a separate development build, pending real Chrome acceptance. Run `npm run build:challenge-dev` from `extension/` and load `extension/dist-dev`; the popup lets you set counts, jump to level boundaries and reset a selected website's challenge. Levels 2–4 remain unavailable until their modules are implemented. Default `npm run build` keeps the existing production arithmetic behavior and verifies that development controls are excluded. See [development testing instructions](extension/TESTING.md#modular-foundation-development-build).
+Development update: the owner confirms foundation controls/blocking work after the MV3 fix; Level 2 Chrome acceptance is still pending. Run `npm run build:challenge-dev` from `extension/` and load `extension/dist-dev`; the popup supports count edits, level jumps, question-type selection and website-specific resets. Levels 1–2 are available; Levels 3–4 report unavailable. Default `npm run build` preserves production arithmetic and excludes testing controls. See [development testing instructions](extension/TESTING.md#modular-foundation-development-build).
 
 See [roadmap](brain/phases.md), [execution evidence](brain/progress.md), [account setup](extension/INTEGRATION.md), [browser testing](extension/TESTING.md), [deployment](backend/DEPLOYMENT.md) and [database migrations](backend/supabase/README.md).
 
-## Required architecture for the next implementation
+## Architecture for the next modules
 
-Separate progression rules, a stable challenge registry, independent on-demand modules, shared exactly-once completion and versioned local state. Adding a new module must not duplicate unlock/count logic or require rewriting existing games. Preserve website counts and settings during migration from the existing arithmetic code. Full requirements: [modular challenge architecture](brain/project.md#required-modular-challenge-architecture).
+Extend the implemented policy, shared metadata, registries, module contract, exactly-once coordinator and versioned local state. MV3 workers statically import pure models and invoke only the selected one; browser views load on demand. New modules must reuse the shared completion path. Full requirements: [modular challenge architecture](brain/project.md#required-modular-challenge-architecture).
 
-Owner-approved [level rules](brain/project.md#approved-level-rules-2026-10-17-not-implemented) define boundaries, count-preserving migration, challenge retention, initial expandable puzzle selection and timer behavior. These rules are not implemented yet. Scope is the foundation plus arithmetic, equations, easy puzzles and persistent timer. Camera recognition is outside the current roadmap. This architecture is approved direction, not implemented functionality; no dependency or permission for speculative future challenges is being added.
+Owner-approved [level rules](brain/project.md#approved-level-rules-2026-10-17) define boundaries, migration, retention, starter puzzles and timer behavior. Policy/migration and Levels 1–2 are implemented in development; later modules are planned. Brain status/progress updates await owner approval of this slice. Camera recognition is excluded. No speculative dependency or permission is required.
 
 ## Project Structure
 
@@ -78,4 +78,4 @@ For local extension development, the API defaults to localhost:5000. The current
 
 ### Verification
 
-Run `npm test`, `npm run lint` and `npm run build` from `extension/`, and `npm test` from `backend/`. Fresh checkpoint verification passed: 110 extension tests across 9 files, 80 backend tests across 7 files, and extension lint/build. Lifecycle coverage is restored; advanced-level tests are still planned. See progress.md M016 for local versus deployed scope and owner-reported SQL results.
+Run `npm test`, `npm run lint`, `npm run build` and `npm run build:challenge-dev` from `extension/`, and `npm test` from `backend/`. Level 2 verification passed 215 extension tests across 20 files, lint and both builds; the backend's unchanged recorded checkpoint remains 80 tests. Production scans for control leakage; development exercises arithmetic and both Level 2 types without DOM APIs/dynamic imports. See extension/TESTING.md for pending Chrome acceptance and progress.md for approved historical milestones.
