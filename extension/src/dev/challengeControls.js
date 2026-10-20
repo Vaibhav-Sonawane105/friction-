@@ -4,7 +4,13 @@ import { invalidateDomain } from '../services/challengeState';
 import { readChallengeSnapshot, writeChallengeSnapshot } from '../services/storage';
 
 const OVERRIDES = 'pf_dev_challenge_overrides';
-const readOverrides = async () => (await chrome.storage.session.get(OVERRIDES))[OVERRIDES] || {};
+const readOverrides = async () => {
+  const overrides = (await chrome.storage.session.get(OVERRIDES))[OVERRIDES] || {};
+  let changed = false;
+  for (const [domain, override] of Object.entries(overrides)) if (override?.moduleId === 'patterns') { delete overrides[domain]; changed = true; }
+  if (changed) await chrome.storage.session.set({ [OVERRIDES]: overrides });
+  return overrides;
+};
 
 // This module and its message registration must be absent from release output.
 export async function handleChallengeControl(message, sender) {

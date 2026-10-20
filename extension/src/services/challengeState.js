@@ -49,7 +49,7 @@ export function migrateChallengeState({ domains, stored, epoch }) {
   for (const domain of Object.keys(next.domains)) if (!configured.has(domain)) delete next.domains[domain];
   for (const [id, attempt] of Object.entries(next.attempts)) {
     const entry = Object.hasOwn(next.domains, attempt.domain) ? next.domains[attempt.domain] : null;
-    if (!entry?.enabled || entry.generation !== attempt.generation || attempt.epoch !== epoch && attempt.persistence === 'tab') {
+    if (attempt.moduleId === 'patterns' || !entry?.enabled || entry.generation !== attempt.generation || attempt.epoch !== epoch && attempt.persistence === 'tab') {
       delete next.attempts[id]; delete next.receipts[id];
     } else if (attempt.epoch !== epoch) {
       if (attempt.status === 'completed') { delete next.attempts[id]; delete next.receipts[id]; }

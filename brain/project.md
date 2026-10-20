@@ -12,9 +12,9 @@ The current extension name is Progressive Friction. Final branding remains an ow
 
 Implementation status (2026-10-20)
 - Production build (`dist`): in-page blocking overlay, per-tab unlocks, local counts and ten legacy arithmetic tiers; optional accounts and automatic domain/enabled-list sync.
-- Development build (`dist-dev`): modular foundation, count-to-level policy, versioned local attempts/migration, shared validated completion, Level 1 arithmetic adapter and temporary developer controls. Owner confirms controls and blocking work after the MV3 worker fix; broader browser checklist evidence remains distinct. Latest recorded checks: 199 extension tests, 80 backend tests, lint and both builds passed (M017).
+- Development build (`dist-dev`): modular foundation, count-to-level policy, versioned local attempts/migration, shared validated completion, Level 1 arithmetic, Level 2 linear equations/derivatives, Level 3 tracking/memory/attention and temporary developer controls. Level 3 selects one random game per attempt at counts 31–50. Owner feedback and broader browser checklists remain distinct. Latest recorded extension checks: 267 tests across 30 files, lint and both builds passed; unchanged backend checkpoint: 80 tests (M022/M023).
 - Hosted groundwork: Express API on Render Free at https://progressive-friction-api.onrender.com; Supabase supplies authentication and PostgreSQL. Owner confirmed hosted sync and roughly one-minute cold-start recovery.
-- Next: Level 2 linear equations and introductory derivative questions at completed counts 21–30; then independent Level 3 puzzles and the persistent Level 4 timer. Later-level count jumps currently report unavailable modules. Full-range production activation and eventual removal of temporary testing controls follow implementation and owner testing of every level. Subscriptions, dashboard/analytics and motivational media remain future work.
+- Next: design and implement the persistent Level 4 timer. Counts 51+ currently report unavailable; Levels 1–3 are implemented in development. Visual polish is deferred until all levels exist. Full-range production activation and eventual removal of temporary testing controls follow implementation and owner testing of every level. Subscriptions, dashboard/analytics and motivational media remain future work.
 - Hosting is not product completion. Follow phases.md; store release is deferred pending intended features and release acceptance.
 Problem and intended outcome
 Traditional website blockers can be easy to ignore or disable. This product adds deliberate friction between an impulse and access. The intended outcome is to help users pause and reconsider unwanted browsing—not to claim guaranteed habit change or provide medical treatment.
@@ -54,7 +54,7 @@ Adding a future challenge should normally mean a new module, a registry entry, r
 
 Scope now is the foundation plus Levels 1–4 only. Camera recognition is excluded from the current roadmap and architecture implementation; no camera permission, recognition library, placeholder module or backend image pipeline is required. Any post-release proposal needs separate approval.
 
-Current interfaces, versioned schema, identities and completion flow are implemented and documented in `docs/superpowers/specs/2026-10-17-modular-challenge-foundation-design.md`; see its matching implementation plan and execution ledger. Exact generator bounds for later modules, puzzle content and timer ownership/checkpoint mechanics still need slice-specific design. Follow the approved rules below.
+Current interfaces, versioned schema, identities and completion flow are implemented and documented in `docs/superpowers/specs/2026-10-17-modular-challenge-foundation-design.md`; see its matching implementation plan and execution ledger. Level 1–3 generators and games are implemented; timer ownership/checkpoint mechanics still need slice-specific design. Follow the approved rules below.
 
 ## Challenge progression
 - Difficulty is tracked separately for each configured website.
@@ -67,17 +67,17 @@ Current interfaces, versioned schema, identities and completion flow are impleme
 - Approved next level design: Level 1 arithmetic at counts 0–20; Level 2 linear equations/introductory calculus-style problems at 21–30; Level 3 easy interactive puzzles at 31–50; Level 4 a 1–8 minute waiting challenge at 51–70, paused while away and resumed from local state.
 ## Approved level rules (2026-10-17)
 
-Implementation scope: the policy, migration and Level 1 adapter run in development only. Level 2, Level 3 and Level 4 modules remain planned; this section defines their required behavior, not completed functionality.
+Implementation scope: policy, migration and Levels 1–3 run in development only. Level 4 remains planned. The original 2026-10-17 rules below incorporate the owner’s 2026-10-20 Level 3 clarification (M023), superseding the combined-sequence interpretation in M020–M022.
 
 - Select the next challenge using the website's completed successful-unlock count before that challenge: Level 1 at 0–20, Level 2 at 21–30, Level 3 at 31–50, Level 4 at 51–70 and every count above 70. A new website therefore receives 21 Level 1 completions. Completion increments the count once; the next attempt uses the resulting count.
 - Level 1 stays approachable without being trivial: addition, subtraction and small multiplication, gradually introducing two-operation expressions and exact division toward count 20. Use manageable numbers and whole-number answers; wrong answers never increase difficulty.
 - Level 2 randomly selects simple linear equations or introductory derivative questions with integer answers and clear instructions.
-- Level 3 starts with missing-item pattern puzzles and memory matching with three pairs and no time limit. Randomly choose a game for each new challenge. Each mini-game is independently registered and versioned, leaving room for more modules without rewriting existing games or the shared unlock flow.
+- At counts 31–50, randomly select one game per new attempt: tracking (three rounds with 3, 4 and 5 objects), attention (three stages), or memory (one six-pair board in a 3 × 4 grid). Completing only the selected game grants one per-tab unlock and increments the website count once. Never require all three games in one attempt. Refresh retains the selected game and saved progress; tracking replays an interrupted current round. No fixed two-minute duration is required. Each mini-game remains independently registered and versioned. Patterns are retired; saved eight-card memory boards remain playable, while new boards have twelve cards.
 - Wrong answers and refreshes retain the selected challenge. Generate a new challenge after successful completion; saved waiting challenges retain their remaining time.
 - Level 4 selects a random duration of 1–8 whole minutes once per new waiting challenge. Persist its duration and remaining time; returning or refreshing must not reroll it. Continue Level 4 after 70, cap waits at eight minutes, and keep incrementing the count.
 - Keep one saved waiting timer per website, counting down in only one tab at a time. Pause when its challenge tab is hidden, Chrome is minimized, the user leaves the website, or the tab/browser closes. Resume saved remaining time on return; time spent away does not count. Completion unlocks only the completing tab, not every tab for that website.
 - Migration preserves configured websites and successful-unlock counts, replacing legacy arithmetic-tier selection with the new ranges. For example, an existing count of 35 selects Level 3. Preserve temporary-session lifecycle guarantees separately from saved challenge state.
-- The common module contract, versioned attempt schema, migration and completion races are covered by the foundation. Later generators, puzzle content and timer ownership/handoff/checkpoint behavior still require design and tests. Do not infer shared non-timer completion across tabs from the planned shared waiting timer.
+- The common module contract, versioned attempt schema, migration and completion races are covered by the foundation. Timer ownership/handoff/checkpoint behavior still requires design and tests. Do not infer shared non-timer completion across tabs from the planned shared waiting timer.
 
 Motivational video
 The owner wants an anime motivational speech when the user tries to disable the extension, with the title:
@@ -195,7 +195,7 @@ MVP acceptance checklist
 Open decisions
 Keep this list current:
 - Product name and visual identity
-- Later-level generator bounds, puzzle content and timer ownership/handoff/checkpoint mechanics; reuse the existing module interfaces, state schema and migration flow
+- Level 4 timer ownership/handoff/checkpoint mechanics; reuse existing module interfaces, state schema and migration flow
 - Payment provider and pricing
 - Final premium feature list
 - Data retention and account-deletion policy

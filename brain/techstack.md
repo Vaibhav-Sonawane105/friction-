@@ -2,7 +2,7 @@
 
 ## 1. Project Overview
 
-Status (2026-10-20): production retains legacy arithmetic; the separate development build implements the modular foundation, Level 1 adapter and temporary test controls. Level 2 equations/derivatives are next; puzzles, timer, subscriptions, dashboard/analytics and motivational media remain planned. Accounts, website-list sync and Render staging are implemented. Store release is deferred; see progress.md M017 for evidence.
+Status (2026-10-20): production retains legacy arithmetic; the separate development build implements the modular foundation, Levels 1–3 and temporary test controls. Level 3 randomly selects one tracking, memory or attention game at counts 31–50; no combined sequence. Level 4 timer is next; subscriptions, dashboard/analytics and motivational media remain planned. Accounts, website-list sync and Render staging are implemented. Store release is deferred; see progress.md M022/M023 for current evidence.
 
 The Progressive Website Blocker is a Chrome extension that helps users control distractions by blocking selected websites, requiring math challenges to unlock them, and progressively increasing challenge difficulty for repeated unlocks.
 
@@ -22,7 +22,7 @@ The application will be developed in phases, beginning with a fully functional l
 
 See [project.md](project.md#required-modular-challenge-architecture) for the authoritative requirement. The React/JavaScript implementation must separate count-to-level policy, a stable module registry, on-demand challenge components/validators, one shared completion coordinator and versioned local state. Keep the background writer responsible for progression and access persistence; modules never mutate those records directly. The existing arithmetic generator/UI are the pre-migration baseline, not the architecture to copy for each new game.
 
-The implemented foundation uses shared `challenges/catalog.js` metadata, lazy browser `registry.js`, static `workerRegistry.js`, independent arithmetic model/view, `services/challenges.js` coordinator and `challengeState.js` schema/migration. MV3 forbids dynamic imports and DOM APIs in the worker; statically link pure models, invoking only the selected one. Keep browser views lazy. Local attempt state is separate from temporary tab access. No new engine/backend dependency is needed; camera recognition remains excluded.
+The implemented foundation uses shared `challenges/catalog.js` metadata, lazy browser `registry.js`, static `workerRegistry.js`, independent arithmetic/equations/tracking/memory/attention models and views, `services/challenges.js` coordinator and `challengeState.js` schema/migration. MV3 forbids dynamic imports and DOM APIs in the worker; statically link pure models, invoking only the selected one. Keep browser views lazy. Local attempt state is separate from temporary tab access. No new engine/backend dependency is needed; camera recognition remains excluded.
 
 ## 2. Frontend Technologies
 
@@ -147,7 +147,7 @@ The implemented foundation uses shared `challenges/catalog.js` metadata, lazy br
 
 **Phase:** 1 & Phase 1 Enhancement
 
-Local storage is the implemented default for blocking and arithmetic progression. Opt-in automatic sync already reconciles domain/enabled configuration only; counts and difficulty stay local. Planned puzzles and the Level 4 timer must also stay local-first; they are not implemented yet.
+Local storage is the implemented default for blocking and arithmetic progression. Opt-in automatic sync already reconciles domain/enabled configuration only; counts and difficulty stay local. Implemented puzzle state remains local. The planned Level 4 timer must also stay local-first; it is not implemented yet.
 
 ---
 
@@ -306,14 +306,14 @@ Charts will use data needed for meaningful user insights. Detailed cloud analyti
 
 ## 8. Testing and Quality Assurance
 
-Latest recorded checks (M017): 199 extension tests across 17 files, 80 backend tests across 7 files, extension lint, both builds, release exclusion scan and emitted-worker sandbox passed. The 26-case legacy lifecycle suite remains included. Owner confirms development controls/blocking after the worker fix; advanced-level tests below remain planned and mocks/sandbox do not replace full Chrome acceptance.
+Latest recorded implementation checks (M022/M023): 267 extension tests across 30 files, extension lint, both builds, release exclusion scan and emitted-worker sandbox passed. The unchanged backend checkpoint is 80 tests across 7 files. The 26-case legacy lifecycle suite remains included. Owner confirms development controls/blocking after the worker fix; Levels 1–3 have automated coverage; Level 4 tests remain planned. Mocks/sandbox do not replace full Chrome acceptance. No tests rerun for this documentation synchronization.
 
 ### Vitest
 **Purpose:** Unit testing for JavaScript modules.
 
 **Used for:**
 - Progressive challenge generators and solvers (Level 1 arithmetic, Level 2 linear/calculus equations).
-- Answer validation and puzzle state (Level 3 sequences, patterns, memory).
+- Answer validation and puzzle state (Level 3 tracking, attention and memory; obsolete patterns removed).
 - Level 4 countdown timer pause/resume math and state transitions.
 - Unlock-count boundaries using completed unlocks before each attempt: 0–20, 21–30, 31–50, 51–70, and continued Level 4 above 70; preserve existing counts during migration.
 - Difficulty progression and unlock counts.
@@ -440,8 +440,8 @@ Supabase will manage the database and authentication services. It is not a repla
 
 The following technical decisions should be finalized when their implementation phase approaches:
 
-- Level 2 generator bounds and question representation for simple linear equations and introductory derivatives; use the existing shared completion and local model contracts.
-- Exact Level 3 interactive puzzle mechanics and accessible UI representations.
+- Level 4 timer ownership, handoff and checkpoint mechanics through the existing shared completion/local state contracts.
+- Deferred puzzle artwork and shared UI polish, followed by responsive/accessibility acceptance.
 - Long-term production hosting/readiness beyond current Render Free staging. Email/password auth with worker-owned session storage is already implemented.
 - Final payment provider selection (Razorpay vs Stripe) and pricing tiers.
 - Analytics event definitions, retention periods, and opt-in UX.

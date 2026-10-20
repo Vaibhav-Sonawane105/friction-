@@ -7,6 +7,18 @@ const modules = {
     id: 'equations', version: 1, level: 2, persistence: 'tab', variants: ['linear', 'derivative'],
     instructions: 'Solve a linear equation or evaluate an introductory derivative to unlock temporary access.',
   },
+  tracking: {
+    id: 'tracking', version: 1, level: 3, persistence: 'tab',
+    instructions: 'Follow the highlighted object through the shuffle. Complete all three rounds.',
+  },
+  memory: {
+    id: 'memory', version: 1, level: 3, persistence: 'tab',
+    instructions: 'Find every matching pair. Your board and progress are saved after every card selection.',
+  },
+  attention: {
+    id: 'attention', version: 1, level: 3, persistence: 'tab',
+    instructions: 'Find the target shapes across all three stages. Each correct selection saves your progress.',
+  },
 };
 
 export function getModuleMetadata(id, version = 1) {

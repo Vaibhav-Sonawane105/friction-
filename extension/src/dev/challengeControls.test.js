@@ -42,7 +42,7 @@ it('rejects unsupported challenges, mismatched levels, malformed durations and v
   for (const args of [{ moduleId: 'memory' }, { moduleId: 'arithmetic', durationSeconds: 0 }, { moduleId: 'arithmetic', durationSeconds: 481 }, { moduleId: 'arithmetic', variant: 'derivative' }]) {
     expect((await control('PREPARE_CHALLENGE', args)).success).toBe(false);
   }
-  await control('SET_COUNT', { count: 35 });
+  await control('SET_COUNT', { count: 51 });
   expect((await control('PREPARE_CHALLENGE', { moduleId: 'arithmetic' })).success).toBe(false);
   const unavailable = await h.send({ type: 'GET_CHALLENGE' }); expect(unavailable.success).toBe(false); expect(unavailable.error).toMatch(/unavailable/i);
 });

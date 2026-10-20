@@ -72,7 +72,7 @@ export function createChallengeCoordinator({ readSnapshot, writeSnapshot, regist
       if (request.revision !== attempt.revision) return present(attempt, { reconciled: true, feedback: 'Challenge state refreshed. Please try again.' });
       const descriptor = registry.getModuleDescriptor(attempt.moduleId, attempt.moduleVersion);
       const model = await descriptor.loadModel();
-      const result = model.reduceAction({ state: attempt.state, action: request.action });
+      const result = model.reduceAction({ state: attempt.state, action: request.action, now: now() });
       model.validateState(result.state);
       if (result.completed) {
         if (entry.successfulUnlockCount === Number.MAX_SAFE_INTEGER) throw new Error('The unlock count cannot be increased safely. Saved data was preserved.');

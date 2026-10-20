@@ -9,6 +9,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '../dist-dev');
 const local = { pf_blocked_domains: [{ domain: 'example.com', enabled: true, successfulUnlockCount: 0, difficultyLevel: 1 }] };
 const session = {};
 let onMessage;
+let clock = 1000;
+class WorkerDate extends Date { static now() { return clock; } }
 const noopEvent = { addListener() {} };
 const store = data => ({
   get(keys, callback) {
@@ -22,7 +24,7 @@ const store = data => ({
     else return Promise.resolve();
   },
 });
-const context = createContext({ console, URL, crypto: webcrypto, structuredClone, queueMicrotask, setTimeout, clearTimeout,
+const context = createContext({ console, URL, Date: WorkerDate, crypto: webcrypto, structuredClone, queueMicrotask, setTimeout, clearTimeout,
   fetch: async () => { throw new Error('Offline'); },
   chrome: {
     runtime: { id: 'test-extension', getURL: path => `chrome-extension://test-extension/${path}`, onMessage: { addListener(listener) { onMessage = listener; } } },
@@ -73,4 +75,94 @@ for (const [variant, count] of [['linear', 21], ['derivative', 30]]) {
   const result = await send(action(solution)), duplicate = await send(action(solution));
   if (!result.success || !result.completed || !duplicate.success || local.pf_blocked_domains[0].successfulUnlockCount !== count + 1) throw new Error('Built Level 2 completion did not count exactly once.');
 }
-console.log('Development worker verified: arithmetic and both Level 2 variants block, restore and complete exactly once, without DOM APIs or dynamic imports.');
+for (const count of [31, 50]) {
+  const changed = await send({ type: 'PF_DEV_CHALLENGE_CONTROL', operation: 'SET_COUNT', domain: 'example.com', count }, popup);
+  const forced = await send({ type: 'PF_DEV_CHALLENGE_CONTROL', operation: 'PREPARE_CHALLENGE', domain: 'example.com', moduleId: 'tracking' }, popup);
+  if (!changed.success || !forced.success) throw new Error('Built tracking controls failed.');
+  let attempt = await send({ type: 'GET_CHALLENGE' });
+  if (!attempt.success || attempt.moduleId !== 'tracking' || attempt.state.plan) throw new Error('Built tracking selection failed or exposed its plan too early.');
+  const action = data => ({ type: 'CHALLENGE_ACTION', attemptId: attempt.attemptId, revision: attempt.revision, action: data });
+  for (let i = 0; i < 3; i++) {
+    attempt = await send(action({ type: 'start', mode: 'motion' }));
+    if (!attempt.success || attempt.state.size !== i + 3) throw new Error('Built tracking round failed to start.');
+    const plan = attempt.state.plan;
+    let answer = plan.target;
+    for (const [a,b] of plan.swaps) { if (answer === a) answer = b; else if (answer === b) answer = a; }
+    const early = await send(action({ type: 'finish' }));
+    if (early.success) throw new Error('Built tracking allowed an early motion finish.');
+    clock += attempt.state.durationMs;
+    attempt = await send(action({ type: 'finish' }));
+    if (!attempt.success || attempt.state.plan) throw new Error('Built tracking failed to hide its plan at selection.');
+    const request = action({ type: 'choose', index: answer });
+    const result = await send(request), duplicate = await send(request);
+    const final = i === 2;
+    if (!result.success || !duplicate.success || result.completed !== final || result.state.completedRounds !== i + 1 ||
+        JSON.stringify(duplicate.state) !== JSON.stringify(result.state) || local.pf_blocked_domains[0].successfulUnlockCount !== count + (final ? 1 : 0)) throw new Error('Built tracking completion did not count exactly once.');
+    attempt = result;
+  }
+}
+for (const count of [31, 50]) {
+  const changed = await send({ type: 'PF_DEV_CHALLENGE_CONTROL', operation: 'SET_COUNT', domain: 'example.com', count }, popup);
+  const forced = await send({ type: 'PF_DEV_CHALLENGE_CONTROL', operation: 'PREPARE_CHALLENGE', domain: 'example.com', moduleId: 'memory' }, popup);
+  if (!changed.success || !forced.success) throw new Error('Built memory controls failed.');
+  let attempt = await send({ type: 'GET_CHALLENGE' });
+  if (!attempt.success || attempt.moduleId !== 'memory' || attempt.state.cards.length !== 12 || attempt.state.totalPairs !== 6 || attempt.state.cards.some(card => card.value !== null)) throw new Error('Built memory selection leaked hidden cards or failed.');
+  const cards = local.pf_challenge_state.attempts[attempt.attemptId].state.cards;
+  async function flip(index) {
+    const request = { type: 'CHALLENGE_ACTION', attemptId: attempt.attemptId, revision: attempt.revision, action: { type: 'flip', index } };
+    const result = await send(request), duplicate = await send(request);
+    if (!result.success || !duplicate.success || JSON.stringify(result.state) !== JSON.stringify(duplicate.state)) throw new Error('Built memory duplicate action changed progress.');
+    if (local.pf_blocked_domains[0].successfulUnlockCount !== count + (result.completed ? 1 : 0)) throw new Error('Built memory count did not advance exactly once.');
+    if (!result.completed && !(await send({ type: 'CHECK_TAB_STATUS' })).shouldBlock) throw new Error('Built memory board unlocked early.');
+    attempt = result;
+  }
+  const different = cards.findIndex(card => card !== cards[0]);
+  await flip(0); await flip(different);
+  const restored = await send({ type: 'GET_CHALLENGE' });
+  if (JSON.stringify(restored.state) !== JSON.stringify(attempt.state)) throw new Error('Built memory did not restore a mismatch.');
+  const partner = cards.findIndex((card, index) => index !== 0 && card === cards[0]);
+  await flip(partner); await flip(0);
+  if (attempt.state.pairsMatched !== 1 || attempt.state.cards[different].value !== null) throw new Error('Built memory mismatch recovery failed.');
+  for (const shape of new Set(cards)) {
+    const indices = cards.flatMap((card, index) => card === shape ? [index] : []);
+    if (attempt.state.cards[indices[0]].matched) continue;
+    await flip(indices[0]); await flip(indices[1]);
+  }
+  if (!attempt.completed || attempt.state.pairsMatched !== 6) throw new Error('Built memory board did not complete.');
+}
+for (const count of [31, 50]) {
+  const changed = await send({ type: 'PF_DEV_CHALLENGE_CONTROL', operation: 'SET_COUNT', domain: 'example.com', count }, popup);
+  const forced = await send({ type: 'PF_DEV_CHALLENGE_CONTROL', operation: 'PREPARE_CHALLENGE', domain: 'example.com', moduleId: 'attention' }, popup);
+  if (!changed.success || !forced.success) throw new Error('Built attention controls failed.');
+  let attempt = await send({ type: 'GET_CHALLENGE' });
+  const matches = (tile, target) => tile.shape === target.shape && tile.color === target.color && tile.fill === target.fill;
+  if (!attempt.success || attempt.moduleId !== 'attention' || attempt.state.tiles.length !== 12) throw new Error('Built attention selection failed.');
+  for (const [stage, size] of [[1, 12], [2, 16], [3, 20]]) {
+    if (attempt.state.stageNumber !== stage || attempt.state.tiles.length !== size) throw new Error('Built attention stage did not advance.');
+    const action = index => ({ type: 'CHALLENGE_ACTION', attemptId: attempt.attemptId, revision: attempt.revision, action: { type: 'select', index } });
+    const target = attempt.state.target;
+    const nearIndices = [
+      attempt.state.tiles.findIndex(tile => tile.shape === target.shape && tile.color !== target.color),
+      attempt.state.tiles.findIndex(tile => tile.shape !== target.shape && tile.color === target.color),
+      ...(stage === 3 ? [attempt.state.tiles.findIndex(tile => tile.shape === target.shape && tile.color === target.color && tile.fill !== target.fill)] : []),
+    ];
+    for (const index of nearIndices) {
+      if (index < 0) throw new Error('Built attention is missing a required near-match distractor.');
+      const wrong = await send(action(index));
+      if (!wrong.success || JSON.stringify(wrong.state) !== JSON.stringify(attempt.state)) throw new Error('Built attention near match changed progress.');
+    }
+    const targets = attempt.state.tiles.flatMap((tile, index) => matches(tile, attempt.state.target) ? [index] : []);
+    for (const [position, index] of targets.entries()) {
+      const request = action(index), result = await send(request), duplicate = await send(request);
+      const final = stage === 3 && position === targets.length - 1;
+      if (!result.success || !duplicate.success || result.completed !== final || JSON.stringify(result.state) !== JSON.stringify(duplicate.state) ||
+          local.pf_blocked_domains[0].successfulUnlockCount !== count + (final ? 1 : 0)) throw new Error('Built attention progress/completion was not saved exactly once.');
+      if (!final) {
+        const restored = await send({ type: 'GET_CHALLENGE' });
+        if (JSON.stringify(restored.state) !== JSON.stringify(result.state) || !(await send({ type: 'CHECK_TAB_STATUS' })).shouldBlock) throw new Error('Built attention restoration failed or unlocked early.');
+      }
+      attempt = result;
+    }
+  }
+}
+console.log('Development worker verified: arithmetic, both Level 2 variants, tracking, memory and attention restore and complete exactly once, without DOM APIs or dynamic imports.');

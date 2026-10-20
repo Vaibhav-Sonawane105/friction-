@@ -40,13 +40,13 @@ it('switches from arithmetic to equations only after completing count 20', async
   const next = await get(); expect(next.success).toBe(true); expect(next.moduleId).toBe('equations');
   expect(h.local.pf_blocked_domains[0].successfulUnlockCount).toBe(21);
 });
-it('keeps count 30 in equations and reports unavailable puzzles only for the next visit at 31', async () => {
+it('keeps count 30 in equations and selects a Level 3 puzzle only for the next visit at 31', async () => {
   await control('SET_COUNT', { count: 30 });
   const first = await get(); expect(first.success).toBe(true); expect(first.moduleId).toBe('equations');
   expect((await submit(first, expectedAnswer(first))).completed).toBe(true);
   expect((await h.send({ type: 'CHECK_TAB_STATUS' })).shouldBlock).toBe(false);
   await returnToSite();
-  const next = await get(); expect(next.success).toBe(false); expect(next.error).toMatch(/Level 3.*unavailable/);
+  const next = await get(); expect(next.success).toBe(true); expect(next.level).toBe(3); expect(['tracking', 'memory', 'attention']).toContain(next.moduleId);
   expect(h.local.pf_blocked_domains[0].successfulUnlockCount).toBe(31);
 });
 it('rejects invalid forced variants before replacing an active attempt', async () => {

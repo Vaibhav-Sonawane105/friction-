@@ -1,0 +1,9 @@
+.pf-track-lane { position: relative; height: 144px; }
+.pf-track-object { position: absolute; left: 0; top: 48px; display: flex; justify-content: center; transition-property: transform; transition-timing-function: ease-in-out; }
+.pf-track-ball { display: inline-flex; justify-content: center; align-items: center; flex-shrink: 0; width: clamp(28px, 8vw, 48px); height: clamp(28px, 8vw, 48px); border: 2px solid black; border-radius: 50%; background: #FFB8B5; color: #9C3151; box-shadow: 3px 3px 0 black; font-size: 20px; }
+.pf-track-highlight { background: #4ECDC4; color: #164E49; }
+.pf-track-action { background: #FBE76D; border: 2px solid black; border-radius: 12px; padding: 12px 20px; font-weight: bold; box-shadow: 3px 3px 0 black; }
+.pf-track-choice { background: #FFF1F0; border: 2px solid black; border-radius: 12px; padding: 16px 2px; }
+.pf-track-action:focus-visible, .pf-track-choice:focus-visible { outline: 2px solid black; outline-offset: 4px; }
+.pf-track-action:disabled, .pf-track-choice:disabled { opacity: 0.6; }
+@media (prefers-reduced-motion: reduce) { .pf-track-object { transition: none; } }

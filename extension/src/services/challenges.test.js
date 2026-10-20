@@ -70,9 +70,9 @@ it('rejects cross-tab, stale epoch, reset generation and missing restriction com
   expect(snapshot.sessions).toEqual({});
 });
 it('does not replace unsupported levels with arithmetic', async () => {
-  snapshot.domains[0].successfulUnlockCount = 35;
+  snapshot.domains[0].successfulUnlockCount = 51;
   await expect(coordinator.getChallenge(context())).rejects.toThrow(/unavailable/i);
-  expect(snapshot.domains[0].successfulUnlockCount).toBe(35);
+  expect(snapshot.domains[0].successfulUnlockCount).toBe(51);
 });
 it('never treats client-supplied completed as validated completion', async () => {
   const attempt = await coordinator.getChallenge(context());

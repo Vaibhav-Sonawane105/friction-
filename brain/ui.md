@@ -6,7 +6,7 @@ This file defines the visual and interaction direction for the Chrome extension 
 
 The product should feel bold, high-contrast, playful, interactive, and unapologetically striking. It avoids generic minimalist corporate design in favor of tactile neo-brutalism elements—strong borders, solid black drop shadows, and vibrant badge accents—while keeping core settings and blocking mechanics completely clear and functional.
 
-Status (2026-10-20): production retains the legacy arithmetic overlay. Development adds a shared ChallengeShell/ChallengeHost, independent arithmetic view and yellow temporary testing panel. Owner confirms development controls and blocking work; this is not evidence that every responsive/accessibility checklist item has been observed. Level 2, puzzles and the timer remain planned. Extend these components with the existing visual tokens.
+Status (2026-10-20): production retains the legacy arithmetic overlay. Development includes the shared ChallengeShell/ChallengeHost, arithmetic/equations, tracking/memory/attention views and temporary testing panel. Level 3 shows one randomly selected game at counts 31–50: tracking has three rounds, attention three stages, memory one six-pair board. No combined sequence. Memory uses colourful SVG symbols and pastel pink hidden cards without visible shape captions; attention shares the symbols and adds colour/fill matching. Tracking uses CSS motion and a step-by-step reduced-motion alternative. Owner accepted tracking and memory visuals for now; broader visual polish is deferred until all levels exist and must pass acceptance before production activation. The Level 4 timer remains planned. Owner feedback does not establish every responsive/accessibility checklist case.
 
 ## Visual Direction & Style System
 
@@ -60,7 +60,7 @@ Status (2026-10-20): production retains the legacy arithmetic overlay. Developme
 - Display free-plan limits upfront before users reach them.
 - Clarify local vs. cloud account storage.
 
-### Modular Challenge Experience (shared shell and arithmetic implemented in development)
+### Modular Challenge Experience (Levels 1–3 implemented in development)
 
 The development build uses a shared shell for level, instructions, loading/error/saving feedback and Leave. Render the selected module inside it; do not force future puzzle/timer interactions into an equation input form. Retry reloads authoritative saved state; a failed-save answer may need re-entry, while its saved prompt is retained. Preserve the visual tokens below; no redesign is approved.
 
@@ -73,7 +73,7 @@ The development build uses a shared shell for level, instructions, loading/error
 
 ### Arithmetic and Equation Modules
 
-Arithmetic is implemented in development; Level 2 equations/derivatives are next. Use clear question-specific instructions and a labelled answer field. Numeric evaluation of a derivative is a proposed Level 2 representation, not a finalized generator contract yet.
+Arithmetic and Level 2 equations/derivatives are implemented in development. Use clear question-specific instructions and a labelled answer field. Derivative questions ask for a numeric derivative at a stated point, with integer answers.
 - Display the equation prominently using **JejuGothic** typography inside a clean white container with a 2px black border, responsive 12–16px corners, and `shadow-brutal-card`.
 - Provide a clear input field and a submit button styled with neo-brutalist geometry.
 - Communicate incorrect answers clearly without revealing solutions unless intended.

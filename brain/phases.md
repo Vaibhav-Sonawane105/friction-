@@ -2,11 +2,11 @@ Development Phases & Progress Tracker
 Purpose
 This document tracks the implementation progress of the Progressive Website Blocker Chrome extension.
 It defines the development phases, their objectives, implementation tasks, completion criteria, and dependencies.
-Current Phase: Phase 1 Enhancement — Progressive Challenge Levels. Foundation and Level 1 adapter implemented in development; Level 2 equations/derivatives are next.
-Current Status: Default production retains legacy arithmetic. Development adds the modular flow and test controls; owner confirms controls and blocking work after the MV3 fix. Levels 2–4 remain unimplemented. Accounts/sync and Render staging are implemented groundwork; the product is not release-ready.
-Overall Status: Latest recorded verification (M017): 199 extension tests across 17 files, 80 backend tests across 7 files, lint, both builds, production exclusion scan and emitted-worker sandbox passed. No test rerun is claimed by this documentation update. Remaining live account/SQL checks and API redeployment remain follow-ups.
+Current Phase: Phase 1 Enhancement — Progressive Challenge Levels. Levels 1–3 are implemented in development; Level 4 persistent timer is next.
+Current Status: Default production retains legacy arithmetic. Development includes arithmetic, equations/derivatives and random single-game Level 3 challenges at counts 31–50, plus test controls. Tracking and memory have owner-reported acceptance; attention has owner feedback and automated verification. Detailed Chrome checklists remain separate. Level 4 remains unimplemented. Accounts/sync and Render staging are implemented groundwork; the product is not release-ready.
+Overall Status: Latest recorded implementation verification (M022/M023): 267 extension tests across 30 files, extension lint, both builds, production exclusion scan and emitted-worker sandbox passed. The unchanged backend checkpoint is 80 tests across 7 files. No test rerun is claimed by this documentation update. Remaining live account/SQL checks and API redeployment remain follow-ups.
 
-Agreed sequence: extend the existing foundation with Level 2, then independent Level 3 puzzles and Level 4 timer, verify every range, activate the complete production flow and remove temporary controls after owner testing. Then continue subscriptions, dashboard/analytics and signature features in order unless the owner changes priorities. Chrome Web Store publication is a later release decision.
+Agreed sequence: retain implemented Levels 1–3, implement Level 4, complete deferred UI polish, verify every range, activate the complete production flow and remove temporary controls after owner testing. Then continue subscriptions, dashboard/analytics and signature features in order unless the owner changes priorities. Chrome Web Store publication is a later release decision.
 Current implementation uses ten arithmetic difficulty tiers capped at 10, increasing after each successful unlock. Those tiers are not the planned four challenge-type levels below.
 Development Rules
 1. Work on one phase at a time unless a dependency requires otherwise.
@@ -47,19 +47,19 @@ Completion Criteria
 - The extension handles refreshes, expired sessions, and invalid answers correctly.
 - Core functionality works without a backend or account.
 Phase 1 Enhancement — Progressive Challenge Levels
-Status: Active — development foundation/Level 1 implemented; Level 2 next; full-range production activation pending
+Status: Active — Levels 1–3 implemented in development; Level 4 next; UI polish and full-range production activation pending
 Objective
 Extend the verified basic-math challenge into a configurable progression of challenge types. This is an extension-side feature and must remain functional without authentication, network access, or the backend.
 Approved Level Design
 Level	Successful unlock count before the next challenge	Challenge type
 Level 1	0–20	Existing beginner-friendly arithmetic problems
 Level 2	21–30	Linear equations and introductory calculus-style problems, including solving for x
-Level 3	31–50	Very easy interactive mini-games and puzzles, such as patterns, sequences, memory, or spatial reasoning
+Level 3	31–50	One random game per attempt: tracking (3 rounds), attention (3 stages), or memory (one six-pair board)
 Level 4	51 and above	Random 1–8 whole-minute waiting challenge, persisted and paused while hidden/away
 Future levels	To be defined	Additional modules require separate design/approval; no camera work is included
 
 
-The ranges use completed unlocks before the next challenge: 0–20 gives 21 Level 1 completions. Level 4 continues above 70. Product rules live in project.md#approved-level-rules-2026-10-17. The foundation contract/schema/migration are implemented in development; later generators, puzzle content and timer ownership/checkpoint design remain pending. Checked tasks below refer to development implementation, not full production activation or all-browser acceptance.
+The ranges use completed unlocks before the next challenge: 0–20 gives 21 Level 1 completions. Level 4 continues above 70. Product rules live in project.md#approved-level-rules-2026-10-17. The foundation and Levels 1–3 are implemented in development. Level 3 never requires all three games in one attempt; the earlier combined-sequence plan is superseded by M023. Level 4 timer ownership/checkpoint design remains pending. Checked tasks below refer to development implementation, not full production activation or all-browser acceptance.
 Tasks
 - [x] Design/implement the contract, policy, registries, shared coordinator and versioned migration in the development build (M017).
 - [x] Adapt arithmetic through its independent module interface without duplicating unlock logic.
@@ -68,8 +68,10 @@ Tasks
 - [x] Test registry selection, migration/restoration and shared completion independently of module views; retain real-Chrome cleanup checks separately.
 - [x] Select available challenge modules using the per-website count policy in development; unimplemented levels explicitly report unavailable.
 - [x] Implement approachable count-based Level 1 arithmetic in development.
-- [ ] Add validated, solvable Level 2 equation generators and answer checking.
-- [ ] Add accessible, very easy interactive puzzles for Level 3.
+- [x] Add validated Level 2 linear equations and numeric derivative-at-a-point questions (M019).
+- [x] Implement Level 3 tracking, attention and six-pair memory with automated checks and owner feedback (M020–M023).
+- [x] Confirm counts 31–50 select one random game per attempt; completing that game alone unlocks. No combined sequence (M023).
+- [ ] Finish deferred puzzle/shared UI polish and detailed responsive/accessibility acceptance after Level 4.
 - [ ] Add the Level 4 timer UI and persistent timer state.
 - [ ] Pause the Level 4 timer when the user leaves the restricted website or closes its tab; resume with the saved remaining time when they return.
 - [ ] Ensure closing/reopening the overlay does not reset the timer or cumulative unlock count.
@@ -188,7 +190,7 @@ Future Updates
   - Optional cloud synchronization for preferences, website blocklists, and minimal unlock history with strict privacy guards (normalizeDomain).
   - 50/50 automated backend tests passing (Vitest + Supertest).
 Current Next Step
-1. Implement **Level 2** simple linear equations and introductory derivatives at counts 21–30 through the existing module/coordinator flow. The short design has been proposed; this documentation synchronization does not approve a final generator contract or implement new behavior. Then add independent puzzles and the persistent timer; reuse foundation interfaces/schema and refine only slice-specific behavior.
+1. Design and implement **Level 4**: one persisted random 1–8 minute timer per website, counting in one visible active tab, pausing while hidden/away and resuming saved remaining time. Reuse foundation interfaces and shared completion. Levels 1–3 are implemented; retain one random Level 3 game per attempt at counts 31–50. This documentation update implements no timer code.
 2. Keep blocking, challenge progression, puzzles and the planned Level 4 timer local-first. Backend outages or sign-out must not disrupt core behavior.
 3. Continue the subscription/dashboard/signature-feature roadmap after the level mechanism. Store release is deferred until intended product scope and release checks are satisfied and the owner authorizes it.
 
@@ -197,3 +199,5 @@ Camera recognition is explicitly outside this roadmap. No camera permissions, de
 2026-10-17 alignment: Render staging and safe wake-up handling are completed groundwork (see progress.md M013); the owner restored progressive challenge levels as the next priority. Historical dated test counts above describe their original milestones, not the current suite.
 
 2026-10-20 alignment: M017 establishes the implemented development foundation, controls and MV3 correction. This owner-authorized documentation-only synchronization supersedes old foundation-pending summaries. No new code, test run, brain-update standing permission or GitHub action is implied.
+
+2026-10-20 current alignment (M023): all six brain files synchronized with implemented Levels 1–3 and the owner’s single-game Level 3 clarification. Level 4 is next; deferred UI polish and production activation remain pending. No code changes or test rerun in this documentation update.
