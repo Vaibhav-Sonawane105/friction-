@@ -50,6 +50,8 @@ export default function ChallengeHost({ domain, onUnlocked, onLeave }) {
   const descriptor = display.attempt && getModuleDescriptor(display.attempt.moduleId, display.attempt.moduleVersion);
   const View = display.View;
   return <ChallengeShell level={display.attempt?.level} instructions={descriptor?.instructions || 'Complete a challenge to unlock temporary browsing access.'}
+    maths={display.attempt?.moduleId === 'maths' ? display.attempt.state : null}
+    puzzleTitle={{route:'Route planning',ordering:'Logical ordering'}[display.attempt?.moduleId]}
     status={display.status} error={display.error} feedback={display.feedback} onLeave={onLeave}
     onRetry={load}>
     {View && <View key={display.attempt.attemptId} state={display.attempt.state} disabled={display.status === 'saving'} onAction={act} />}

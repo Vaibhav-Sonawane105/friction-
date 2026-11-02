@@ -81,6 +81,87 @@
   40%, 80% { transform: translateX(8px); }
 }
 
+/* Shared stylesheet reaches both the standalone page and the injected shadow root. */
+.pf-maths-panel { justify-content:flex-start; gap:0; font-family:var(--font-istok); color:#111; }
+.pf-maths-heading,.pf-maths-meta { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.pf-maths-heading { border-bottom:1px solid #c3c3c6; padding-bottom:18px; }
+.pf-maths-heading h1 { display:flex; align-items:center; gap:9px; font-weight:700; font-size:14px; }
+.pf-maths-heading h1::before { content:""; width:10px; height:10px; border:1px solid black; border-radius:50%; background:#f24822; }
+.pf-maths-leave,.pf-maths-bar button,.pf-maths-alert button { border:2px solid black; border-radius:12px; font-family:var(--font-jeju); padding:10px 16px; cursor:pointer; }
+.pf-maths-leave { display:flex; align-items:center; gap:8px; background:#4ecdc4; box-shadow:4px 4px #000; }
+.pf-maths-meta { margin:24px 0 18px; font-size:15px; }
+.pf-maths-meta strong { background:#fbe76d; border:2px solid black; border-radius:9px; padding:6px 12px; box-shadow:3px 3px black; }
+.pf-maths-card { background:white; border:2px solid black; border-radius:16px; box-shadow:7px 6px black; overflow:hidden; }
+.pf-maths-question { text-align:center; padding:clamp(20px,4vw,40px) 18px; }
+.pf-maths-question h2 { font:700 18px var(--font-jeju); }
+.pf-equation,.pf-word-problem { margin:16px auto; font-family:var(--font-jeju); font-weight:700; overflow-wrap:anywhere; }
+.pf-equation { font-size:clamp(28px,5vw,54px); line-height:1.18; }
+.pf-word-problem { font-size:clamp(20px,3vw,32px); line-height:1.35; max-width:27ch; }
+.pf-maths-question small,.pf-maths-panel footer { color:#555; font-size:14px; }
+.pf-maths-bar { background:#ececec; border-top:2px solid black; padding:20px; display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap; }
+.pf-maths-fields,.pf-maths-bar button { flex:1 1 145px; }
+.pf-maths-fields { display:flex; gap:8px; flex-wrap:wrap; }
+.pf-maths-fields label { flex:1 1 78px; min-width:0; font-size:14px; font-weight:700; }
+.pf-maths-fields :is(input,select),.pf-maths-bar button { border:2px solid black; border-radius:12px; height:48px; background:white; }
+.pf-maths-fields :is(input,select) { width:100%; margin-top:6px; padding:0 10px; box-shadow:4px 4px #ff699b; font-size:16px; }
+.pf-maths-bar button { box-shadow:4px 4px #4ecdc4; }
+.pf-maths-panel :focus-visible { outline:3px solid #154d91; outline-offset:3px; }
+.pf-maths-panel :disabled { opacity:.6; }
+.pf-maths-feedback,.pf-maths-alert { margin-top:16px; font-weight:700; }
+.pf-maths-alert { color:#98280f; }
+.pf-maths-panel footer { margin-top:auto; padding-top:24px; }
+@media(max-width:560px), (max-height:700px) {
+  .pf-maths-panel { min-height:0; padding:clamp(16px,4vw,30px); max-height:calc(100dvh - 42px); overflow:auto; }
+  .pf-maths-card { flex-shrink:0; }
+}
+
 .animate-shake {
   animation: brutalShake 0.4s ease-in-out;
 }
+.pf-game-panel.pf-maths-panel { justify-content:flex-start; }
+/* Route and ordering use the same frame and heading hierarchy as maths. */
+.pf-game-panel{max-height:calc(100dvh - 32px);min-height:0;overflow:auto;padding:clamp(16px,3vw,32px)}
+.pf-game-panel .pf-maths-meta{margin:16px 0}
+.pf-game-panel footer{padding-top:18px}
+.pf-game-card{background:white;border:2px solid black;border-radius:16px;box-shadow:7px 6px black;flex-shrink:0;overflow:hidden}
+.pf-game-title{padding:18px 20px 10px}
+.pf-game-title h2{font:700 clamp(22px,3vw,30px)/1.2 var(--font-jeju)}
+.pf-game-title p{color:#555;font-size:15px;margin-top:5px;line-height:1.4}
+.pf-map-wrap{max-width:356px;padding:4px 12px 14px;margin:auto}
+.pf-map-top,.pf-map-key,.pf-game-actions,.pf-map-key span{display:flex;align-items:center;gap:8px}
+.pf-map-top{justify-content:space-between;margin:4px 0 8px;font-size:13px}
+.pf-map-top b{background:#fbe76d;border:1px solid black;padding:1px 6px;border-radius:5px}
+.pf-route-grid{display:grid;border:2px solid black;border-radius:10px;overflow:hidden;background:#e6e5e2;gap:1px}
+.pf-route-cell{position:relative;display:grid;place-items:center;aspect-ratio:1;background:#fafafa;color:black;opacity:1}
+.pf-route-cell[data-open]{cursor:pointer;background:white}
+.pf-route-cell[data-open]:hover{background:#fff6b6}
+.pf-route-cell[data-visited]{background:#d3f5ee}
+.pf-route-cell[data-wall],.pf-map-key i{background:repeating-linear-gradient(135deg,#45434a 0 3px,#27262a 3px 8px)}
+.pf-route-token,.pf-current-dot,.pf-next-dot{z-index:1;display:grid;place-items:center;border-radius:50%;line-height:1}
+.pf-route-token{width:65%;height:65%;max-width:34px;max-height:34px;border:2px solid black;font-weight:bold}
+.pf-route-token svg{width:60%;height:60%}
+.pf-route-token.start,.pf-current-dot{background:#4ecdc4}.pf-route-token.exit{background:#ffb8b5}.pf-route-token.checkpoint{background:#fbe76d}
+.pf-route-cell[data-tip]{box-shadow:inset 0 0 0 3px #101010}
+.pf-current-dot{width:28%;height:28%;border:2px solid black}
+.pf-next-dot{width:7px;height:7px;background:#555}
+.pf-track{position:absolute;inset:0;width:100%;height:100%;stroke:#117c71;stroke-width:10;pointer-events:none}
+.pf-map-key{justify-content:center;flex-wrap:wrap;font-size:12px;margin-top:7px}.pf-map-key span{gap:3px}.pf-map-key svg,.pf-map-key i{width:14px;height:14px}
+.pf-game-actions{flex-wrap:wrap;background:#ececec;border-top:2px solid black;padding:12px 16px}
+.pf-game-actions button,.pf-move-controls button{display:inline-flex;align-items:center;justify-content:center;gap:5px;background:white;border:2px solid black;border-radius:8px;padding:6px 10px;min-height:36px;cursor:pointer;font-weight:bold}
+.pf-game-actions svg,.pf-move-controls svg{width:16px;height:16px}
+.pf-game-actions .primary{margin-left:auto;box-shadow:4px 4px #4ecdc4;font-family:var(--font-jeju);padding:7px 14px}
+.pf-game-panel button:disabled{cursor:default}.pf-game-panel .pf-route-cell:disabled{opacity:1}
+.pf-route-cell:focus-visible{outline-offset:-4px;z-index:2}
+.pf-order-layout{display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:20px;padding:6px 20px 18px}
+.pf-order-layout h3{font:700 16px var(--font-jeju);margin:0 0 8px}
+.pf-clues,.pf-order-slots{margin:0;padding:0;list-style:none}
+.pf-clues li,.pf-order-slots li{display:flex;align-items:center;gap:6px}
+.pf-clues li{padding:8px 0;border-bottom:1px solid #dedde0;align-items:baseline;font-size:14px;line-height:1.35}
+.pf-clue-number,.pf-slot-number{font-size:12px;font-weight:bold;min-width:22px;text-align:center}
+.pf-clue-number{background:#fbe76d;border-radius:5px;border:1px solid black}
+.pf-clues li[data-broken]{background:#fff0eb;color:#8a2412}
+.pf-order-slots li{margin-bottom:6px;padding:4px 5px;border:2px solid black;border-radius:9px;box-shadow:2px 2px black}
+.pf-slot-number{color:#555}.pf-move-controls{display:flex;margin-left:auto;gap:3px}
+.pf-move-controls button{min-height:30px;min-width:30px;background:#ffdfdd;padding:3px}
+.pf-game-panel button:disabled:not(.pf-route-cell){opacity:.48}
+@media(max-width:540px){.pf-order-layout{grid-template-columns:1fr;gap:14px}.pf-order-layout,.pf-game-title{padding-left:12px;padding-right:12px}.pf-game-actions{padding:10px}.pf-game-actions button{font-size:14px}.pf-move-controls button{min-width:36px;min-height:36px}}

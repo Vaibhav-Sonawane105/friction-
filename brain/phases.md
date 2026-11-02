@@ -2,11 +2,11 @@ Development Phases & Progress Tracker
 Purpose
 This document tracks the implementation progress of the Progressive Website Blocker Chrome extension.
 It defines the development phases, their objectives, implementation tasks, completion criteria, and dependencies.
-Current phase (2026-11-02): challenge redesign implemented in development; UI polish and human calibration remain.
+Current phase (2026-11-02): redesigned challenges and first UI polish pass implemented in development. Responsive/accessibility acceptance and human difficulty calibration remain.
 Development (`dist-dev`) runs four rotating challenge types at all four levels. The friends’ preview (`dist-preview`) retains the earlier Levels 1–3 and reports Level 4 unavailable; production (`dist`) retains legacy arithmetic.
 Recorded development verification (M024): 298 extension tests across 34 files, including 16,000 seeded puzzle samples. Lint and all three build checks passed. The built development worker verified all 16 type/level combinations. No tests were rerun during this documentation update.
 
-The owner will handle the GitHub checkpoint before UI polish. Difficulty calibration with volunteers and owner acceptance remain pending before updating friends’ preview; production activation is a separate decision.
+Check the polished screens at narrow widths and with keyboard-only input, then run the repeated-use difficulty pilot before deciding whether to promote the redesign to the friends’ preview.
 Development Rules
 1. Work on one phase at a time unless a dependency requires otherwise.
 2. Do not start implementing a later phase simply because its features are described here.
@@ -46,7 +46,7 @@ Completion Criteria
 - The extension handles refreshes, expired sessions, and invalid answers correctly.
 - Core functionality works without a backend or account.
 Phase 1 Enhancement — Progressive Challenge Levels
-Status: Technical verification complete for development; UI polish, calibration and promotion pending.
+Status: Development implementation and first UI polish pass complete; pilot and promotion pending.
 Objective: Require deliberate effort at each site, using increasingly complex challenges and more work. Keep blocking offline and independent of sign-in. See [count thresholds and challenge rules](project.md#challenge-progression).
 Tasks
 - [x] Design/implement the contract, policy, registries, shared coordinator and versioned migration in the development build (M017).
@@ -61,7 +61,8 @@ Tasks
 - [x] Confirm counts 31–50 select one random game per attempt; completing that game alone unlocks. No combined sequence (M023).
 - [x] Implement all four active challenge types at all levels, bounded local generation, automatic rotation, migration and persisted progress (M024).
 - [x] Verify the built worker, production exclusion, prior preview and real Chrome lifecycle/recovery.
-- [ ] Polish the challenge UI after the owner’s GitHub checkpoint; verify responsive layouts and accessible interactions.
+- [x] Polish maths, route planning and logical ordering in development; retain the existing memory card treatment (M025).
+- [ ] Verify responsive layouts and keyboard/accessibility interactions across the polished screens.
 - [ ] Run the repeated-use pilot and adjust difficulty based on results before owner acceptance and private-preview promotion.
 - [ ] Evaluate copy/paste restrictions as supplemental friction only, not as a security guarantee.
 - [ ] Activate the full-range modular production flow only after every approved level has a verified module.
@@ -173,7 +174,7 @@ Future Updates
   - Optional cloud synchronization for preferences, website blocklists, and minimal unlock history with strict privacy guards (normalizeDomain).
   - 50/50 automated backend tests passing (Vitest + Supertest).
 Current Next Step
-1. The owner will handle the GitHub checkpoint before UI polish. Difficulty calibration with volunteers and owner acceptance remain pending before updating friends’ preview; production activation is a separate decision.
+1. Check the polished screens at narrow widths and with keyboard-only input, then run the repeated-use difficulty pilot before deciding whether to promote the redesign to the friends’ preview.
 2. Use the [pilot worksheet](../docs/private-preview/REDESIGN-PILOT.md) to compare first and practiced attempts. Completion time is evidence for tuning, not proof of habit change.
 3. Continue the subscription/dashboard/signature-feature roadmap after the level mechanism. Store release is deferred until intended product scope and release checks are satisfied and the owner authorizes it.
 

@@ -11,7 +11,7 @@
 * **Current builds:** Development (`dist-dev`) runs four rotating challenge types at all four levels. The friends’ preview (`dist-preview`) retains the earlier Levels 1–3 and reports Level 4 unavailable; production (`dist`) retains legacy arithmetic.
 * **Verification:** Recorded development verification (M024): 298 extension tests across 34 files, including 16,000 seeded puzzle samples. Lint and all three build checks passed. The built development worker verified all 16 type/level combinations. No tests were rerun during this documentation update.
 * **Active Working Directory:** `extension/`
-* **Next:** The owner will handle the GitHub checkpoint before UI polish. Difficulty calibration with volunteers and owner acceptance remain pending before updating friends’ preview; production activation is a separate decision. The owner handles staging, commits and pushes.
+* **Next:** Check the polished screens at narrow widths and with keyboard-only input, then run the repeated-use difficulty pilot before deciding whether to promote the redesign to the friends’ preview. The owner handles staging, commits and pushes.
 
 ---
 
@@ -49,7 +49,7 @@
 
 ### Milestone Log
 
-Graph continuation: `[M016: Preparation Fixes & Approved Level Rules] → [M017: Modular Foundation, Development Controls & MV3 Worker Fix] → [M018: Documentation Synchronization & Owner Workflow] → [M019: Level 2 Equations & Owner Testing] → [M020: Level 3 Patterns, Revised Direction & Owner Testing] → [M021: Memory, Six-Pair Boards & Puzzle Visual Acceptance] → [M022: Tracking Replacement & Owner Acceptance] → [M023: Single-Game Level 3 Clarification & Brain Synchronization] → [M024: Private Preview Feedback & Development Challenge Redesign]`.
+Graph continuation: `[M016: Preparation Fixes & Approved Level Rules] → [M017: Modular Foundation, Development Controls & MV3 Worker Fix] → [M018: Documentation Synchronization & Owner Workflow] → [M019: Level 2 Equations & Owner Testing] → [M020: Level 3 Patterns, Revised Direction & Owner Testing] → [M021: Memory, Six-Pair Boards & Puzzle Visual Acceptance] → [M022: Tracking Replacement & Owner Acceptance] → [M023: Single-Game Level 3 Clarification & Brain Synchronization] → [M024: Private Preview Feedback & Development Challenge Redesign] → [M025: Development Challenge UI Polish]`.
 
 Historical milestones record the code and decisions at their dates. M023 explicitly supersedes every combined-Level-3-sequence instruction in M020–M022; those entries are retained as history, not current work. M015 and the current project.md architecture supersede arithmetic-only implementation assumptions; historical descriptions are not the design to follow for new challenge work.
 
@@ -424,6 +424,12 @@ Historical milestones record the code and decisions at their dates. M023 explici
 * **Chrome evidence:** Chrome 156 checks exercised injected and standalone challenges, two tabs, pointer and keyboard input, offline operation, worker restart, save failure and Retry, Leave, same-site refresh and full browser restart. The standalone document check was repaired and retested. This establishes technical behaviour, not human difficulty or broad visual acceptance.
 * **Owner handoff:** Owner wants the current work checkpointed before UI polish; the owner handles Git. Human pilot, tuning, preview promotion and production release remain pending. [Design](../docs/superpowers/specs/2026-11-01-challenge-redesign-design.md) · [Implementation checkpoint](../docs/superpowers/plans/2026-11-02-challenge-redesign.md) · [Pilot worksheet](../docs/private-preview/REDESIGN-PILOT.md).
 
+#### `[M025]` Development challenge UI polish — 2026-11-02
+
+* **What changed:** Maths now puts the question first and groups answer entry with submission. Route planning shows the connected path, checkpoint count and a symbol legend. Logical ordering places numbered clues beside a numbered object list with labelled move controls. The three screens share a compact header and a prominent Leave button. Memory cards and puzzle rules were unchanged.
+* **Evidence:** The development build and lint passed. The built worker verified all 16 challenge/level combinations; 13 targeted tests passed for the route and ordering pass. The number-entry and operator-selection maths layouts both rendered. The earlier 298-test run and Chrome checks belong to M024, not this UI pass.
+* **Owner feedback and remaining work:** The owner liked maths and memory, then liked the route and ordering updates. This is visual feedback, not a completed accessibility assessment or pilot. The private preview and production remain on their previous flows.
+
 ## 4. Current Work in Progress
 
 ### Phase 1 Checklist (Completed & Verified)
@@ -465,7 +471,8 @@ Historical milestones record the code and decisions at their dates. M023 explici
 - [x] Confirm one randomly selected game per attempt throughout counts 31–50; no combined sequence or fixed two-minute requirement (M023).
 - [x] Implement and automatically verify the Level 3 games; retain detailed browser/UI acceptance as a separate release check.
 - [x] Deliver and verify the active four-level redesign in development (M024).
-- [ ] Polish challenge screens after the owner's GitHub checkpoint.
+- [x] Complete the first development UI polish pass for maths, route and ordering; retain memory cards (M025).
+- [ ] Check narrow-screen layout and keyboard accessibility across the polished views.
 - [ ] Collect repeated-use pilot results, tune difficulty, and obtain owner acceptance before updating the private preview.
 - [ ] Activate the complete modular production flow and remove temporary controls only after all levels and UI pass acceptance.
 
@@ -486,4 +493,4 @@ Historical milestones record the code and decisions at their dates. M023 explici
 - [ ] Prepare the Chrome Web Store release only after intended product features, remaining acceptance checks and owner release approval; not the next active task.
 - [x] Audit and synchronize stale brain/project Markdown with owner approval (M014); keep future changes permission-gated.
 
-Historical Phase 1/2 milestones record earlier work. See the snapshot, M024 and the outstanding release checks for current status.
+Historical Phase 1/2 milestones record earlier work. See the snapshot, M024–M025 and the outstanding release checks for current status.

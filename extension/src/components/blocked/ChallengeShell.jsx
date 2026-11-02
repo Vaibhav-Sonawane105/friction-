@@ -1,6 +1,15 @@
 import { ArrowExitIcon, ProtectionIcon } from '../common/Icons';
 
-export function ChallengeShell({ level, instructions, status, error, feedback, onRetry, onLeave, children }) {
+export function ChallengeShell({ level, maths, puzzleTitle, instructions, status, error, feedback, onRetry, onLeave, children }) {
+  if (maths || puzzleTitle) return <div className="neo-glow-wrapper"><section className={`neo-modal-content pf-maths-panel${puzzleTitle?' pf-game-panel':''}`} aria-label="Website unlock challenge" aria-busy={status === 'saving'}>
+    <header className="pf-maths-heading"><h1>Restricted website</h1><button type="button" onClick={onLeave} className="pf-maths-leave">Leave <ArrowExitIcon className="w-5 h-5" /></button></header>
+    <div className="pf-maths-meta"><strong>Level {level} · {puzzleTitle || 'Maths'}</strong>{maths && <span>Question <b>{Math.min(maths.solved + 1, maths.total)}</b> of {maths.total}</span>}</div>
+    {children}
+    {error && <div role="alert" className="pf-maths-alert">{error} <button type="button" onClick={onRetry}>Retry</button></div>}
+    {feedback && <p role="status" className="pf-maths-feedback">{feedback}</p>}
+    {status === 'saving' && <p role="status">Saving challenge…</p>}
+    <footer>Access ends when you leave this site or close the tab.</footer>
+  </section></div>;
   return <div className="neo-glow-wrapper"><section className="neo-modal-content" aria-label="Website unlock challenge" aria-busy={status === 'loading' || status === 'saving'}>
     <header className="flex flex-wrap items-center justify-between gap-4 mb-7">
       <div className="flex items-center gap-4">

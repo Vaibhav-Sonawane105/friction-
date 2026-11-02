@@ -6,7 +6,7 @@ This file defines the visual and interaction direction for the Chrome extension 
 
 The product should feel bold, high-contrast, playful, interactive, and unapologetically striking. It avoids generic minimalist corporate design in favor of tactile neo-brutalism elements—strong borders, solid black drop shadows, and vibrant badge accents—while keeping core settings and blocking mechanics completely clear and functional.
 
-Development (`dist-dev`) runs four rotating challenge types at all four levels. The friends’ preview (`dist-preview`) retains the earlier Levels 1–3 and reports Level 4 unavailable; production (`dist`) retains legacy arithmetic. The owner requested a visual polish pass after the GitHub checkpoint. The existing palette, typography and component guidelines below remain the starting point; no new visual treatment has been chosen or implemented.
+Development (`dist-dev`) runs all four challenge types at every level. Maths, route planning and logical ordering use the compact challenge header, yellow level badge and turquoise Leave action. The memory card layout was retained. The owner liked this visual direction (M025); the private preview and production were not promoted.
 
 ## Visual Direction & Style System
 
@@ -64,8 +64,9 @@ Development (`dist-dev`) runs four rotating challenge types at all four levels. 
 
 The shared shell shows level, instructions, loading, feedback, saving, Retry and Leave. Refresh restores saved work; a failed save must never dismiss the blocker. Preserve visible focus, labelled controls and identifiers distinguishable without colour alone.
 
-- Maths shows one question and set progress. Memory hides unmatched identities until flipped.
-- Route planning keeps the grid, checkpoints, Undo and Clear visible. Ordering keeps clues visible, allows keyboard and pointer reordering, and marks broken clues only after submission.
+- Maths gives the prompt the largest type in a white card, with question progress above it and labelled answer controls on a grey bar below. Memory retains its card layout and hides unmatched identities until flipped.
+- Route planning draws a connected path and uses distinct start, exit, checkpoint and wall symbols, a legend and a visited-checkpoint count. Keep Undo, Clear and Check route together.
+- Logical ordering pairs numbered clues with a numbered object list. Keep names alongside icons and label the move buttons “earlier” and “later.” The columns stack on narrow screens. Mark violated clues only after submission.
 - Do not present the practiced-time targets as countdowns.
 - Shared completion/saving feedback prevents repeat submissions; module changes clean up old interactions and resources.
 - Saved state restoration and module-load failure need understandable feedback; they must not silently reset progression or grant access.

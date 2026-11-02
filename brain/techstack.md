@@ -439,7 +439,7 @@ Supabase will manage the database and authentication services. It is not a repla
 The following technical decisions should be finalized when their implementation phase approaches:
 
 - Tune difficulty from the repeated-use pilot before private-preview promotion.
-- Deferred puzzle artwork and shared UI polish, followed by responsive/accessibility acceptance.
+- Verify the polished development views at narrow widths and with keyboard-only input; no stack or dependency change was needed for the visual pass.
 - Long-term production hosting/readiness beyond current Render Free staging. Email/password auth with worker-owned session storage is already implemented.
 - Final payment provider selection (Razorpay vs Stripe) and pricing tiers.
 - Analytics event definitions, retention periods, and opt-in UX.
