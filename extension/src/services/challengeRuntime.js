@@ -2,6 +2,7 @@ import * as registry from '../challenges/workerRegistry';
 import { createChallengeCoordinator } from './challenges';
 import { readChallengeSnapshot, writeChallengeSnapshot } from './storage';
 import { isDomainMatch } from '../utils/domain';
+import { isCurrentDocument } from './currentDocument';
 import { getDevelopmentOverride, consumeDevelopmentOverride } from '../dev/challengeControls';
 
 // Normalize only this extension's exact standalone page, never arbitrary extension URLs.
@@ -15,13 +16,16 @@ export function getTargetUrl(url) {
 }
 
 async function assertContext(context) {
-  const [tab, frame] = await Promise.all([chrome.tabs.get(context.tabId), chrome.webNavigation.getFrame({ tabId: context.tabId, frameId: 0 })]);
-  if (frame?.documentId !== context.documentId || !isDomainMatch(getTargetUrl(tab.url), context.domain)) throw new Error('This page has changed. Reload the challenge.');
+  const tab=await chrome.tabs.get(context.tabId);
+  if (!isDomainMatch(getTargetUrl(tab.url), context.domain)||!await isCurrentDocument(context.tabId,context.documentId,tab.url)) throw new Error('This page has changed. Reload the challenge.');
 }
 
 const coordinator = createChallengeCoordinator({ readSnapshot: readChallengeSnapshot, writeSnapshot: writeChallengeSnapshot, registry, assertContext });
 
 export async function getChallenge(context) {
+  if (!(typeof __PF_DEV_CONTROLS__ !== 'undefined' && __PF_DEV_CONTROLS__)) {
+    return coordinator.getChallenge(context, { developmentTest: true });
+  }
   const override = await getDevelopmentOverride(context);
   const result = await coordinator.getChallenge(context, { developmentTest: true, moduleId: override?.moduleId, variant: override?.variant, overrideId: override?.id });
   await consumeDevelopmentOverride(context, result, override);

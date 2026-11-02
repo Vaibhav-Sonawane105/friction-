@@ -1,0 +1,23 @@
+PROGRESSIVE FRICTION — FEEDBACK
+
+Send this back to the person who shared the extension. Nothing here is submitted automatically. You can skip any question and do not need to name sensitive websites.
+
+1. Roughly how many days did you use it? Which operating system and Chrome version?
+
+2. Did restricted websites reliably show a challenge? Did access stay unlocked on refresh and end after leaving the website?
+
+3. What level/game did you naturally reach? No need to reach every level.
+
+4. Did the challenge make you reconsider opening the website, or did it just feel annoying? Describe one example if you can.
+
+5. Were any instructions confusing? Was the challenge too easy, too hard, or about right?
+
+6. Any small-window layout problems, unreadable text, distracting motion or keyboard difficulties?
+
+7. Did you disable a restriction or the extension? What made you do so?
+
+8. Any errors or unexpected unlock/count behavior? What happened, what did you expect, and can you repeat it?
+
+9. What ONE change would make you more likely to keep using it?
+
+10. Would you keep using it after this test? Why or why not?

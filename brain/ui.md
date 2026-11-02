@@ -6,7 +6,7 @@ This file defines the visual and interaction direction for the Chrome extension 
 
 The product should feel bold, high-contrast, playful, interactive, and unapologetically striking. It avoids generic minimalist corporate design in favor of tactile neo-brutalism elements—strong borders, solid black drop shadows, and vibrant badge accents—while keeping core settings and blocking mechanics completely clear and functional.
 
-Status (2026-10-20): production retains the legacy arithmetic overlay. Development includes the shared ChallengeShell/ChallengeHost, arithmetic/equations, tracking/memory/attention views and temporary testing panel. Level 3 shows one randomly selected game at counts 31–50: tracking has three rounds, attention three stages, memory one six-pair board. No combined sequence. Memory uses colourful SVG symbols and pastel pink hidden cards without visible shape captions; attention shares the symbols and adds colour/fill matching. Tracking uses CSS motion and a step-by-step reduced-motion alternative. Owner accepted tracking and memory visuals for now; broader visual polish is deferred until all levels exist and must pass acceptance before production activation. The Level 4 timer remains planned. Owner feedback does not establish every responsive/accessibility checklist case.
+Development (`dist-dev`) runs four rotating challenge types at all four levels. The friends’ preview (`dist-preview`) retains the earlier Levels 1–3 and reports Level 4 unavailable; production (`dist`) retains legacy arithmetic. The owner requested a visual polish pass after the GitHub checkpoint. The existing palette, typography and component guidelines below remain the starting point; no new visual treatment has been chosen or implemented.
 
 ## Visual Direction & Style System
 
@@ -41,7 +41,7 @@ Status (2026-10-20): production retains the legacy arithmetic overlay. Developme
 
 ## UX Principles
 
-1. **The active challenge is the main interaction.** Keep arithmetic/equation input, puzzle controls and waiting progress understandable and keyboard-accessible. The required module architecture in [project.md](project.md#required-modular-challenge-architecture) owns the behavior; this file defines a shared visual language, not a single arithmetic-only layout.
+1. **The active challenge is the main interaction.** Make its rules, controls, feedback and the Leave action easy to find and keyboard-accessible.
 2. **Show progress without shaming by default.** The product can be intense and humorous, but core settings and analytics should stay respectful.
 3. **Explain the rules.** Show the current challenge level and explain that successful unlock counts select level ranges, while access remains temporary. Distinguish planned four-level progression from the current arithmetic tiers.
 4. **Keep friction intentional.** Avoid accidental difficulty increases from refreshes, same-domain navigation, or technical failures.
@@ -60,20 +60,20 @@ Status (2026-10-20): production retains the legacy arithmetic overlay. Developme
 - Display free-plan limits upfront before users reach them.
 - Clarify local vs. cloud account storage.
 
-### Modular Challenge Experience (Levels 1–3 implemented in development)
+### Modular Challenge Experience (development Levels 1–4)
 
-The development build uses a shared shell for level, instructions, loading/error/saving feedback and Leave. Render the selected module inside it; do not force future puzzle/timer interactions into an equation input form. Retry reloads authoritative saved state; a failed-save answer may need re-entry, while its saved prompt is retained. Preserve the visual tokens below; no redesign is approved.
+The shared shell shows level, instructions, loading, feedback, saving, Retry and Leave. Refresh restores saved work; a failed save must never dismiss the blocker. Preserve visible focus, labelled controls and identifiers distinguishable without colour alone.
 
-- Arithmetic and equation modules use the equation/input rules below.
-- Puzzle modules supply appropriate accessible controls with clear completion feedback.
-- Timer module shows remaining time and pause/resume state without requiring an answer field. Pause while hidden/minimized or away; restore the saved timer without rerolling its duration. Follow the [approved level rules](project.md#approved-level-rules-2026-10-17).
+- Maths shows one question and set progress. Memory hides unmatched identities until flipped.
+- Route planning keeps the grid, checkpoints, Undo and Clear visible. Ordering keeps clues visible, allows keyboard and pointer reordering, and marks broken clues only after submission.
+- Do not present the practiced-time targets as countdowns.
 - Shared completion/saving feedback prevents repeat submissions; module changes clean up old interactions and resources.
 - Saved state restoration and module-load failure need understandable feedback; they must not silently reset progression or grant access.
 - Camera recognition is outside the current roadmap; no camera UI is part of this phase.
 
-### Arithmetic and Equation Modules
+### Maths sets
 
-Arithmetic and Level 2 equations/derivatives are implemented in development. Use clear question-specific instructions and a labelled answer field. Derivative questions ask for a numeric derivative at a stated point, with integer answers.
+Use a labelled whole-number field or explicit operator controls as appropriate. Show progress within the set; a wrong answer keeps the same prompt.
 - Display the equation prominently using **JejuGothic** typography inside a clean white container with a 2px black border, responsive 12–16px corners, and `shadow-brutal-card`.
 - Provide a clear input field and a submit button styled with neo-brutalist geometry.
 - Communicate incorrect answers clearly without revealing solutions unless intended.

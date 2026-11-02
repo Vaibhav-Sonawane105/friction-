@@ -10,7 +10,7 @@ import {
   removeBlockedDomain,
 } from '../services/storage';
 
-const DevelopmentPanel = typeof __PF_CHALLENGE_DEV__ !== 'undefined' && __PF_CHALLENGE_DEV__
+const DevelopmentPanel = typeof __PF_DEV_CONTROLS__ !== 'undefined' && __PF_DEV_CONTROLS__
   ? lazy(() => import('../dev/ChallengePanel')) : null;
 
 export function PopupPage() {

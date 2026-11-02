@@ -10,6 +10,7 @@ node_modules/
 # Build outputs
 dist/
 dist-dev/
+dist-preview/
 build/
 .next/
 
@@ -23,4 +24,5 @@ Thumbs.db
 .vscode/
 
 # Private local data
+.superpowers/sdd/
 *.local

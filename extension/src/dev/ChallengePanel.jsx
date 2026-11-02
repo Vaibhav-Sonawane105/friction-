@@ -15,7 +15,6 @@ export default function ChallengePanel({ domains }) {
   const [count, setCount] = useState('');
   const [moduleId, setModuleId] = useState('');
   const [variant, setVariant] = useState('');
-  const [seconds, setSeconds] = useState('5');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const inspect = useCallback(async () => {
@@ -61,8 +60,7 @@ export default function ChallengePanel({ domains }) {
           {modules.map(id => <option key={id} value={id}>{id}</option>)}
         </select></label>
         {variants.length > 0 && <label>Question type<select className={inputClass} value={selectedVariant} onChange={event => setVariant(event.target.value)}><option value="">Random</option>{variants.map(value => <option key={value} value={value}>{value === 'linear' ? 'Linear equation' : value === 'derivative' ? 'Derivative at a point' : value}</option>)}</select></label>}
-        {choice === 'wait' && <label>Test duration in seconds<input className={inputClass} type="number" min="1" max="480" step="1" value={seconds} onChange={event => setSeconds(event.target.value)} /></label>}
-        <button type="button" className={buttonClass} disabled={!choice} onClick={() => act('PREPARE_CHALLENGE', { moduleId: choice, ...(selectedVariant ? { variant: selectedVariant } : {}), ...(choice === 'wait' ? { durationSeconds: Number(seconds) } : {}) })}>Prepare next challenge</button>
+        <button type="button" className={buttonClass} disabled={!choice} onClick={() => act('PREPARE_CHALLENGE', { moduleId: choice, ...(selectedVariant ? { variant: selectedVariant } : {}) })}>Prepare next challenge</button>
         <button type="button" className={buttonClass} onClick={() => act('RESET_CHALLENGE')}>Reset challenge (keep count)</button>
       </fieldset>
       <p>Changes replace this website’s attempts and end its temporary access. Other websites are preserved.</p>

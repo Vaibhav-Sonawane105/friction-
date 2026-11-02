@@ -2,9 +2,9 @@
 
 ## 1. Project Overview
 
-Status (2026-10-20): production retains legacy arithmetic; the separate development build implements the modular foundation, Levels 1–3 and temporary test controls. Level 3 randomly selects one tracking, memory or attention game at counts 31–50; no combined sequence. Level 4 timer is next; subscriptions, dashboard/analytics and motivational media remain planned. Accounts, website-list sync and Render staging are implemented. Store release is deferred; see progress.md M022/M023 for current evidence.
+Development (`dist-dev`) runs four rotating challenge types at all four levels. The friends’ preview (`dist-preview`) retains the earlier Levels 1–3 and reports Level 4 unavailable; production (`dist`) retains legacy arithmetic. See progress.md M024 for the implementation and verification checkpoint.
 
-The Progressive Website Blocker is a Chrome extension that helps users control distractions by blocking selected websites, requiring math challenges to unlock them, and progressively increasing challenge difficulty for repeated unlocks.
+The Chrome extension requires deliberate effort before access to chosen sites and scales that effort by the site's successful unlock count.
 
 The application will be developed in phases, beginning with a fully functional local Chrome extension and gradually introducing authentication, cloud synchronization, subscriptions, analytics, and signature features.
 
@@ -22,7 +22,7 @@ The application will be developed in phases, beginning with a fully functional l
 
 See [project.md](project.md#required-modular-challenge-architecture) for the authoritative requirement. The React/JavaScript implementation must separate count-to-level policy, a stable module registry, on-demand challenge components/validators, one shared completion coordinator and versioned local state. Keep the background writer responsible for progression and access persistence; modules never mutate those records directly. The existing arithmetic generator/UI are the pre-migration baseline, not the architecture to copy for each new game.
 
-The implemented foundation uses shared `challenges/catalog.js` metadata, lazy browser `registry.js`, static `workerRegistry.js`, independent arithmetic/equations/tracking/memory/attention models and views, `services/challenges.js` coordinator and `challengeState.js` schema/migration. MV3 forbids dynamic imports and DOM APIs in the worker; statically link pure models, invoking only the selected one. Keep browser views lazy. Local attempt state is separate from temporary tab access. No new engine/backend dependency is needed; camera recognition remains excluded.
+Development selects redesignCatalog.js, redesignRegistry.js (lazy browser views) and redesignWorker.js (statically imported models) through build-time aliases. The previous registries remain for the friends’ preview. services/challenges.js owns completion; challengeState.js migrates local attempts and retains compatible memory boards. No new dependency, permission or backend is required.
 
 ## 2. Frontend Technologies
 
@@ -33,7 +33,7 @@ The implemented foundation uses shared `challenges/catalog.js` metadata, lazy br
 - Extension popup.
 - Website management interface.
 - Blocked-page experience.
-- Progressive challenge interfaces (arithmetic, linear/intro-calculus equations, interactive puzzles, countdown timer).
+- Shared challenge shell and four accessible puzzle views.
 - Unlock and progression feedback.
 - Voluntary disable-flow modal and motivational sequence.
 
@@ -54,7 +54,7 @@ The implemented foundation uses shared `challenges/catalog.js` metadata, lazy br
 
 **Used for:**
 - Extension logic.
-- Progressive challenge engines (Levels 1–4: arithmetic, algebraic/calculus generators, puzzle state, pause/resume timer logic).
+- Local generators, solvers and validators for all redesigned levels.
 - Website and session management.
 - API communication.
 - Frontend interactions.
@@ -141,13 +141,13 @@ The implemented foundation uses shared `challenges/catalog.js` metadata, lazy br
 **Used for:**
 - User-selected website domains.
 - Per-website difficulty progression and cumulative unlock counts.
-- Level 4: one persisted timer per website, one counting tab, random 1–8 whole minutes selected once; pause while hidden/minimized/away, resume saved time, and unlock only the completing tab. See approved rules in project.md.
+- Per-site shuffled bag, bounded recent puzzle history and versioned tab-scoped attempts.
 - Temporary unlock session records.
 - Local preferences and focus settings.
 
 **Phase:** 1 & Phase 1 Enhancement
 
-Local storage is the implemented default for blocking and arithmetic progression. Opt-in automatic sync already reconciles domain/enabled configuration only; counts and difficulty stay local. Implemented puzzle state remains local. The planned Level 4 timer must also stay local-first; it is not implemented yet.
+Counts, rotation and puzzle state stay local. Opt-in sync reconciles domain/enabled configuration only.
 
 ---
 
@@ -241,7 +241,7 @@ The build must support:
 
 Implemented in extension/vite.config.js: popup, standalone blocked-page, background and content-script entries with stable background.js/content-main.js names. Public manifest/loader/assets are copied into dist. No extension build plugin is used. VITE_API_URL is embedded at build time; ignored .env.production selects Render for production builds.
 
-`npm run build:challenge-dev` sets the explicit development build constant, outputs `dist-dev`, and checks the actual emitted worker in a DOM-free sandbox rejecting dynamic imports. A build-time runtime alias excludes developer worker/control code from production. Default `npm run build` outputs `dist` and scans every emitted JavaScript chunk for control leakage. The development mode does not automatically read `.env.production`; configure `VITE_API_URL` deliberately for hosted development testing. Both build directories are ignored by Git.
+Build modes: `npm run build:challenge-dev` emits and verifies the redesigned worker in `dist-dev`; `npm run build:private-preview` verifies the previous worker in `dist-preview` without developer controls. `npm run build` keeps legacy production arithmetic in `dist` and scans for developer-control leakage. Generated build directories are ignored by Git.
 
 **Phase:** 1
 
@@ -306,16 +306,14 @@ Charts will use data needed for meaningful user insights. Detailed cloud analyti
 
 ## 8. Testing and Quality Assurance
 
-Latest recorded implementation checks (M022/M023): 267 extension tests across 30 files, extension lint, both builds, release exclusion scan and emitted-worker sandbox passed. The unchanged backend checkpoint is 80 tests across 7 files. The 26-case legacy lifecycle suite remains included. Owner confirms development controls/blocking after the worker fix; Levels 1–3 have automated coverage; Level 4 tests remain planned. Mocks/sandbox do not replace full Chrome acceptance. No tests rerun for this documentation synchronization.
+Recorded development verification (M024): 298 extension tests across 34 files, including 16,000 seeded puzzle samples. Lint and all three build checks passed. The built development worker verified all 16 type/level combinations. No tests were rerun during this documentation update. Chrome 156 checks covered injected and standalone challenges, tab isolation, refresh, offline input, failed-save recovery and restarts. Backend’s prior 80-test checkpoint is unchanged.
 
 ### Vitest
 **Purpose:** Unit testing for JavaScript modules.
 
 **Used for:**
-- Progressive challenge generators and solvers (Level 1 arithmetic, Level 2 linear/calculus equations).
-- Answer validation and puzzle state (Level 3 tracking, attention and memory; obsolete patterns removed).
-- Level 4 countdown timer pause/resume math and state transitions.
-- Unlock-count boundaries using completed unlocks before each attempt: 0–20, 21–30, 31–50, 51–70, and continued Level 4 above 70; preserve existing counts during migration.
+- Seeded generation, independent reference checks, saved-state validation, migration and exactly-once completion.
+- Count boundaries 0–20, 21–30, 31–50 and 51+; all four challenge types at every level.
 - Difficulty progression and unlock counts.
 - Unlock-session expiry calculations.
 - Website-domain normalization.
@@ -414,7 +412,7 @@ Supabase will manage the database and authentication services. It is not a repla
 | Phase | Main Technologies |
 |---|---|
 | Phase 1 — Core Extension | React, JavaScript, Vite, Tailwind CSS, Chrome Manifest V3, Chrome APIs, Chrome Storage, Vitest |
-| Phase 1 Enhancement — Progressive Challenge Levels | Progressive challenge engines (arithmetic, linear/calculus equations, interactive puzzles, Level 4 persistent timer), local-first state storage |
+| Phase 1 Enhancement — Progressive Challenge Levels | Four local challenge models, per-site rotation, versioned attempt state and shared completion |
 | Phase 2 — Backend & Authentication | Node.js, Express, Supabase Auth, PostgreSQL, Supabase client libraries, RLS |
 | Phase 3 — Subscription System | Express, Supabase, payment provider (Razorpay / Stripe candidates), server-side entitlement checks, webhooks |
 | Phase 4 — Dashboard & Analytics | Next.js / React, Tailwind CSS, Recharts, PostgreSQL, Supabase |
@@ -424,7 +422,7 @@ Supabase will manage the database and authentication services. It is not a repla
 
 ## 12. Architecture and Data Principles
 
-1. **Local-first blocking and challenges:** Website blocking, progressive challenge selection (Levels 1–4), puzzle verification, and Level 4 timer pause/resume mechanics must work entirely offline without requiring network access, backend requests, or user login. Backend outages or being logged out must never break core blocking or challenge completion.
+1. **Local-first blocking and challenges:** all four levels must work offline without sign-in or backend availability.
 2. **Extensible challenge execution:** Keep module behavior separate from progression policy and shared completion; use versioned local state and selected-module loading.
 3. **Minimal synchronization:** Sync only settings and history required for account features.
 4. **Privacy by default:** Do not upload complete browsing histories or detailed analytics by default.
@@ -440,7 +438,7 @@ Supabase will manage the database and authentication services. It is not a repla
 
 The following technical decisions should be finalized when their implementation phase approaches:
 
-- Level 4 timer ownership, handoff and checkpoint mechanics through the existing shared completion/local state contracts.
+- Tune difficulty from the repeated-use pilot before private-preview promotion.
 - Deferred puzzle artwork and shared UI polish, followed by responsive/accessibility acceptance.
 - Long-term production hosting/readiness beyond current Render Free staging. Email/password auth with worker-owned session storage is already implemented.
 - Final payment provider selection (Razorpay vs Stripe) and pricing tiers.

@@ -2,9 +2,19 @@
 
 Run `npm test`, `npm run lint`, and `npm run build` from `extension/`.
 
-## Modular foundation development build
+## Testing the redesigned challenges
 
-The modular foundation, arithmetic adapter, Level 2 equations and standalone Level 3 tracking/memory/attention are available only in the explicit development build. Default production builds retain the legacy arithmetic flow until all four levels exist and UI acceptance passes. Level 3 selects one random game per attempt at counts 31–50; completing only that game unlocks. The waiting module remains unimplemented. Level 4 counts display an unavailable message, never an arithmetic substitute. Level 2 and memory have owner-reported acceptance. Tracking has owner-reported acceptance with visual polish deferred (M022); M023 records the corrected single-game rule. Repeatable browser checklists remain below and do not imply every case was observed.
+From `extension/`, run `npm run build:challenge-dev`. In Chrome's extensions page choose **Load unpacked** and select `extension/dist-dev`, or reload that extension if already installed. Use a separate testing profile and disable other copies of Progressive Friction in it. Add a test website in the popup. Open **Development challenge controls**, choose the site and jump to 0, 21, 31 or 51 successful unlocks. Select a type and choose **Prepare next challenge**. Use just one tab on that site when forcing a particular type; the first new attempt consumes the override.
+
+Try maths, memory, route and ordering at each level. Refresh mid-puzzle and check that work remains. Complete the selected challenge, verify the site's count advances once, and leave and return. In ordinary selection, each group of four fresh attempts includes all four types without consecutive repeats. Counts 51+ continue at level 4. The [pilot worksheet](../docs/private-preview/REDESIGN-PILOT.md) separates completion speed from usefulness.
+
+Build checks: `npm test`, `npm run lint`, `npm run build:challenge-dev`, `npm run build` and `npm run build:private-preview`. The development worker verifies all 16 combinations. The private-preview verifier still checks the previous Levels 1–3 design; do not use that build to assess the redesign.
+
+## Modular foundation development build (historical checklist)
+
+The following subsection describes the **earlier** development milestones. It does not describe the current redesigned development build; the private preview remains on the earlier behaviour.
+
+The modular foundation, arithmetic adapter, Level 2 equations and standalone Level 3 tracking/memory/attention are available in the explicit development build and private daily-use preview. Default production builds retain the legacy arithmetic flow until all four levels exist and UI acceptance passes. Level 3 selects one random game per attempt at counts 31–50; completing only that game unlocks. The waiting module remains unimplemented. Level 4 counts display an unavailable message, never an arithmetic substitute. Level 2 and memory have owner-reported acceptance. Tracking has owner-reported acceptance with visual polish deferred (M022); M023 records the corrected single-game rule. Repeatable browser checklists remain below and do not imply every case was observed.
 
 From `extension/`, run `npm run build:challenge-dev`. Load **`C:\Crome Extention\extension\dist-dev`** as an unpacked extension in Chrome. This is a separate output from production `dist`; rebuilding development does not overwrite production. Reload the extension and refresh existing site tabs after a build. Use one build at a time when checking blocking to avoid two extensions overlaying the same page.
 
@@ -124,3 +134,13 @@ All production writes run in the background worker. Browser events and messages 
 The manifest requires Chrome 106 or later for session storage and document identity APIs. Core enforcement stays local and does not call the backend. This remains an in-page friction overlay, so the restricted site's network requests are not blocked.
 
 Reference: [Chrome Storage API](https://developer.chrome.com/docs/extensions/reference/api/storage), [Chrome webNavigation API](https://developer.chrome.com/docs/extensions/reference/api/webNavigation).
+
+## Private daily-use preview
+
+Run `npm run build:private-preview` and load `extension/dist-preview` as unpacked. This build includes the modular Levels 1–3 with developer controls omitted at build time. The emitted-bundle scan rejects control code in any JavaScript chunk, and the worker smoke checks rejected count/prepare/reset/inspect messages, retained challenges at 0/20/21/30/31/50, exactly-once math completion and Level 4 unavailable at 51. The two preview integration tests cover ordinary completion without count-edit access and ignoring stale developer overrides. Latest verification: 269 tests across 31 files.
+
+Before sharing, manually check this exact output in Chrome: a new website starts at zero; popup has no developer panel; wrong/correct answers and refresh work; second tabs remain independent; leave/return requires a fresh challenge. Reuse the level-specific checklists above for gameplay. There is no level-jump UI in this build, so the sandbox/service tests seed boundary fixtures outside the distributed extension. Keep separate copies from blocking the same tab.
+
+The private build is deliberately incomplete at count 51+, as the owner requested; do not substitute an easier game or reset counts. The tester guide explains how to disable/remove a restriction then. Account requests use the production-configured hosted API origin; the preview checks do not establish live API/signup/sync behavior. No account is needed for core testing.
+
+Share the built folder and `docs/private-preview/START_HERE.txt` plus `FEEDBACK.txt`. Do not distribute environment files, source/configuration directories, dependencies or stored browser/profile data. No feedback is submitted automatically. No new brain update is implied by preparation of this preview.

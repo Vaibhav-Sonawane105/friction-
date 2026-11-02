@@ -27,7 +27,7 @@ These instructions apply whenever an AI assistant works on this project. Read th
 
 ## Required challenge architecture
 
-Extend the implemented development foundation described in [project.md](project.md#required-modular-challenge-architecture) and progress.md M017. Keep progression policy, module registry, independent challenge modules, shared exactly-once completion and versioned local state separate. Do not duplicate unlock/count logic inside games. Levels 1–3 run in `dist-dev`; default `dist` retains legacy arithmetic until all levels and UI pass acceptance. Follow the [approved level rules](project.md#approved-level-rules-2026-10-17), including the 2026-10-20 clarification: Level 3 selects one random game per attempt at counts 31–50, never a combined sequence. Level 4 is next; its timer remains unimplemented. Reuse the approved spec and current interfaces rather than redesigning the foundation.
+Use the [approved redesign rules](project.md#challenge-progression) on the existing modular foundation. Keep policy, registries, independent models, versioned local state and shared exactly-once completion separate. Development (`dist-dev`) runs four rotating challenge types at all four levels. The friends’ preview (`dist-preview`) retains the earlier Levels 1–3 and reports Level 4 unavailable; production (`dist`) retains legacy arithmetic. Keep the builds distinct; no waiting-only level.
 
 MV3 workers must statically import their runtime and pure models; they cannot call dynamic imports or DOM-dependent preload helpers. Only the selected model executes. Browser views remain lazy through the separate browser registry, sharing metadata with the worker registry. Keep the emitted-worker sandbox check in `npm run build:challenge-dev` and production exclusion check in `npm run build`.
 
@@ -38,7 +38,7 @@ Camera recognition is outside the current roadmap. Do not add its permissions, d
 ## Product-specific rules
 
 - Each configured website has its own unlock history and difficulty progression.
-- The successful-unlock count advances exactly once per completed unlock, never on refresh/navigation. The planned progression policy maps that count to level ranges; a level need not change after every unlock. Current arithmetic-tier behavior is the legacy baseline to migrate.
+- Only a successful completion advances that site’s count. Development selects effort from the count bands in project.md and rotates types independently of level; refresh or an incorrect answer never advances the count.
 - Unlocks are per tab: same-domain navigation and refresh preserve access; leaving the domain or closing the tab ends it. Browser restart/extension reload ends temporary sessions while preserving counts; worker restart preserves sessions.
 - A validated challenge completion grants temporary per-tab access; leaving the site ends it. Resumable module state is separate from access and follows the module’s defined lifecycle.
 - Users choose the websites they want to restrict. Do not classify sites or decide what should be blocked on the user's behalf.

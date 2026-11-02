@@ -1,5 +1,7 @@
 # Progressive Friction — Website Blocker
 
+**Development build update (2 November 2026):** `dist-dev` now rotates maths, memory, route planning and logical ordering at **all four levels**. Production and the friends’ private preview still use their previous challenge flows. References below to the earlier Level 1–3 development build describe that earlier milestone. See [testing the redesigned challenges](extension/TESTING.md#testing-the-redesigned-challenges) and the [pilot worksheet](docs/private-preview/REDESIGN-PILOT.md).
+
 A Chrome extension designed to interrupt mindless browsing habits by introducing intentional friction before accessing self-restricted websites. Production currently uses legacy arithmetic; a separate development build implements the modular foundation, Levels 1–2 and standalone Level 3 tracking, memory and attention modules.
 
 ## Current scope and next phase
@@ -11,6 +13,14 @@ The development build includes **Level 2: simple linear equations and introducto
 Development update: run `npm run build:challenge-dev` from `extension/` and load `extension/dist-dev`; the popup supports count edits, level jumps, module/question-type selection and website-specific resets. Levels 1–2 and standalone Level 3 tracking/memory/attention are available; Level 4 reports unavailable. For repeatable puzzle testing select **tracking**, **memory** or **attention**, then prepare it explicitly. Ordinary Level 3 selection randomly chooses one of these modules per new attempt; finishing that game alone unlocks. Default `npm run build` preserves production arithmetic and excludes testing controls. See [development testing instructions](extension/TESTING.md#modular-foundation-development-build).
 
 See [roadmap](brain/phases.md), [execution evidence](brain/progress.md), [account setup](extension/INTEGRATION.md), [browser testing](extension/TESTING.md), [deployment](backend/DEPLOYMENT.md) and [database migrations](backend/supabase/README.md).
+
+## Private daily-use feedback build
+
+Run `npm run build:private-preview` from `extension/` to create `extension/dist-preview`. This explicit private build includes Levels 1–3 with normal progression, no developer panel, no developer mutation handlers and no forced-game overrides. Production `dist` keeps its existing legacy flow; `dist-dev` keeps its testing controls.
+
+Friends start at count zero per website. At counts 31–50 one random game is sufficient to unlock. Per owner choice, **count 51+ still reports Level 4 unavailable**; testers can disable/remove that website restriction when they reach the limit. No fallback or count reset was added. The build uses the production-configured public API origin (the hosted staging origin by default); accounts/sync are optional and core challenges work locally without sign-in.
+
+Share only the built extension and [installation guide](docs/private-preview/START_HERE.txt) / [feedback questions](docs/private-preview/FEEDBACK.txt), not the repository or environment files. The install is manual via Chrome Developer mode and Load unpacked; ZIP builds do not update automatically. The preview build verifies every emitted JavaScript chunk excludes developer controls, then executes the actual worker in the MV3 sandbox for selection/restoration, count increments, rejected developer operations and the Level 4 limit. This is automated evidence, not independent Chrome acceptance. The latest private-preview check passed 269 extension tests across 31 files; no backend changes were needed.
 
 ## Architecture for the next modules
 

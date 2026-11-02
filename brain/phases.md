@@ -2,12 +2,11 @@ Development Phases & Progress Tracker
 Purpose
 This document tracks the implementation progress of the Progressive Website Blocker Chrome extension.
 It defines the development phases, their objectives, implementation tasks, completion criteria, and dependencies.
-Current Phase: Phase 1 Enhancement — Progressive Challenge Levels. Levels 1–3 are implemented in development; Level 4 persistent timer is next.
-Current Status: Default production retains legacy arithmetic. Development includes arithmetic, equations/derivatives and random single-game Level 3 challenges at counts 31–50, plus test controls. Tracking and memory have owner-reported acceptance; attention has owner feedback and automated verification. Detailed Chrome checklists remain separate. Level 4 remains unimplemented. Accounts/sync and Render staging are implemented groundwork; the product is not release-ready.
-Overall Status: Latest recorded implementation verification (M022/M023): 267 extension tests across 30 files, extension lint, both builds, production exclusion scan and emitted-worker sandbox passed. The unchanged backend checkpoint is 80 tests across 7 files. No test rerun is claimed by this documentation update. Remaining live account/SQL checks and API redeployment remain follow-ups.
+Current phase (2026-11-02): challenge redesign implemented in development; UI polish and human calibration remain.
+Development (`dist-dev`) runs four rotating challenge types at all four levels. The friends’ preview (`dist-preview`) retains the earlier Levels 1–3 and reports Level 4 unavailable; production (`dist`) retains legacy arithmetic.
+Recorded development verification (M024): 298 extension tests across 34 files, including 16,000 seeded puzzle samples. Lint and all three build checks passed. The built development worker verified all 16 type/level combinations. No tests were rerun during this documentation update.
 
-Agreed sequence: retain implemented Levels 1–3, implement Level 4, complete deferred UI polish, verify every range, activate the complete production flow and remove temporary controls after owner testing. Then continue subscriptions, dashboard/analytics and signature features in order unless the owner changes priorities. Chrome Web Store publication is a later release decision.
-Current implementation uses ten arithmetic difficulty tiers capped at 10, increasing after each successful unlock. Those tiers are not the planned four challenge-type levels below.
+The owner will handle the GitHub checkpoint before UI polish. Difficulty calibration with volunteers and owner acceptance remain pending before updating friends’ preview; production activation is a separate decision.
 Development Rules
 1. Work on one phase at a time unless a dependency requires otherwise.
 2. Do not start implementing a later phase simply because its features are described here.
@@ -47,19 +46,8 @@ Completion Criteria
 - The extension handles refreshes, expired sessions, and invalid answers correctly.
 - Core functionality works without a backend or account.
 Phase 1 Enhancement — Progressive Challenge Levels
-Status: Active — Levels 1–3 implemented in development; Level 4 next; UI polish and full-range production activation pending
-Objective
-Extend the verified basic-math challenge into a configurable progression of challenge types. This is an extension-side feature and must remain functional without authentication, network access, or the backend.
-Approved Level Design
-Level	Successful unlock count before the next challenge	Challenge type
-Level 1	0–20	Existing beginner-friendly arithmetic problems
-Level 2	21–30	Linear equations and introductory calculus-style problems, including solving for x
-Level 3	31–50	One random game per attempt: tracking (3 rounds), attention (3 stages), or memory (one six-pair board)
-Level 4	51 and above	Random 1–8 whole-minute waiting challenge, persisted and paused while hidden/away
-Future levels	To be defined	Additional modules require separate design/approval; no camera work is included
-
-
-The ranges use completed unlocks before the next challenge: 0–20 gives 21 Level 1 completions. Level 4 continues above 70. Product rules live in project.md#approved-level-rules-2026-10-17. The foundation and Levels 1–3 are implemented in development. Level 3 never requires all three games in one attempt; the earlier combined-sequence plan is superseded by M023. Level 4 timer ownership/checkpoint design remains pending. Checked tasks below refer to development implementation, not full production activation or all-browser acceptance.
+Status: Technical verification complete for development; UI polish, calibration and promotion pending.
+Objective: Require deliberate effort at each site, using increasingly complex challenges and more work. Keep blocking offline and independent of sign-in. See [count thresholds and challenge rules](project.md#challenge-progression).
 Tasks
 - [x] Design/implement the contract, policy, registries, shared coordinator and versioned migration in the development build (M017).
 - [x] Adapt arithmetic through its independent module interface without duplicating unlock logic.
@@ -71,14 +59,10 @@ Tasks
 - [x] Add validated Level 2 linear equations and numeric derivative-at-a-point questions (M019).
 - [x] Implement Level 3 tracking, attention and six-pair memory with automated checks and owner feedback (M020–M023).
 - [x] Confirm counts 31–50 select one random game per attempt; completing that game alone unlocks. No combined sequence (M023).
-- [ ] Finish deferred puzzle/shared UI polish and detailed responsive/accessibility acceptance after Level 4.
-- [ ] Add the Level 4 timer UI and persistent timer state.
-- [ ] Pause the Level 4 timer when the user leaves the restricted website or closes its tab; resume with the saved remaining time when they return.
-- [ ] Ensure closing/reopening the overlay does not reset the timer or cumulative unlock count.
-- [ ] Store progression and timer state locally; do not require Supabase or an Express request to complete a challenge.
-- [ ] Ensure the timer grants a temporary unlock only after reaching zero.
-- [ ] Prevent duplicate timers, duplicate unlock-count increments, and incorrect progression across refreshes or navigation.
-- [ ] Add unit and manual Chrome tests for each level and all count boundaries.
+- [x] Implement all four active challenge types at all levels, bounded local generation, automatic rotation, migration and persisted progress (M024).
+- [x] Verify the built worker, production exclusion, prior preview and real Chrome lifecycle/recovery.
+- [ ] Polish the challenge UI after the owner’s GitHub checkpoint; verify responsive layouts and accessible interactions.
+- [ ] Run the repeated-use pilot and adjust difficulty based on results before owner acceptance and private-preview promotion.
 - [ ] Evaluate copy/paste restrictions as supplemental friction only, not as a security guarantee.
 - [ ] Activate the full-range modular production flow only after every approved level has a verified module.
 - [ ] Remove temporary developer controls/override creation/build option after owner testing; retain production cleanup of previously saved test state and regression checks.
@@ -86,10 +70,9 @@ Completion Criteria
 - Progression, registry, module implementations, shared completion and persisted state are independently maintained; game modules do not own count increments or tab unlock writes.
 - A new challenge type can be registered without rewriting existing challenge modules or duplicating the unlock flow.
 - Migration preserves existing settings/counts; on-demand loading and cleanup are verified.
-- The correct challenge type is selected for each defined unlock-count range.
+- All four types are eligible at each count band, with appropriately scaled workload.
 - Progression is tracked independently for each configured website according to the existing per-website model.
-- Level 4 remaining time survives overlay closure, tab closure, navigation away, and browser/service-worker restarts as specified; elapsed time while away does not reduce the remaining time.
-- Reopening the site resumes the saved timer rather than restarting it.
+- Refresh preserves the chosen puzzle and progress; leaving or closing the tab ends that tab’s attempt. A worker restart preserves current work.
 - Completing a challenge does not reset cumulative progression.
 - The extension remains usable offline and when the user is logged out.
 - Existing blocking and unlocking behavior remains stable, and tests cover all level transitions.
@@ -190,8 +173,8 @@ Future Updates
   - Optional cloud synchronization for preferences, website blocklists, and minimal unlock history with strict privacy guards (normalizeDomain).
   - 50/50 automated backend tests passing (Vitest + Supertest).
 Current Next Step
-1. Design and implement **Level 4**: one persisted random 1–8 minute timer per website, counting in one visible active tab, pausing while hidden/away and resuming saved remaining time. Reuse foundation interfaces and shared completion. Levels 1–3 are implemented; retain one random Level 3 game per attempt at counts 31–50. This documentation update implements no timer code.
-2. Keep blocking, challenge progression, puzzles and the planned Level 4 timer local-first. Backend outages or sign-out must not disrupt core behavior.
+1. The owner will handle the GitHub checkpoint before UI polish. Difficulty calibration with volunteers and owner acceptance remain pending before updating friends’ preview; production activation is a separate decision.
+2. Use the [pilot worksheet](../docs/private-preview/REDESIGN-PILOT.md) to compare first and practiced attempts. Completion time is evidence for tuning, not proof of habit change.
 3. Continue the subscription/dashboard/signature-feature roadmap after the level mechanism. Store release is deferred until intended product scope and release checks are satisfied and the owner authorizes it.
 
 Camera recognition is explicitly outside this roadmap. No camera permissions, dependencies or placeholder implementation belong to the current phase.
@@ -200,4 +183,4 @@ Camera recognition is explicitly outside this roadmap. No camera permissions, de
 
 2026-10-20 alignment: M017 establishes the implemented development foundation, controls and MV3 correction. This owner-authorized documentation-only synchronization supersedes old foundation-pending summaries. No new code, test run, brain-update standing permission or GitHub action is implied.
 
-2026-10-20 current alignment (M023): all six brain files synchronized with implemented Levels 1–3 and the owner’s single-game Level 3 clarification. Level 4 is next; deferred UI polish and production activation remain pending. No code changes or test rerun in this documentation update.
+2026-10-20 alignment (M023) documented the earlier Level 3 game rule. M024 supersedes it for development.

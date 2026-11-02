@@ -1,6 +1,6 @@
 Project Context — Progressive-Friction Website Blocker
 Working concept
-A Chrome extension that helps users interrupt unwanted browsing habits through progressive challenges before accessing websites they explicitly choose to restrict. The intended product supports arithmetic, equations, easy puzzles and a waiting timer; current shipped code still uses arithmetic only. Each successful unlock advances that website’s count; progression rules determine the next challenge level.
+A Chrome extension for sites people choose to restrict. Access costs deliberate effort, and repeated successful unlocks increase that effort permanently for that site, up to a moderate ceiling.
 The product combines:
 - Website blocking
 - Progressive math challenges
@@ -10,11 +10,11 @@ The product combines:
 - Optional analytics and future premium features
 The current extension name is Progressive Friction. Final branding remains an owner decision; do not rename it without approval.
 
-Implementation status (2026-10-20)
+Implementation status (2026-11-02)
 - Production build (`dist`): in-page blocking overlay, per-tab unlocks, local counts and ten legacy arithmetic tiers; optional accounts and automatic domain/enabled-list sync.
-- Development build (`dist-dev`): modular foundation, count-to-level policy, versioned local attempts/migration, shared validated completion, Level 1 arithmetic, Level 2 linear equations/derivatives, Level 3 tracking/memory/attention and temporary developer controls. Level 3 selects one random game per attempt at counts 31–50. Owner feedback and broader browser checklists remain distinct. Latest recorded extension checks: 267 tests across 30 files, lint and both builds passed; unchanged backend checkpoint: 80 tests (M022/M023).
+- Development (`dist-dev`) runs four rotating challenge types at all four levels. The friends’ preview (`dist-preview`) retains the earlier Levels 1–3 and reports Level 4 unavailable; production (`dist`) retains legacy arithmetic. See M024 for technical verification; human difficulty targets are not yet validated.
 - Hosted groundwork: Express API on Render Free at https://progressive-friction-api.onrender.com; Supabase supplies authentication and PostgreSQL. Owner confirmed hosted sync and roughly one-minute cold-start recovery.
-- Next: design and implement the persistent Level 4 timer. Counts 51+ currently report unavailable; Levels 1–3 are implemented in development. Visual polish is deferred until all levels exist. Full-range production activation and eventual removal of temporary testing controls follow implementation and owner testing of every level. Subscriptions, dashboard/analytics and motivational media remain future work.
+- The owner will handle the GitHub checkpoint before UI polish. Difficulty calibration with volunteers and owner acceptance remain pending before updating friends’ preview; production activation is a separate decision.
 - Hosting is not product completion. Follow phases.md; store release is deferred pending intended features and release acceptance.
 Problem and intended outcome
 Traditional website blockers can be easy to ignore or disable. This product adds deliberate friction between an impulse and access. The intended outcome is to help users pause and reconsider unwanted browsing—not to claim guaranteed habit change or provide medical treatment.
@@ -23,7 +23,7 @@ Core user flow
 2. Choose the websites/domains to restrict.
 3. Navigate to a restricted website.
 4. The extension selects a challenge module using the website’s progression.
-5. The user completes its interaction: an answer, puzzle or waiting task.
+5. Complete the selected challenge or leave the site.
 6. After the shared completion flow validates and saves success, the website is temporarily unlocked.
 7. The user can browse that site during the active session.
 8. When the user leaves the website, the unlock ends.
@@ -45,39 +45,35 @@ Separate these responsibilities:
 
 1. **Progression policy:** map each website's successful-unlock count to a level and select a registered challenge type. Keep count thresholds independent from challenge rendering and answer checking.
 2. **Challenge registry:** stable identifiers/versions and common generation, validation, public state, action and cleanup contracts. Shared metadata feeds separate registries: MV3 workers statically link pure models and invoke the selected one; browser views load on demand. Do not call dynamic imports or DOM preload helpers in a worker, or initialize every game in a content script.
-3. **Independent modules:** arithmetic, equations, easy puzzles and persistent timer each own their interaction, validation and module-specific state. Modules request completion through the common flow; they must not increment counts or grant tab access independently.
+3. **Independent modules:** maths, memory, route planning and logical ordering each own their interaction and validation. Only the shared coordinator increments counts and grants access.
 4. **Shared completion coordinator:** check that the attempt still belongs to the active tab/domain and is not already completed, then persist progression and temporary access consistently. Preserve duplicate-submission protection and the background writer. Stale results, navigation, storage failure and repeated callbacks must not create extra unlocks.
-5. **Versioned local state:** distinguish per-website progression, module/attempt state and temporary per-tab access sessions. Use stable identifiers and explicit schema versions so updates can migrate existing data. Preserve counts and configured websites; do not silently reset progression or active saved timer state. Product migration and timer rules are approved below; their technical mechanics still need design.
+5. **Versioned local state:** keep site counts, rotation history, saved attempts and temporary access separate. Preserve valid older memory boards and matches; retire incompatible unfinished challenges without granting access or counting success.
 6. **Lifecycle and performance:** stop module timers, animations, workers and listeners when disposed. Pause/save resumable tasks according to their rules. Heavy optional dependencies must not enter every page's initial challenge bundle; measure real Chrome behavior as well as unit tests.
 
 Adding a future challenge should normally mean a new module, a registry entry, relevant progression configuration and tests, rather than edits to every existing module. A module's own capabilities may require extra implementation, but the common unlock flow should remain reusable.
 
 Scope now is the foundation plus Levels 1–4 only. Camera recognition is excluded from the current roadmap and architecture implementation; no camera permission, recognition library, placeholder module or backend image pipeline is required. Any post-release proposal needs separate approval.
 
-Current interfaces, versioned schema, identities and completion flow are implemented and documented in `docs/superpowers/specs/2026-10-17-modular-challenge-foundation-design.md`; see its matching implementation plan and execution ledger. Level 1–3 generators and games are implemented; timer ownership/checkpoint mechanics still need slice-specific design. Follow the approved rules below.
+<a id="approved-level-rules-2026-10-17"></a>
 
 ## Challenge progression
-- Difficulty is tracked separately for each configured website.
-- Increment successful-unlock count after each success; choose challenge level using the separate progression policy. A level can span many unlocks.
-- Failed answers may be recorded separately but must not increase difficulty unless the owner explicitly changes this rule.
-- Use valid, solvable equations and puzzles with reliable module-specific checking; the waiting module completes only after its defined active duration.
-- Define a sensible maximum difficulty and avoid accidental impossible equations.
-- Prevent repeated submissions, page reloads, or navigation events from incrementing the unlock count more than once.
-- Current code advances arithmetic difficulty on each successful unlock and caps it at tier 10. This is distinct from the planned challenge levels.
-- Approved next level design: Level 1 arithmetic at counts 0–20; Level 2 linear equations/introductory calculus-style problems at 21–30; Level 3 easy interactive puzzles at 31–50; Level 4 a 1–8 minute waiting challenge at 51–70, paused while away and resumed from local state.
-## Approved level rules (2026-10-17)
 
-Implementation scope: policy, migration and Levels 1–3 run in development only. Level 4 remains planned. The original 2026-10-17 rules below incorporate the owner’s 2026-10-20 Level 3 clarification (M023), superseding the combined-sequence interpretation in M020–M022.
+Use the site’s successful count **before** the new attempt. Counts do not decay or reset overnight. All four types appear at every level; each new attempt draws one from a shuffled per-site bag. Avoid consecutive repeats across refills. Refresh restores the assigned task and progress. Another tab’s success does not change the active level.
 
-- Select the next challenge using the website's completed successful-unlock count before that challenge: Level 1 at 0–20, Level 2 at 21–30, Level 3 at 31–50, Level 4 at 51–70 and every count above 70. A new website therefore receives 21 Level 1 completions. Completion increments the count once; the next attempt uses the resulting count.
-- Level 1 stays approachable without being trivial: addition, subtraction and small multiplication, gradually introducing two-operation expressions and exact division toward count 20. Use manageable numbers and whole-number answers; wrong answers never increase difficulty.
-- Level 2 randomly selects simple linear equations or introductory derivative questions with integer answers and clear instructions.
-- At counts 31–50, randomly select one game per new attempt: tracking (three rounds with 3, 4 and 5 objects), attention (three stages), or memory (one six-pair board in a 3 × 4 grid). Completing only the selected game grants one per-tab unlock and increments the website count once. Never require all three games in one attempt. Refresh retains the selected game and saved progress; tracking replays an interrupted current round. No fixed two-minute duration is required. Each mini-game remains independently registered and versioned. Patterns are retired; saved eight-card memory boards remain playable, while new boards have twelve cards.
-- Wrong answers and refreshes retain the selected challenge. Generate a new challenge after successful completion; saved waiting challenges retain their remaining time.
-- Level 4 selects a random duration of 1–8 whole minutes once per new waiting challenge. Persist its duration and remaining time; returning or refreshing must not reroll it. Continue Level 4 after 70, cap waits at eight minutes, and keep incrementing the count.
-- Keep one saved waiting timer per website, counting down in only one tab at a time. Pause when its challenge tab is hidden, Chrome is minimized, the user leaves the website, or the tab/browser closes. Resume saved remaining time on return; time spent away does not count. Completion unlocks only the completing tab, not every tab for that website.
-- Migration preserves configured websites and successful-unlock counts, replacing legacy arithmetic-tier selection with the new ranges. For example, an existing count of 35 selects Level 3. Preserve temporary-session lifecycle guarantees separately from saved challenge state.
-- The common module contract, versioned attempt schema, migration and completion races are covered by the foundation. Timer ownership/handoff/checkpoint behavior still requires design and tests. Do not infer shared non-timer completion across tabs from the planned shared waiting timer.
+| Level | Prior unlocks | Practiced time target | Memory pairs |
+| --- | --- | --- | --- |
+| 1 | 0–20 | 15–30 s | 3 |
+| 2 | 21–30 | 30–45 s | 4 |
+| 3 | 31–50 | 45–75 s | 6 |
+| 4 | 51+ | 75–120 s | 8 |
+
+- **Maths:** solve a set of 2, 2, 3 or 4 questions respectively, mixing arithmetic, missing values, number constraints and operator selection. Retry the same question; completed answers stay completed.
+- **Memory:** match pairs on one board; matches stay visible. No time or move limit.
+- **Route planning:** visit every checkpoint and reach the exit without crossing walls or revisiting cells. Any valid route passes; moves can be undone. Level 4 adds ordered checkpoints.
+- **Logical ordering:** submit a full arrangement against visible clues. Incorrect submissions preserve the arrangement and identify violated clues.
+- **Timing:** these are pilot targets, never mandatory waits. Completion unlocks the current tab once. Level 4 continues indefinitely with active challenges; the old timer proposal is superseded.
+
+See the [approved design](../docs/superpowers/specs/2026-11-01-challenge-redesign-design.md) and [implementation checkpoint](../docs/superpowers/plans/2026-11-02-challenge-redesign.md). Earlier level-specific module rules remain historical context for the private preview.
 
 Motivational video
 The owner wants an anime motivational speech when the user tries to disable the extension, with the title:
@@ -195,7 +191,7 @@ MVP acceptance checklist
 Open decisions
 Keep this list current:
 - Product name and visual identity
-- Level 4 timer ownership/handoff/checkpoint mechanics; reuse existing module interfaces, state schema and migration flow
+- UI polish and human calibration: do the new tasks remain demanding after practice without frustrating intentional use?
 - Payment provider and pricing
 - Final premium feature list
 - Data retention and account-deletion policy

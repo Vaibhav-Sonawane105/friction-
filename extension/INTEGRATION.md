@@ -11,6 +11,8 @@ Render Free staging is deployed; see ../backend/DEPLOYMENT.md. The modular found
 
 For challenge development, run `npm run build:challenge-dev` and load `extension/dist-dev`. This separately loaded extension has its own local configuration/account state. The `challenge-dev` mode does not load `.env.production`; to test the hosted API, set `VITE_API_URL` in an ignored `.env.challenge-dev.local` deliberately and rebuild. Do not assume the production origin was copied or enable cloud sync just to transfer local test counts.
 
+For private daily-use testing, `npm run build:private-preview` produces `dist-preview`: Levels 1–3 with no developer controls and normal local counts. It explicitly uses the public `VITE_API_URL` from production configuration, falling back to the existing hosted staging origin, rather than a friend's localhost. Accounts/sync remain optional; no credentials or backend environment files are packaged. Hosted account acceptance remains separate from worker/build checks. Count 51+ deliberately remains unavailable pending Level 4. See `../docs/private-preview/START_HERE.txt`.
+
 ### Email confirmation redirect
 
 For hosted staging, Supabase **Authentication → URL Configuration** should use `https://progressive-friction-api.onrender.com/auth/confirmed` as Site URL and an allowed redirect. Use `http://localhost:5000/auth/confirmed` only when deliberately testing a running local API. Saved dashboard values and a fresh hosted confirmation-email flow still need verification. Signup uses Supabase's configured Site URL. The API serves an informational page there that directs users back to the extension to sign in; it does not consume tokens or assert that confirmation succeeded. Restart the backend after updating its source.

@@ -8,16 +8,16 @@
 
 ## 1. Quick State Snapshot
 
-* **Current Active Phase:** Levels 1–3 are implemented in the development build. At counts 31–50, each new attempt randomly selects one game: tracking (three rounds), attention (three stages), or memory (one six-pair board). Completing only that game unlocks the tab once. No combined sequence is required or planned (owner clarification, M023). Next: Level 4 persistent timer, then deferred UI polish and full-range acceptance before production activation. Default production retains legacy arithmetic.
-* **Current Status:** M023 synchronizes all six brain files with the current implementation and corrected Level 3 decision. M022 records tracking acceptance; M021 records memory acceptance; attention has owner feedback and automated verification. Latest observed implementation checks remain 267/267 extension tests across 30 files, lint, both builds, production exclusion scan and emitted-worker checks. No tests rerun for this documentation-only update. Backend remains at its unchanged earlier 80/80 checkpoint; hosted-account follow-ups remain as recorded.
+* **Current builds:** Development (`dist-dev`) runs four rotating challenge types at all four levels. The friends’ preview (`dist-preview`) retains the earlier Levels 1–3 and reports Level 4 unavailable; production (`dist`) retains legacy arithmetic.
+* **Verification:** Recorded development verification (M024): 298 extension tests across 34 files, including 16,000 seeded puzzle samples. Lint and all three build checks passed. The built development worker verified all 16 type/level combinations. No tests were rerun during this documentation update.
 * **Active Working Directory:** `extension/`
-* **Current Focus:** Design/implement Level 4 through the existing module/shared-completion architecture. Keep Level 3 single-game selection and saved progress, counts, per-tab access and offline behavior intact. No fixed two-minute duration is required; difficulty and visual polish can be tuned through testing. Read all six brain files before work. The owner handles staging, commits and pushes; future brain/progress updates still require explicit approval. M023 supersedes combined-sequence instructions in M020–M022 and aligns the current brain summaries.
+* **Next:** The owner will handle the GitHub checkpoint before UI polish. Difficulty calibration with volunteers and owner acceptance remain pending before updating friends’ preview; production activation is a separate decision. The owner handles staging, commits and pushes.
 
 ---
 
 ## 2. Project Architecture & Decisions Baseline
 
-* **Project Goal:** Progressive-friction website blocker where users restrict distracting websites (up to 2 on free tier) and must solve progressive math challenges to obtain temporary access per session.
+* **Project goal:** Require deliberate effort before access to a user-restricted site, increasing with that site’s lifetime successful unlocks.
 * **Blocking Mechanism:** **In-Page Overlay Modal (Content Script + Shadow DOM)**:
   * Eliminates full-page navigation redirect; the user remains on the restricted page (e.g. YouTube, Reddit).
   * Injected at `document_start` via dynamic module import loader.
@@ -33,10 +33,10 @@
 * **Extension Standard:** Chrome Manifest V3 (`storage`, `tabs`, `webNavigation`, `alarms`, `content_scripts`, `web_accessible_resources`), minimum Chrome 106.
 * **Tech Stack:**
   * Frontend: React 19, Vite, Tailwind CSS v4 (`@tailwindcss/vite`), custom SVG icons from `public/assets/logos/`.
-  * Testing: Latest tracking verification passed 267 extension tests across 30 files; unchanged backend checkpoint is 80 tests across 7 files. Development builds execute their emitted worker in a DOM-free sandbox rejecting dynamic imports, exercising arithmetic, both equation variants, tracking, six-pair memory and attention. Restored legacy lifecycle coverage remains included. Owner-reported Chrome results and assistant automated evidence remain distinct.
+  * **Testing:** See M024 for development, preview and production evidence. Backend’s previous 80-test checkpoint is unchanged.
   * Linting: ESLint (0 errors, 0 warnings).
   * Storage: Local-first (`chrome.storage.local` with `localStorage` dev fallback). Background-worker writes are serialized; progression and unlock sessions are saved together. A browser-lifetime identifier in `chrome.storage.session` expires temporary unlocks after browser restart/extension reload while preserving them through worker restarts. Chrome 106+ is required.
-* **Challenge architecture:** The development build separates policy, shared metadata, browser/worker registries, independent arithmetic/equations/tracking/memory/attention models and views, shared completion and versioned local attempts. Tracking saves completed rounds; memory saves flips/matches; attention saves stage selections. Each selected game’s final validated action requests common completion; only one randomly selected game is required per Level 3 attempt (M023). Memory version 1 supports both new twelve-card and saved eight-card boards. Browser views remain lazy; MV3 worker models are statically linked. A build-time alias excludes the development flow/controls from production. No new dependency, permission or cloud challenge data is required. See M017–M023 and foundation references in docs/superpowers/.
+* **Challenge architecture:** Per-site rotation and count-based levels feed independent, versioned models. The static worker registry validates actions; lazy browser views present public state. The shared coordinator saves access and progression once. Older registries remain for the separate preview.
 * **Account & Sync Baseline:** Email/password authentication through Express/Supabase, with token refresh. Account tokens are held in trusted session storage, never returned to popup callers, and expire from device storage when Chrome closes or the extension reloads. Sign-in and device sync consent must then be renewed. Only domain/enabled settings sync; local counts, difficulty, tab sessions, and browsing history do not upload. Automatic sync uses a separate network queue, minute polling alarms, revision-checked cloud writes, three-way merging, and explicit conflict choices. Development defaults to localhost:5000; the ignored `extension/.env.production` selects `https://progressive-friction-api.onrender.com` for production builds. Render wake-up uses safe health reads before credentials/writes, with a bounded wait and a separate network queue.
 
 ---
@@ -49,7 +49,7 @@
 
 ### Milestone Log
 
-Graph continuation: `[M016: Preparation Fixes & Approved Level Rules] → [M017: Modular Foundation, Development Controls & MV3 Worker Fix] → [M018: Documentation Synchronization & Owner Workflow] → [M019: Level 2 Equations & Owner Testing] → [M020: Level 3 Patterns, Revised Direction & Owner Testing] → [M021: Memory, Six-Pair Boards & Puzzle Visual Acceptance] → [M022: Tracking Replacement & Owner Acceptance] → [M023: Single-Game Level 3 Clarification & Brain Synchronization]`.
+Graph continuation: `[M016: Preparation Fixes & Approved Level Rules] → [M017: Modular Foundation, Development Controls & MV3 Worker Fix] → [M018: Documentation Synchronization & Owner Workflow] → [M019: Level 2 Equations & Owner Testing] → [M020: Level 3 Patterns, Revised Direction & Owner Testing] → [M021: Memory, Six-Pair Boards & Puzzle Visual Acceptance] → [M022: Tracking Replacement & Owner Acceptance] → [M023: Single-Game Level 3 Clarification & Brain Synchronization] → [M024: Private Preview Feedback & Development Challenge Redesign]`.
 
 Historical milestones record the code and decisions at their dates. M023 explicitly supersedes every combined-Level-3-sequence instruction in M020–M022; those entries are retained as history, not current work. M015 and the current project.md architecture supersede arithmetic-only implementation assumptions; historical descriptions are not the design to follow for new challenge work.
 
@@ -416,6 +416,14 @@ Historical milestones record the code and decisions at their dates. M023 explici
 * **Documentation synchronized:** instructions.md, project.md, phases.md, techstack.md, ui.md and this file now reflect implemented Levels 1–3, current game sizes/selection, recorded test evidence, production/development separation and Level 4 as the next implementation. README and extension testing/integration notes are aligned. Detailed browser acceptance remains distinct from owner feedback and automated results.
 * **Verification / next:** Documentation checked against count policy, catalog, coordinator selection and current game models. The prior observed 267-test/lint/both-build result remains recorded evidence; no code changes or new test run in this synchronization. Next: design/implement Level 4, then deferred visual polish, detailed full-range lifecycle/UI acceptance, production activation and temporary-control removal. Store release remains later work.
 
+#### `[M024]` Private preview feedback and development challenge redesign — 2026-11-02
+
+* **Feedback:** Friends found the maths patterns predictable; attention and tracking were easy to pass. Six-pair memory provided a useful reference point.
+* **Decision and delivery:** The owner approved lasting per-site progression at moderate effort. Development rotates maths, memory, route planning and logical ordering at counts 0–20, 21–30, 31–50 and 51+. The waiting-only level was dropped. Refresh preserves the selected puzzle; failed submissions preserve completed work. The prior private preview and default production retain their respective behaviours.
+* **Technical evidence:** 298 extension tests across 34 files, including 1,000 seeded samples per type/level. Lint and all three builds passed. The emitted development worker completed and restored all 16 combinations with duplicate-completion protection. Review found malformed stored route/ordering boards that could pass; validation and regression tests were added.
+* **Chrome evidence:** Chrome 156 checks exercised injected and standalone challenges, two tabs, pointer and keyboard input, offline operation, worker restart, save failure and Retry, Leave, same-site refresh and full browser restart. The standalone document check was repaired and retested. This establishes technical behaviour, not human difficulty or broad visual acceptance.
+* **Owner handoff:** Owner wants the current work checkpointed before UI polish; the owner handles Git. Human pilot, tuning, preview promotion and production release remain pending. [Design](../docs/superpowers/specs/2026-11-01-challenge-redesign-design.md) · [Implementation checkpoint](../docs/superpowers/plans/2026-11-02-challenge-redesign.md) · [Pilot worksheet](../docs/private-preview/REDESIGN-PILOT.md).
+
 ## 4. Current Work in Progress
 
 ### Phase 1 Checklist (Completed & Verified)
@@ -446,7 +454,7 @@ Historical milestones record the code and decisions at their dates. M023 explici
 ### Modular Foundation → Phase 1 Enhancement — Progressive Challenge Levels (Active)
 - [x] Implement the foundation and arithmetic adapter in the separate development build, with approved spec/plan and automated migration/completion coverage (M017).
 - [x] Verify static MV3 worker loading, lazy browser views and exactly-once completion automatically; owner confirms development controls and blocking work. Detailed real-Chrome checklist remains separate.
-- [x] Approve count boundaries, migration policy, starter games, timer visibility/ownership policy, duration selection and post-70 behavior (M016). Foundation state/concurrency is implemented; timer-specific mechanics remain pending.
+- [x] Approve count boundaries and session policy (M016); M024 keeps these boundaries and supersedes the waiting-level proposal.
 - [x] Implement and automatically verify Level 1 arithmetic selection in the development flow.
 - [x] Implement Level 2 linear equations and numeric derivatives with automated verification and owner-reported testing (M019).
 - [x] Implement/accept standalone Level 3 patterns (M020), subsequently retired and replaced by accepted tracking (M022).
@@ -456,9 +464,9 @@ Historical milestones record the code and decisions at their dates. M023 explici
 - [x] Replace patterns with three-round tracking, remove obsolete implementation, preserve counts/access and obtain owner acceptance; defer visual polish (M022).
 - [x] Confirm one randomly selected game per attempt throughout counts 31–50; no combined sequence or fixed two-minute requirement (M023).
 - [x] Implement and automatically verify the Level 3 games; retain detailed browser/UI acceptance as a separate release check.
-- [ ] Implement and verify Level 4 local persistent pause/resume timer.
-- [ ] Verify boundary transitions, offline operation, navigation/restarts and duplicate-completion protection. Detailed tasks remain in phases.md.
-- [ ] Polish and verify the shared modular UI after all levels are implemented, before activating it in production (owner-approved deferral).
+- [x] Deliver and verify the active four-level redesign in development (M024).
+- [ ] Polish challenge screens after the owner's GitHub checkpoint.
+- [ ] Collect repeated-use pilot results, tune difficulty, and obtain owner acceptance before updating the private preview.
 - [ ] Activate the complete modular production flow and remove temporary controls only after all levels and UI pass acceptance.
 
 ### Completed Groundwork & Remaining Release Checks
@@ -478,4 +486,4 @@ Historical milestones record the code and decisions at their dates. M023 explici
 - [ ] Prepare the Chrome Web Store release only after intended product features, remaining acceptance checks and owner release approval; not the next active task.
 - [x] Audit and synchronize stale brain/project Markdown with owner approval (M014); keep future changes permission-gated.
 
-Historical Phase 1/2 completion labels above record earlier milestones; they do not establish current end-to-end release readiness. Current status and remaining work are defined by this snapshot, M010–M023, and the pre-release checklist.
+Historical Phase 1/2 milestones record earlier work. See the snapshot, M024 and the outstanding release checks for current status.

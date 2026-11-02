@@ -7,7 +7,7 @@ const OVERRIDES = 'pf_dev_challenge_overrides';
 const readOverrides = async () => {
   const overrides = (await chrome.storage.session.get(OVERRIDES))[OVERRIDES] || {};
   let changed = false;
-  for (const [domain, override] of Object.entries(overrides)) if (override?.moduleId === 'patterns') { delete overrides[domain]; changed = true; }
+  for (const [domain, override] of Object.entries(overrides)) if (override?.moduleId === 'patterns' || (typeof __PF_REDESIGN__ !== 'undefined' && __PF_REDESIGN__ && !selectModuleIds(1).includes(override?.moduleId))) { delete overrides[domain]; changed = true; }
   if (changed) await chrome.storage.session.set({ [OVERRIDES]: overrides });
   return overrides;
 };

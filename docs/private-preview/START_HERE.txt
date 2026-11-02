@@ -1,0 +1,42 @@
+PROGRESSIVE FRICTION — PRIVATE PREVIEW
+
+Thanks for trying this early build. Use it normally for a few days and tell the person who shared it what worked and what felt annoying. This is a private feedback build, not a Chrome Web Store release. You need desktop Chrome; mobile Chrome is not supported by this package.
+
+INSTALL
+1. Extract this entire ZIP to a permanent folder. Keep the extracted folder; Chrome loads the extension from there.
+2. In Chrome, open chrome://extensions.
+3. Turn on Developer mode at the top right.
+4. Click Load unpacked. Select the "extension" folder inside the extracted package (the folder containing manifest.json).
+5. Open Chrome's extensions menu (puzzle-piece icon). Open "Progressive Friction — Private Preview"; optionally pin it.
+6. Add one or two website domains you want to restrict, such as youtube.com. Refresh any tabs already open on those websites.
+If you already use another copy of Progressive Friction, disable that copy while testing this one.
+
+USE IT NORMALLY
+Choose websites yourself. No account is needed for blocking or challenges. Solve a challenge to unlock that tab. Refreshing or browsing within the same domain keeps access; leaving that domain or closing the tab ends it. Other tabs unlock independently.
+
+Each website has a separate successful-unlock count:
+- Counts 0–20: arithmetic.
+- Counts 21–30: a linear equation or numeric derivative question.
+- Counts 31–50: ONE random game per attempt. Tracking has three rounds, attention has three stages, memory has one six-pair board. You do not play all three games to unlock.
+- Counts 51 and above: "Level 4 unavailable". The waiting challenge has not been built yet. If you reach this point, report it and disable/remove that website restriction to continue browsing; this preview does not provide further challenges for it.
+Progress grows through successful unlocks. There are no level jumps, count edits or developer controls in this build. It is fine if you do not reach every level during testing.
+
+KNOWN LIMITS
+The visuals are still being refined. This extension places an in-page overlay over selected websites; it does not prevent those websites' network requests. It is intended to add friction, not prevent all bypasses. It has no fixed two-minute challenge requirement.
+
+ACCOUNTS AND PRIVACY
+You can stay signed out. Blocking, counts and puzzle progress work locally and offline. Optional account/cloud sync uses the hosted Progressive Friction staging service; first use can take around a minute while it wakes up. Signing in alone does not upload your website list. Enabling automatic sync shares domain/enabled settings; unlock counts, puzzle state and browsing history are not uploaded by this extension. Account sessions end when Chrome closes or the extension reloads.
+Chrome requests permission to read/change website content because the extension must insert the blocking overlay on websites you choose. Core operation does not need you to send browsing data or screenshots for feedback.
+
+IF SOMETHING GOES WRONG
+- For an old tab that does not block, refresh it after adding its domain.
+- After an update, open chrome://extensions, click Reload on this extension, then refresh restricted tabs.
+- If blocking gets in your way, disable/remove the website in the popup, or disable the extension at chrome://extensions.
+- Use FEEDBACK.txt to describe the problem. Share screenshots only if you are comfortable; crop private tabs, account details and personal page content.
+
+UPDATES AND REMOVAL
+This ZIP does not update automatically. Ask the person who shared it for newer builds. Keep the same extracted extension folder for updates and reload it after replacing its contents; uninstalling/reinstalling or loading a different path can lose local settings/counts. Back up the old folder before replacing it.
+To stop testing, disable the extension at chrome://extensions. To uninstall, click Remove there. Keep a note of feedback before uninstalling; local data may be removed.
+
+Official Chrome installation instructions:
+https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked

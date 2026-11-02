@@ -19,7 +19,7 @@ export function createChallengeCoordinator({ readSnapshot, writeSnapshot, regist
   async function present(attempt, extra = {}) {
     const descriptor = registry.getModuleDescriptor(attempt.moduleId, attempt.moduleVersion);
     const model = await descriptor.loadModel();
-    model.validateState(attempt.state);
+    model.validateState(attempt.state,attempt.level);
     return { attemptId: attempt.id, revision: attempt.revision, moduleId: attempt.moduleId, moduleVersion: attempt.moduleVersion,
       level: attempt.level, state: model.toPublicState(attempt.state), completed: attempt.status === 'completed', ...extra };
   }
@@ -29,6 +29,8 @@ export function createChallengeCoordinator({ readSnapshot, writeSnapshot, regist
       const { entry, generation } = binding(snapshot, context);
       const existing = Object.values(snapshot.challengeState.attempts).find(attempt => matches(attempt, context, generation));
       if (existing) {
+        if (existing.status === 'completed' && snapshot.sessions[String(context.tabId)]?.domain === context.domain && snapshot.challengeState.receipts[existing.id])
+          return snapshot.challengeState.receipts[existing.id].result;
         if (existing.status !== 'completed' || snapshot.sessions[String(context.tabId)]?.domain === context.domain) return present(existing);
         delete snapshot.challengeState.attempts[existing.id]; delete snapshot.challengeState.receipts[existing.id];
       }
@@ -37,21 +39,25 @@ export function createChallengeCoordinator({ readSnapshot, writeSnapshot, regist
       const level = getLevel(entry.successfulUnlockCount);
       const choices = registry.selectModuleIds(level);
       if (!choices.length) throw new Error(`Level ${level} is unavailable in this development build. Its module has not been implemented yet.`);
-      const value = random();
+      const identity = snapshot.challengeState.domains[context.domain];
+      const history = identity.rotation || {};
+      const reservation = !options.moduleId && registry.reserveType?.({history,choices,random});
+      const value = reservation || options.moduleId ? 0 : random();
       if (!Number.isFinite(value) || value < 0 || value >= 1) throw new Error('Invalid random source.');
-      const moduleId = options.moduleId || choices[Math.floor(value * choices.length)];
+      const moduleId = options.moduleId || reservation?.moduleId || choices[Math.floor(value * choices.length)];
       if (!choices.includes(moduleId)) throw new Error('The selected challenge does not belong to this level.');
       const descriptor = registry.getModuleDescriptor(moduleId);
       const model = await descriptor.loadModel();
       if (options.variant !== undefined && !descriptor.variants?.includes(options.variant)) throw new Error('The selected challenge variant is unavailable.');
-      const state = model.createState({ count: entry.successfulUnlockCount, random, variant: options.variant });
-      model.validateState(state);
+      const state = model.createState({ count: entry.successfulUnlockCount, random, variant: options.variant, history });
+      model.validateState(state,level);
       const attempt = { id: uuid(), domain: context.domain, generation, epoch: snapshot.epoch, tabId: context.tabId,
         level, count: entry.successfulUnlockCount, moduleId, moduleVersion: descriptor.version, persistence: descriptor.persistence,
         revision: 0, status: 'active', state,
         ...(options.developmentTest ? { developmentTest: true, overrideId: options.overrideId } : {}),
       };
       snapshot.challengeState.attempts[attempt.id] = attempt;
+      if (reservation) identity.rotation = registry.recordPuzzle(reservation.nextHistory,moduleId,state);
       await assertContext(context);
       await writeSnapshot(snapshot);
       return present(attempt);
@@ -72,8 +78,9 @@ export function createChallengeCoordinator({ readSnapshot, writeSnapshot, regist
       if (request.revision !== attempt.revision) return present(attempt, { reconciled: true, feedback: 'Challenge state refreshed. Please try again.' });
       const descriptor = registry.getModuleDescriptor(attempt.moduleId, attempt.moduleVersion);
       const model = await descriptor.loadModel();
+      model.validateState(attempt.state,attempt.level);
       const result = model.reduceAction({ state: attempt.state, action: request.action, now: now() });
-      model.validateState(result.state);
+      model.validateState(result.state,attempt.level);
       if (result.completed) {
         if (entry.successfulUnlockCount === Number.MAX_SAFE_INTEGER) throw new Error('The unlock count cannot be increased safely. Saved data was preserved.');
         entry.successfulUnlockCount += 1;

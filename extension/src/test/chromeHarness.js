@@ -40,10 +40,11 @@ export function createChromeHarness() {
   harness.popup = { id: 'extension', url: 'chrome-extension://extension/index.html' };
   harness.send = (message, sender = harness.sender()) => new Promise(resolve => harness.listeners.message(message, sender, resolve));
   harness.add = domain => harness.send({ type: 'MUTATE_STORAGE', operation: 'addBlockedDomain', args: [domain] }, harness.popup);
-  harness.boot = async (development = true) => {
+  harness.boot = async (development = true, controls = development) => {
     vi.resetModules(); harness.listeners = {};
     vi.stubGlobal('chrome', harness.chrome);
     vi.stubGlobal('__PF_CHALLENGE_DEV__', development);
+    vi.stubGlobal('__PF_DEV_CONTROLS__', controls);
     vi.stubGlobal('fetch', () => Promise.reject(new Error('Offline')));
     return import('../background');
   };

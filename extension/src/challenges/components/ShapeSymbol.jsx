@@ -1,4 +1,6 @@
 const artwork = {
+  Moon: { fill: '#818CF8', stroke: '#4338CA', backdrop: '#E0E7FF', shape: <path d="M33 6a18 18 0 1 0 8 28A18 18 0 0 1 33 6Z" /> },
+  Bolt: { fill: '#FB923C', stroke: '#C2410C', backdrop: '#FFEDD5', shape: <path d="M28 3 8 27h13l-2 18 22-28H28Z" /> },
   Circle: { fill: '#FB7185', stroke: '#BE123C', backdrop: '#FFE4E6', shape: <circle cx="24" cy="24" r="15" /> },
   Triangle: { fill: '#2DD4BF', stroke: '#0F766E', backdrop: '#CCFBF1', shape: <path d="M24 7 43 40H5Z" /> },
   Square: { fill: '#60A5FA', stroke: '#1D4ED8', backdrop: '#DBEAFE', shape: <rect x="9" y="9" width="30" height="30" rx="5" /> },

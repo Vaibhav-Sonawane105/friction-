@@ -1,3 +1,4 @@
+import { isCurrentDocument } from './services/currentDocument';
 import { evaluateNavigation } from './services/blocker';
 import {
   getBlockedDomains, getUnlockSessions, clearTabSession,
@@ -86,7 +87,7 @@ export async function handleNavigation(tabId, url) {
 
 export async function handleMessage(message, sender) {
   if (sender.id !== chrome.runtime.id) throw new Error('Untrusted message sender.');
-  if (typeof __PF_CHALLENGE_DEV__ !== 'undefined' && __PF_CHALLENGE_DEV__ && message?.type === 'PF_DEV_CHALLENGE_CONTROL') {
+  if (typeof __PF_DEV_CONTROLS__ !== 'undefined' && __PF_DEV_CONTROLS__ && message?.type === 'PF_DEV_CHALLENGE_CONTROL') {
     const { handleChallengeControl } = challengeRuntime();
     const result = await handleChallengeControl(message, sender);
     if (message.operation !== 'INSPECT') {
@@ -128,8 +129,7 @@ export async function handleMessage(message, sender) {
     if (message.type === 'COMPLETE_UNLOCK') throw new Error('Submit a validated challenge action instead.');
     if (message.type === 'GET_CHALLENGE' || message.type === 'CHALLENGE_ACTION') {
       if (!sender.documentId) throw new Error('A current document is required. Reload the page.');
-      const frame = await chrome.webNavigation.getFrame({ tabId, frameId: 0 });
-      if (frame?.documentId !== sender.documentId) throw new Error('This page has changed. Reload to try again.');
+      if (!await isCurrentDocument(tabId,sender.documentId,tab.url)) throw new Error('This page has changed. Reload to try again.');
       if (standalone && tab.url !== sender.url) throw new Error('The blocked page has changed.');
       const target = standalone ? new URL(sender.url).searchParams.get('target') : tab.url;
       const status = await getStatusForTab(tabId, target);
