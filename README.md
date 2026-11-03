@@ -1,93 +1,170 @@
-# Progressive Friction — Website Blocker
+<p align="center">
+  <img src="extension/public/assets/app%20logo/icon-128.png" alt="Progressive Friction logo" width="80" />
+</p>
 
-**Development build update (2 November 2026):** `dist-dev` now rotates maths, memory, route planning and logical ordering at **all four levels**. Production and the friends’ private preview still use their previous challenge flows. References below to the earlier Level 1–3 development build describe that earlier milestone. See [testing the redesigned challenges](extension/TESTING.md#testing-the-redesigned-challenges) and the [pilot worksheet](docs/private-preview/REDESIGN-PILOT.md).
+# Progressive Friction
 
-A Chrome extension designed to interrupt mindless browsing habits by introducing intentional friction before accessing self-restricted websites. Production currently uses legacy arithmetic; a separate development build implements the modular foundation, Levels 1–2 and standalone Level 3 tracking, memory and attention modules.
+**A Chrome extension that puts a deliberate pause between an impulse and a distracting website.**
 
-## Current scope and next phase
+Progressive Friction interrupts mindless browsing by asking you to complete a challenge before accessing websites you choose to restrict. Each website has its own progression: the more often you unlock it, the more effort its challenges require, up to a capped level.
 
-Implemented: per-tab in-page blocking, local counts and ten arithmetic difficulty tiers, optional email/password accounts, and opt-in automatic website-list sync. Counts, difficulty and sessions remain device-local. The API is hosted on Render Free at https://progressive-friction-api.onrender.com with Supabase authentication/database services.
+Built with **React, JavaScript, Chrome Manifest V3, Node.js, Express, and Supabase**. Core blocking and challenges work locally without an account or a running backend.
 
-The development build includes **Level 2: simple linear equations and introductory derivatives**, **six-pair memory matching** in a 3 × 4 grid, **attention matching**, and a new **object-tracking game** replacing patterns. Tracking highlights one object, shuffles identical objects, then asks for its final position across three rounds with 3, 4 and 5 objects. Completed rounds persist; interrupted rounds replay. A step-by-step alternative supports reduced motion. The owner accepted memory and its pastel-card/no-caption refinements (M021), and tracking with further visual polish deferred (M022). At counts 31–50, randomly select one game per attempt: three tracking rounds, three attention stages, or one six-pair memory board. Completing that selected game unlocks once; no combined sequence or fixed two-minute duration is required (M023). The Level 4 timer is next, followed by deferred UI polish and full-range production activation. Subscriptions, dashboard/analytics and signature features remain later work; the product is not ready for the Chrome Web Store.
+> **Status:** Early preview, installed manually in desktop Chrome. The redesigned preview includes four challenge types across four levels. A Chrome Web Store release is planned; difficulty tuning and release acceptance are ongoing.
 
-Development update: run `npm run build:challenge-dev` from `extension/` and load `extension/dist-dev`; the popup supports count edits, level jumps, module/question-type selection and website-specific resets. Levels 1–2 and standalone Level 3 tracking/memory/attention are available; Level 4 reports unavailable. For repeatable puzzle testing select **tracking**, **memory** or **attention**, then prepare it explicitly. Ordinary Level 3 selection randomly chooses one of these modules per new attempt; finishing that game alone unlocks. Default `npm run build` preserves production arithmetic and excludes testing controls. See [development testing instructions](extension/TESTING.md#modular-foundation-development-build).
+## How it works
 
-See [roadmap](brain/phases.md), [execution evidence](brain/progress.md), [account setup](extension/INTEGRATION.md), [browser testing](extension/TESTING.md), [deployment](backend/DEPLOYMENT.md) and [database migrations](backend/supabase/README.md).
+1. Add a website you want to restrict, such as `youtube.com`.
+2. Visiting it displays an in-page challenge overlay.
+3. Complete the challenge to unlock that tab, or choose **Leave**.
+4. Browse within that domain during the active tab session, including refreshes.
+5. Leaving the domain or closing the tab ends its unlock.
 
-## Private daily-use feedback build
+Each successful unlock advances that website's progression once. Tabs unlock independently. Closing Chrome or reloading the extension ends temporary access while keeping saved website counts.
 
-Run `npm run build:private-preview` from `extension/` to create `extension/dist-preview`. This explicit private build includes Levels 1–3 with normal progression, no developer panel, no developer mutation handlers and no forced-game overrides. Production `dist` keeps its existing legacy flow; `dist-dev` keeps its testing controls.
+## Features
 
-Friends start at count zero per website. At counts 31–50 one random game is sufficient to unlock. Per owner choice, **count 51+ still reports Level 4 unavailable**; testers can disable/remove that website restriction when they reach the limit. No fallback or count reset was added. The build uses the production-configured public API origin (the hosted staging origin by default); accounts/sync are optional and core challenges work locally without sign-in.
+- **Choose your restrictions:** Add, disable, or remove domains from the popup. The current build supports up to two configured websites.
+- **Progressive difficulty:** Each website tracks successful unlocks independently. Incorrect answers and refreshes do not increase its count.
+- **Four rotating challenges:** Maths, memory, route planning, and logical ordering appear at every level in the redesigned preview.
+- **Resumable puzzles:** Refreshing restores the assigned puzzle and saved progress. Incorrect submissions preserve completed work.
+- **Local operation:** Blocking, challenges, and progression continue offline and during backend outages.
+- **Optional accounts and sync:** Email/password authentication and explicitly enabled cloud sync for website domains and enabled settings.
+- **Distinct interface:** Strong borders, bright accents, and dedicated interactions for each challenge.
 
-Share only the built extension and [installation guide](docs/private-preview/START_HERE.txt) / [feedback questions](docs/private-preview/FEEDBACK.txt), not the repository or environment files. The install is manual via Chrome Developer mode and Load unpacked; ZIP builds do not update automatically. The preview build verifies every emitted JavaScript chunk excludes developer controls, then executes the actual worker in the MV3 sandbox for selection/restoration, count increments, rejected developer operations and the Level 4 limit. This is automated evidence, not independent Chrome acceptance. The latest private-preview check passed 269 extension tests across 31 files; no backend changes were needed.
+### Challenges and progression
 
-## Architecture for the next modules
+| Challenge | What you do |
+| --- | --- |
+| Maths | Solve a short set of arithmetic, missing-value, number-constraint, or operator-selection questions. |
+| Memory | Find all matching pairs, without a time or move limit. |
+| Route planning | Visit checkpoints and reach the exit without crossing walls or revisiting cells. |
+| Logical ordering | Arrange objects to satisfy visible clues. |
 
-Current development refinement: tracking replaces the numeric/shape pattern module; its old implementation and tests were removed. Unfinished saved pattern attempts and stale developer overrides are retired while counts and valid access remain intact. Attention grids vary shape and colour independently, include near matches, and add filled/outline matching in stage three. Actual solving time still needs owner testing. Tracking adds a moving task, but does not guarantee resistance to AI or automation.
+The level uses the website's successful-unlock count **before the current attempt**:
 
-Extend the implemented policy, shared metadata, registries, module contract, exactly-once coordinator and versioned local state. MV3 workers statically import pure models and invoke only the selected one; browser views load on demand. New modules must reuse the shared completion path. Full requirements: [modular challenge architecture](brain/project.md#required-modular-challenge-architecture).
+| Level | Prior successful unlocks | Memory pairs |
+| --- | --- | --- |
+| 1 | 0–20 | 3 |
+| 2 | 21–30 | 4 |
+| 3 | 31–50 | 6 |
+| 4 | 51+ | 8 |
 
-Owner-approved [level rules](brain/project.md#approved-level-rules-2026-10-17) define boundaries, migration, retention and timer behavior. The latest owner clarification in progress.md M023 confirms one random Level 3 game per attempt at counts 31–50, superseding earlier combined-sequence notes. All six brain files are synchronized with this decision. Policy/migration, Levels 1–2 and standalone tracking/memory/attention are implemented in development; remaining modules are planned. Camera recognition is excluded. No new dependency or permission is required.
+All four types rotate at every level. Completing one assigned puzzle unlocks the tab once; there is no mandatory waiting period. Counts do not reset overnight, and challenges continue at Level 4.
 
-## Project Structure
+## Installation
 
-```text
-├── brain/                  # Project specifications, architecture, and planning docs
-│   ├── instructions.md     # AI assistant guidelines and core constraints
-│   ├── project.md          # Product vision, requirements, and user flows
-│   ├── ui.md               # UI design system, UX specifications, and tokens
-│   ├── techstack.md        # Technical stack and architectural choices
-│   ├── phases.md           # Implementation milestones and task breakdown
-│   └── progress.md         # Chronological execution log & context graph
-│
-├── extension/              # Chrome Extension (React + Vite)
-│   ├── public/             # Static extension assets
-│   │   └── manifest.json   # Chrome Extension Manifest V3 configuration
-│   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── pages/          # Extension views (Popup, Blocked, Options, etc.)
-│   │   ├── services/       # Chrome APIs, storage, and background services
-│   │   ├── utils/          # Math generator, helpers, and formatters
-│   │   ├── App.jsx         # Root React component
-│   │   ├── main.jsx        # Extension entry point
-│   │   └── index.css       # Global styles and design tokens
-│   ├── package.json        # Extension dependencies and build scripts
-│   └── vite.config.js      # Vite build configuration
-│
-├── backend/                # Express API, Supabase migrations, SQL checks and tests
-├── render.yaml             # Render Free API configuration; manual deploys
-├── .gitignore
-└── README.md
+### Build and load the preview
+
+You need **desktop Google Chrome**, **Node.js 22.12+**, and **npm**. Git is needed for the clone command; alternatively, download and extract the repository ZIP from GitHub.
+
+```bash
+git clone https://github.com/Vaibhav-Sonawane105/friction-.git
+cd friction-/extension
+npm ci
+npm run build:private-preview
 ```
 
-## Getting Started
+1. Open `chrome://extensions` in Chrome.
+2. Turn on **Developer mode** in the top-right corner.
+3. Click **Load unpacked**.
+4. Select **`extension/dist-preview`** inside your local repository: the generated folder containing `manifest.json`.
+5. Open **Progressive Friction — Private Preview** from Chrome's extensions menu and optionally pin it.
+6. Add a domain, then visit it to try a challenge. Refresh any tabs already open before adding the restriction.
 
-### Development
-1. Navigate to the extension folder:
-   ```bash
-   cd extension
+No account, API key, or backend setup is needed to try the core experience. Optional account features use the preview's hosted staging API.
+
+Keep the built folder on your computer: Chrome loads the extension from that location. After updating the source, rebuild, click **Reload** on the extension card, and refresh restricted tabs. Unpacked extensions do not update automatically. Disable other installed copies while trying this build.
+
+### Available builds
+
+Run these commands from `extension/`:
+
+| Command | Output folder | Purpose |
+| --- | --- | --- |
+| `npm run build:private-preview` | `dist-preview` | Redesigned challenges at all four levels, normal progression, and no developer controls. Recommended for trying the project. |
+| `npm run build:challenge-dev` | `dist-dev` | Redesigned challenges with developer controls for repeatable testing. |
+| `npm run build` | `dist` | Existing default build with legacy arithmetic challenges. |
+
+Load the corresponding output folder through **Load unpacked**. `npm run dev` starts a Vite UI preview; use an installed extension to exercise Chrome APIs and account controls.
+
+## Privacy and permissions
+
+Website settings, unlock counts, puzzle progress, and temporary access are handled locally. Signing in alone does not upload your website list. Enabling automatic sync shares only **domains and their enabled settings**. Counts, puzzle state, full URLs, and browsing history are not uploaded by the extension.
+
+Account tokens are held in Chrome session storage and cleared when Chrome closes or the extension reloads. Passwords are not stored by the extension.
+
+Website access lets the extension insert its challenge overlay. The `storage`, `tabs`, `webNavigation`, and `alarms` permissions support saved state, tab lifecycle, navigation handling, and sync scheduling.
+
+The restriction is an **in-page overlay**: it does not stop the website's network requests or prevent every bypass. You can disable/remove a domain in the popup or disable/uninstall the extension through Chrome's normal controls.
+
+## Technical overview
+
+- **Extension:** React 19, Vite, Tailwind CSS, and Chrome Manifest V3. Content scripts display the challenge interface inside an isolated Shadow DOM.
+- **Challenge engine:** Independent puzzle models, shared progression policy, and separate worker/browser registries. The background service worker validates actions and coordinates completion to prevent duplicate count increments.
+- **State:** Versioned local attempts and per-tab access are separate from optional account sync. Worker models use static imports; browser challenge views load on demand.
+- **Backend:** Express API with Supabase Auth and PostgreSQL, Row Level Security, and revision-based website-list synchronization.
+- **Verification:** Vitest covers puzzle generation, progression, state migration, unlock lifecycle, authentication, and sync. Build scripts check emitted MV3 workers and developer-control exclusion where required.
+
+```text
+extension/
+  public/           Manifest and static assets
+  src/challenges/   Puzzle models, views, registries, and progression
+  src/components/   Popup and challenge interface components
+  src/services/     Storage, blocking, accounts, and sync
+  scripts/          Build verification
+backend/
+  src/              Express API, routes, and authentication middleware
+  supabase/         Database migrations and SQL checks
+  tests/            API regression tests
+docs/               Preview guides, design notes, and implementation plans
+brain/              Product specifications and development history
+```
+
+## Local development
+
+### Optional backend setup
+
+The backend is needed when developing or self-hosting account and sync features.
+
+1. Create a Supabase project and apply migrations in filename order using the [database setup guide](backend/supabase/README.md).
+2. From `backend/`, run `npm ci`.
+3. Copy `backend/.env.example` to `backend/.env` and configure your Supabase URL and anon/publishable key.
+4. Run `npm run dev` from `backend/`. The default API port is `5000`.
+5. For the challenge development build, create `extension/.env.challenge-dev.local` with:
+
+   ```dotenv
+   VITE_API_URL=http://localhost:5000
    ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Run dev server:
-   ```bash
-   npm run dev
-   ```
-4. Build extension:
-   ```bash
-   npm run build
-   ```
-5. Load the unpacked extension in Chrome via `chrome://extensions` (pointing to `extension/dist`). Reload it and refresh existing tabs after rebuilding.
 
-### Backend and API selection
+6. Run `npm run build:challenge-dev` from `extension/` and load `extension/dist-dev` in Chrome.
 
-From `backend/`, run `npm ci`, configure an ignored `.env` using `.env.example`, and run `npm start` (default port 5000). Apply migrations in filename order as described in the database guide. Do not commit environment secrets.
+The private-preview build uses the production-mode public API URL, falling back to hosted staging. To point it at your own API, set `VITE_API_URL` in an ignored `extension/.env.production.local` and rebuild. Vite embeds the URL at build time. Keep credentials out of extension files and do not commit environment files.
 
-For local extension development, the API defaults to localhost:5000. The current ignored `extension/.env.production` selects the Render HTTPS origin for production builds. Vite embeds the URL during the build; mode-specific environment values override generic `.env.local` values. A fresh checkout needs its own `.env.production` to use hosted staging. Account controls require the installed Chrome extension, not the Vite browser preview.
+See [account integration](extension/INTEGRATION.md) and [backend deployment](backend/DEPLOYMENT.md) for detailed configuration. Hosted staging may take time to wake after inactivity; local blocking continues independently. Some detailed development notes describe earlier milestones; use the build table above for the current preview behavior.
 
-### Verification
+### Verification commands
 
-Run `npm test`, `npm run lint`, `npm run build` and `npm run build:challenge-dev` from `extension/`, and `npm test` from `backend/`. Tracking replacement verification passed 267 extension tests across 30 files, lint and both builds; the backend's unchanged recorded checkpoint remains 80 tests. Production scans for control leakage; development exercises arithmetic, both Level 2 types, three-round tracking, memory and attention without DOM APIs/dynamic imports. See extension/TESTING.md for tracking Chrome acceptance and progress.md for approved historical milestones.
+From `extension/`:
+
+```bash
+npm test
+npm run lint
+npm run build
+npm run build:challenge-dev
+npm run build:private-preview
+```
+
+From `backend/`:
+
+```bash
+npm test
+```
+
+Browser and multi-device checks are documented in the [testing guide](extension/TESTING.md). Automated tests do not replace real Chrome testing or repeated-use difficulty feedback.
+
+## Project direction
+
+The current focus is refining challenge difficulty, accessibility, and the preview experience before a Chrome Web Store release. Subscriptions, a companion dashboard, and analytics remain future work.
+
+See the [roadmap](brain/phases.md), [preview instructions](docs/private-preview/START_HERE.txt), and [challenge pilot worksheet](docs/private-preview/REDESIGN-PILOT.md) for more detail.

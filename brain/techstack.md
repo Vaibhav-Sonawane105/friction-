@@ -2,7 +2,7 @@
 
 ## 1. Project Overview
 
-Development (`dist-dev`) runs four rotating challenge types at all four levels. The friends’ preview (`dist-preview`) retains the earlier Levels 1–3 and reports Level 4 unavailable; production (`dist`) retains legacy arithmetic. See progress.md M024 for the implementation and verification checkpoint.
+Development (`dist-dev`) and the friends’ preview (`dist-preview`) run maths, memory, route planning and logical ordering at all four levels. Only development includes testing controls; preview uses normal progression. Production (`dist`) retains legacy arithmetic. See progress.md M024 for the implementation and verification checkpoint.
 
 The Chrome extension requires deliberate effort before access to chosen sites and scales that effort by the site's successful unlock count.
 
@@ -22,7 +22,7 @@ The application will be developed in phases, beginning with a fully functional l
 
 See [project.md](project.md#required-modular-challenge-architecture) for the authoritative requirement. The React/JavaScript implementation must separate count-to-level policy, a stable module registry, on-demand challenge components/validators, one shared completion coordinator and versioned local state. Keep the background writer responsible for progression and access persistence; modules never mutate those records directly. The existing arithmetic generator/UI are the pre-migration baseline, not the architecture to copy for each new game.
 
-Development selects redesignCatalog.js, redesignRegistry.js (lazy browser views) and redesignWorker.js (statically imported models) through build-time aliases. The previous registries remain for the friends’ preview. services/challenges.js owns completion; challengeState.js migrates local attempts and retains compatible memory boards. No new dependency, permission or backend is required.
+Development and preview select redesignCatalog.js, redesignRegistry.js (lazy browser views) and redesignWorker.js (statically imported models) through build-time aliases. Preview uses the redesigned registries without developer controls. services/challenges.js owns completion; challengeState.js migrates local attempts and retains compatible memory boards. No new dependency, permission or backend is required.
 
 ## 2. Frontend Technologies
 
@@ -241,7 +241,7 @@ The build must support:
 
 Implemented in extension/vite.config.js: popup, standalone blocked-page, background and content-script entries with stable background.js/content-main.js names. Public manifest/loader/assets are copied into dist. No extension build plugin is used. VITE_API_URL is embedded at build time; ignored .env.production selects Render for production builds.
 
-Build modes: `npm run build:challenge-dev` emits and verifies the redesigned worker in `dist-dev`; `npm run build:private-preview` verifies the previous worker in `dist-preview` without developer controls. `npm run build` keeps legacy production arithmetic in `dist` and scans for developer-control leakage. Generated build directories are ignored by Git.
+Build modes: `npm run build:challenge-dev` emits and verifies the redesigned worker in `dist-dev`; `npm run build:private-preview` verifies all 16 redesigned type/level combinations in `dist-preview` without developer controls. `npm run build` keeps legacy production arithmetic in `dist` and scans for developer-control leakage. Generated build directories are ignored by Git.
 
 **Phase:** 1
 
@@ -438,7 +438,7 @@ Supabase will manage the database and authentication services. It is not a repla
 
 The following technical decisions should be finalized when their implementation phase approaches:
 
-- Tune difficulty from the repeated-use pilot before private-preview promotion.
+- Tune difficulty using preview feedback and the repeated-use pilot before production activation.
 - Verify the polished development views at narrow widths and with keyboard-only input; no stack or dependency change was needed for the visual pass.
 - Long-term production hosting/readiness beyond current Render Free staging. Email/password auth with worker-owned session storage is already implemented.
 - Final payment provider selection (Razorpay vs Stripe) and pricing tiers.

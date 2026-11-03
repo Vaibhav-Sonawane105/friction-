@@ -1,6 +1,6 @@
 
 /**
- * Protection shield icon from public/assets/logos/protection.svg
+ * Protection shield icon rendered inline
  */
 export function ProtectionIcon({ className = 'w-9 h-9', ...props }) {
   return (
@@ -24,7 +24,7 @@ export function ProtectionIcon({ className = 'w-9 h-9', ...props }) {
 }
 
 /**
- * Arrow Exit icon from public/assets/logos/arrow-exit.svg
+ * Arrow Exit icon rendered inline
  */
 export function ArrowExitIcon({ className = 'w-6 h-6', ...props }) {
   return (
@@ -44,7 +44,7 @@ export function ArrowExitIcon({ className = 'w-6 h-6', ...props }) {
 }
 
 /**
- * Done checkmark icon from public/assets/logos/done.svg
+ * Done checkmark icon rendered inline
  */
 export function DoneIcon({ className = 'w-5 h-5', ...props }) {
   return (
@@ -64,7 +64,7 @@ export function DoneIcon({ className = 'w-5 h-5', ...props }) {
 }
 
 /**
- * AI Sparkles icon from public/assets/logos/ai-sparkles.svg
+ * AI Sparkles icon rendered inline
  */
 export function SparklesIcon({ className = 'w-4 h-4', ...props }) {
   return (

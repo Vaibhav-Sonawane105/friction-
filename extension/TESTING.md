@@ -1,3 +1,5 @@
+> Private preview update — 3 November 2026: `build:private-preview` now uses the redesigned maths, memory, route and ordering modules at every level. Its emitted-worker verifier exercises all 16 combinations, normal rotation, restoration, exactly-once completion and rejected developer operations. Earlier preview and level-specific instructions below describe the previous build. Production remains on legacy arithmetic. Use `docs/private-preview/START_HERE.txt` for current tester instructions. The existing `privatePreview.test.js` tests retain the earlier registry as compatibility fixtures; the emitted-worker verifier checks the actual distributed preview.
+
 # Unlock lifecycle verification
 
 Run `npm test`, `npm run lint`, and `npm run build` from `extension/`.

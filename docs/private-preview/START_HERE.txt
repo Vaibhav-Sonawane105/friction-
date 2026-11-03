@@ -14,12 +14,13 @@ If you already use another copy of Progressive Friction, disable that copy while
 USE IT NORMALLY
 Choose websites yourself. No account is needed for blocking or challenges. Solve a challenge to unlock that tab. Refreshing or browsing within the same domain keeps access; leaving that domain or closing the tab ends it. Other tabs unlock independently.
 
-Each website has a separate successful-unlock count:
-- Counts 0â€“20: arithmetic.
-- Counts 21â€“30: a linear equation or numeric derivative question.
-- Counts 31â€“50: ONE random game per attempt. Tracking has three rounds, attention has three stages, memory has one six-pair board. You do not play all three games to unlock.
-- Counts 51 and above: "Level 4 unavailable". The waiting challenge has not been built yet. If you reach this point, report it and disable/remove that website restriction to continue browsing; this preview does not provide further challenges for it.
-Progress grows through successful unlocks. There are no level jumps, count edits or developer controls in this build. It is fine if you do not reach every level during testing.
+Each website has a separate successful-unlock count. Maths, memory, route planning and logical ordering rotate at EVERY level; one completed puzzle unlocks the current tab.
+- Counts 0–20: Level 1; memory has 3 pairs.
+- Counts 21–30: Level 2; memory has 4 pairs.
+- Counts 31–50: Level 3; memory has 6 pairs.
+- Counts 51 and above: Level 4; memory has 8 pairs. Challenges continue at this level.
+Maths requires a short set of answers. Route planning requires visiting checkpoints and reaching the exit without revisiting cells. Logical ordering requires arranging objects to satisfy the clues. Wrong answers preserve completed work; refreshing restores the same puzzle.
+Progress grows through successful unlocks. There are no level jumps, count edits or developer controls in this build. For daily-use feedback, it is fine if you do not reach every level. This package is not the controlled all-level pilot: ask the sender to arrange a separate supervised session for higher-level testing rather than repeatedly unlocking just to reach a level.
 
 KNOWN LIMITS
 The visuals are still being refined. This extension places an in-page overlay over selected websites; it does not prevent those websites' network requests. It is intended to add friction, not prevent all bypasses. It has no fixed two-minute challenge requirement.

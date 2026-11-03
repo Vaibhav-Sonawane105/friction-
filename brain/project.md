@@ -10,11 +10,11 @@ The product combines:
 - Optional analytics and future premium features
 The current extension name is Progressive Friction. Final branding remains an owner decision; do not rename it without approval.
 
-Implementation status (2026-11-02)
+Implementation status (2026-11-03)
 - Production build (`dist`): in-page blocking overlay, per-tab unlocks, local counts and ten legacy arithmetic tiers; optional accounts and automatic domain/enabled-list sync.
-- Development (`dist-dev`) runs four rotating challenge types at all four levels. The friends’ preview (`dist-preview`) retains the earlier Levels 1–3 and reports Level 4 unavailable; production (`dist`) retains legacy arithmetic. See M024 for technical verification; human difficulty targets are not yet validated.
+- Development (`dist-dev`) and the friends’ preview (`dist-preview`) run maths, memory, route planning and logical ordering at all four levels. Only development includes testing controls; preview uses normal progression. Production (`dist`) retains legacy arithmetic. See M024 for technical verification; human difficulty targets are not yet validated.
 - Hosted groundwork: Express API on Render Free at https://progressive-friction-api.onrender.com; Supabase supplies authentication and PostgreSQL. Owner confirmed hosted sync and roughly one-minute cold-start recovery.
-- The owner liked the development UI pass for maths, route planning and logical ordering. Memory retains its existing card layout. Check the polished screens at narrow widths and with keyboard-only input, then run the repeated-use difficulty pilot before deciding whether to promote the redesign to the friends’ preview.
+- The owner liked the development UI pass for maths, route planning and logical ordering. Memory retains its existing card layout. Check the polished screens at narrow widths and with keyboard-only input, then run the repeated-use difficulty pilot to tune the redesigned preview before production activation.
 - Hosting is not product completion. Follow phases.md; store release is deferred pending intended features and release acceptance.
 Problem and intended outcome
 Traditional website blockers can be easy to ignore or disable. This product adds deliberate friction between an impulse and access. The intended outcome is to help users pause and reconsider unwanted browsing—not to claim guaranteed habit change or provide medical treatment.
@@ -73,7 +73,7 @@ Use the site’s successful count **before** the new attempt. Counts do not deca
 - **Logical ordering:** submit a full arrangement against visible clues. Incorrect submissions preserve the arrangement and identify violated clues.
 - **Timing:** these are pilot targets, never mandatory waits. Completion unlocks the current tab once. Level 4 continues indefinitely with active challenges; the old timer proposal is superseded.
 
-See the [approved design](../docs/superpowers/specs/2026-11-01-challenge-redesign-design.md) and [implementation checkpoint](../docs/superpowers/plans/2026-11-02-challenge-redesign.md). Earlier level-specific module rules remain historical context for the private preview.
+See the [approved design](../docs/superpowers/specs/2026-11-01-challenge-redesign-design.md) and [implementation checkpoint](../docs/superpowers/plans/2026-11-02-challenge-redesign.md). Earlier level-specific module rules remain historical context; development and preview now use the redesign.
 
 Motivational video
 The owner wants an anime motivational speech when the user tries to disable the extension, with the title:

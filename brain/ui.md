@@ -6,7 +6,7 @@ This file defines the visual and interaction direction for the Chrome extension 
 
 The product should feel bold, high-contrast, playful, interactive, and unapologetically striking. It avoids generic minimalist corporate design in favor of tactile neo-brutalism elements—strong borders, solid black drop shadows, and vibrant badge accents—while keeping core settings and blocking mechanics completely clear and functional.
 
-Development (`dist-dev`) runs all four challenge types at every level. Maths, route planning and logical ordering use the compact challenge header, yellow level badge and turquoise Leave action. The memory card layout was retained. The owner liked this visual direction (M025); the private preview and production were not promoted.
+Development (`dist-dev`) and preview (`dist-preview`) run all four challenge types at every level. Maths, route planning and logical ordering use the compact challenge header, yellow level badge and turquoise Leave action. The memory card layout was retained. The owner liked this visual direction (M025); the redesigned views now ship in preview (M026). Production retains legacy arithmetic.
 
 ## Visual Direction & Style System
 
@@ -60,7 +60,7 @@ Development (`dist-dev`) runs all four challenge types at every level. Maths, ro
 - Display free-plan limits upfront before users reach them.
 - Clarify local vs. cloud account storage.
 
-### Modular Challenge Experience (development Levels 1–4)
+### Modular Challenge Experience (development and preview Levels 1–4)
 
 The shared shell shows level, instructions, loading, feedback, saving, Retry and Leave. Refresh restores saved work; a failed save must never dismiss the blocker. Preserve visible focus, labelled controls and identifiers distinguishable without colour alone.
 
@@ -99,6 +99,6 @@ Use a labelled whole-number field or explicit operator controls as appropriate. 
 
 ## Component Consistency
 
-The temporary development panel appears below the account section in the `dist-dev` popup. It supports website selection, exact count edits, level jumps to 0/21/31/51, implemented-module selection and selected-domain reset. Unimplemented levels must be clearly unavailable. The panel and handlers are absent from production; remove them after all levels have passed owner testing. It is a local build tool, not personally authenticated access.
+The temporary development panel appears below the account section in the `dist-dev` popup. It supports website selection, exact count edits, level jumps to 0/21/31/51, implemented-module selection and selected-domain reset. Unimplemented levels must be clearly unavailable. The panel and handlers are absent from preview and production; remove them after all levels have passed owner testing. It is a local build tool, not personally authenticated access.
 
 Before adding a new component, reuse the active popup components or [`BlockedChallengeCard`](../extension/src/components/blocked/BlockedChallengeCard.jsx), and use the shared tokens in [`extension/src/index.css`](../extension/src/index.css). Select borders, shadows, and radii by component role using the baseline above. Maintain consistent spacing scales, font segregation (JejuGothic vs. Istok Web), and accessibility focus states. Future dashboard and challenge-module designs should extend this visual language; they do not require an automatic restyle of the current interface.

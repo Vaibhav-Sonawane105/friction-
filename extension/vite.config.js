@@ -8,14 +8,14 @@ export default defineConfig(({ mode }) => ({
   define: mode === 'test' ? {} : {
     __PF_CHALLENGE_DEV__: ['challenge-dev', 'private-preview'].includes(mode),
     __PF_DEV_CONTROLS__: mode === 'challenge-dev',
-    __PF_REDESIGN__: mode === 'challenge-dev',
+    __PF_REDESIGN__: ['challenge-dev', 'private-preview'].includes(mode),
     ...(mode === 'private-preview' ? {
       'import.meta.env.VITE_API_URL': JSON.stringify(loadEnv('production', import.meta.dirname, 'VITE_').VITE_API_URL || 'https://progressive-friction-api.onrender.com'),
     } : {}),
   },
   resolve: {
     alias: {
-      ...(mode === 'challenge-dev' ? Object.fromEntries([
+      ...(['challenge-dev', 'private-preview'].includes(mode) ? Object.fromEntries([
         ['../challenges/workerRegistry','redesignWorker'],
         ['../challenges/catalog','redesignCatalog'],
         ['../../challenges/registry','redesignRegistry'],

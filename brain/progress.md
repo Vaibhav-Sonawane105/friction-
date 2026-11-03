@@ -8,10 +8,10 @@
 
 ## 1. Quick State Snapshot
 
-* **Current builds:** Development (`dist-dev`) runs four rotating challenge types at all four levels. The friends’ preview (`dist-preview`) retains the earlier Levels 1–3 and reports Level 4 unavailable; production (`dist`) retains legacy arithmetic.
-* **Verification:** Recorded development verification (M024): 298 extension tests across 34 files, including 16,000 seeded puzzle samples. Lint and all three build checks passed. The built development worker verified all 16 type/level combinations. No tests were rerun during this documentation update.
+* **Current builds:** Development (`dist-dev`) and the friends’ preview (`dist-preview`) run maths, memory, route planning and logical ordering at all four levels. Only development includes testing controls; preview uses normal progression. Production (`dist`) retains legacy arithmetic.
+* **Verification:** Fresh M026 checks: 298 extension tests across 34 files, lint, and all three builds passed. Preview and development emitted-worker checks verified all 16 type/level combinations, restoration and exactly-once completion. Production exclusion and preview developer-control checks passed. No fresh manual Chrome or backend test run is claimed.
 * **Active Working Directory:** `extension/`
-* **Next:** Check the polished screens at narrow widths and with keyboard-only input, then run the repeated-use difficulty pilot before deciding whether to promote the redesign to the friends’ preview. The owner handles staging, commits and pushes.
+* **Next:** Check the polished screens at narrow widths and with keyboard-only input, then run the repeated-use difficulty pilot to tune the redesigned preview before production activation. The owner handles staging, commits and pushes.
 
 ---
 
@@ -32,11 +32,11 @@
   * Typography: Jeju Gothic for headings, equations, and primary buttons; Istok Web for body, labels, inputs, and badges.
 * **Extension Standard:** Chrome Manifest V3 (`storage`, `tabs`, `webNavigation`, `alarms`, `content_scripts`, `web_accessible_resources`), minimum Chrome 106.
 * **Tech Stack:**
-  * Frontend: React 19, Vite, Tailwind CSS v4 (`@tailwindcss/vite`), custom SVG icons from `public/assets/logos/`.
+  * Frontend: React 19, Vite, Tailwind CSS v4 (`@tailwindcss/vite`), inline SVG icons and Lucide React; unused standalone logo SVGs were removed from the working tree.
   * **Testing:** See M024 for development, preview and production evidence. Backend’s previous 80-test checkpoint is unchanged.
   * Linting: ESLint (0 errors, 0 warnings).
   * Storage: Local-first (`chrome.storage.local` with `localStorage` dev fallback). Background-worker writes are serialized; progression and unlock sessions are saved together. A browser-lifetime identifier in `chrome.storage.session` expires temporary unlocks after browser restart/extension reload while preserving them through worker restarts. Chrome 106+ is required.
-* **Challenge architecture:** Per-site rotation and count-based levels feed independent, versioned models. The static worker registry validates actions; lazy browser views present public state. The shared coordinator saves access and progression once. Older registries remain for the separate preview.
+* **Challenge architecture:** Per-site rotation and count-based levels feed independent, versioned models. The static worker registry validates actions; lazy browser views present public state. The shared coordinator saves access and progression once. Development and preview share redesigned registries; preview excludes developer controls.
 * **Account & Sync Baseline:** Email/password authentication through Express/Supabase, with token refresh. Account tokens are held in trusted session storage, never returned to popup callers, and expire from device storage when Chrome closes or the extension reloads. Sign-in and device sync consent must then be renewed. Only domain/enabled settings sync; local counts, difficulty, tab sessions, and browsing history do not upload. Automatic sync uses a separate network queue, minute polling alarms, revision-checked cloud writes, three-way merging, and explicit conflict choices. Development defaults to localhost:5000; the ignored `extension/.env.production` selects `https://progressive-friction-api.onrender.com` for production builds. Render wake-up uses safe health reads before credentials/writes, with a bounded wait and a separate network queue.
 
 ---
@@ -49,7 +49,7 @@
 
 ### Milestone Log
 
-Graph continuation: `[M016: Preparation Fixes & Approved Level Rules] → [M017: Modular Foundation, Development Controls & MV3 Worker Fix] → [M018: Documentation Synchronization & Owner Workflow] → [M019: Level 2 Equations & Owner Testing] → [M020: Level 3 Patterns, Revised Direction & Owner Testing] → [M021: Memory, Six-Pair Boards & Puzzle Visual Acceptance] → [M022: Tracking Replacement & Owner Acceptance] → [M023: Single-Game Level 3 Clarification & Brain Synchronization] → [M024: Private Preview Feedback & Development Challenge Redesign] → [M025: Development Challenge UI Polish]`.
+Graph continuation: `[M016: Preparation Fixes & Approved Level Rules] → [M017: Modular Foundation, Development Controls & MV3 Worker Fix] → [M018: Documentation Synchronization & Owner Workflow] → [M019: Level 2 Equations & Owner Testing] → [M020: Level 3 Patterns, Revised Direction & Owner Testing] → [M021: Memory, Six-Pair Boards & Puzzle Visual Acceptance] → [M022: Tracking Replacement & Owner Acceptance] → [M023: Single-Game Level 3 Clarification & Brain Synchronization] → [M024: Private Preview Feedback & Development Challenge Redesign] → [M025: Development Challenge UI Polish] → [M026: Redesigned Preview & Public Repository Documentation]`.
 
 Historical milestones record the code and decisions at their dates. M023 explicitly supersedes every combined-Level-3-sequence instruction in M020–M022; those entries are retained as history, not current work. M015 and the current project.md architecture supersede arithmetic-only implementation assumptions; historical descriptions are not the design to follow for new challenge work.
 
@@ -430,6 +430,16 @@ Historical milestones record the code and decisions at their dates. M023 explici
 * **Evidence:** The development build and lint passed. The built worker verified all 16 challenge/level combinations; 13 targeted tests passed for the route and ordering pass. The number-entry and operator-selection maths layouts both rendered. The earlier 298-test run and Chrome checks belong to M024, not this UI pass.
 * **Owner feedback and remaining work:** The owner liked maths and memory, then liked the route and ordering updates. This is visual feedback, not a completed accessibility assessment or pilot. The private preview and production remain on their previous flows.
 
+#### `[M026]` Redesigned preview and public repository documentation — 2026-11-03
+
+* **Authorization:** The owner reported making the repository public for resume/recruiter access, requested a clearer README, then explicitly requested reviewing the brain files and updating progress.md before committing. This authorizes the current documentation synchronization only; the owner handles staging, commits and pushes.
+* **Current working-tree delivery:** Preview build configuration now selects the redesigned catalog, browser registry and static worker models, covering maths, memory, route planning and logical ordering at all four levels. Normal local progression remains; developer UI is excluded and developer mutation messages are rejected. Default production retains legacy arithmetic. This records existing working-tree changes, not new implementation performed during this documentation task.
+* **Preview handoff and assets:** Installation/feedback guides and testing notes describe the redesigned preview. The preview verifier restores and solves all 16 type/level combinations and checks duplicate completion. Existing working-tree cleanup removes unused standalone logo SVGs and a source image; common icon comments now describe inline rendering.
+* **Public README:** Replaced dated implementation notes with a project introduction, features, progression table, source-build and Chrome installation steps, build comparison, privacy/permissions, architecture, optional backend setup and verification commands. Local links, script names, encoding and code fences were checked. GitHub About text and a README commit-message suggestion were supplied in chat; no GitHub settings were changed by the assistant.
+* **Fresh verification:** 298/298 extension tests across 34 files passed; lint passed; production, challenge-development and private-preview builds passed. Preview and development emitted-worker verification completed all 16 combinations with restoration and exactly-once completion. Preview checks confirmed rotation and absent/rejected developer controls; production exclusion passed. Backend code was unchanged and its suite was not rerun. These checks do not establish fresh manual Chrome acceptance, accessibility acceptance, human difficulty calibration or store readiness.
+* **Documentation synchronized:** Current summaries in all six brain files now reflect preview promotion, build separation and remaining work. Historical M024–M025 statements describe their original dates. README is the public entry point; some deeper integration notes still describe older milestones and should be reconciled before relying on them for a release.
+* **Next:** Collect preview feedback, verify narrow layouts and keyboard accessibility, and run the repeated-use pilot to tune difficulty before production activation. Subscriptions, dashboard/analytics and signature features remain future phases; store release remains deferred. No staging, commit or push was performed.
+
 ## 4. Current Work in Progress
 
 ### Phase 1 Checklist (Completed & Verified)
@@ -473,7 +483,8 @@ Historical milestones record the code and decisions at their dates. M023 explici
 - [x] Deliver and verify the active four-level redesign in development (M024).
 - [x] Complete the first development UI polish pass for maths, route and ordering; retain memory cards (M025).
 - [ ] Check narrow-screen layout and keyboard accessibility across the polished views.
-- [ ] Collect repeated-use pilot results, tune difficulty, and obtain owner acceptance before updating the private preview.
+- [x] Promote all four redesigned challenge types and levels to preview without developer controls (M026).
+- [ ] Collect repeated-use pilot results, tune difficulty, and obtain final acceptance before production activation.
 - [ ] Activate the complete modular production flow and remove temporary controls only after all levels and UI pass acceptance.
 
 ### Completed Groundwork & Remaining Release Checks
@@ -493,4 +504,4 @@ Historical milestones record the code and decisions at their dates. M023 explici
 - [ ] Prepare the Chrome Web Store release only after intended product features, remaining acceptance checks and owner release approval; not the next active task.
 - [x] Audit and synchronize stale brain/project Markdown with owner approval (M014); keep future changes permission-gated.
 
-Historical Phase 1/2 milestones record earlier work. See the snapshot, M024–M025 and the outstanding release checks for current status.
+Historical Phase 1/2 milestones record earlier work. See the snapshot, M024–M026 and the outstanding release checks for current status.

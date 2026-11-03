@@ -51,33 +51,104 @@ for (const operation of ['SET_COUNT', 'PREPARE_CHALLENGE', 'RESET_CHALLENGE', 'I
   const result = await send({ type: 'PF_DEV_CHALLENGE_CONTROL', operation, domain: 'example.com', count: 31, moduleId: 'tracking' }, popup);
   if (result.success) throw new Error(`Preview accepted developer operation ${operation}.`);
 }
-// These fixtures belong only to this external verifier, never to the distributed extension.
-for (const [count, expected] of [[0, 'arithmetic'], [20, 'arithmetic'], [21, 'equations'], [30, 'equations'], [31, null], [50, null], [51, 'unavailable']]) {
-  local.pf_blocked_domains[0].successfulUnlockCount = count;
-  local.pf_unlock_sessions = {};
-  if (local.pf_challenge_state) { local.pf_challenge_state.attempts = {}; local.pf_challenge_state.receipts = {}; }
-  const question = await send({ type: 'GET_CHALLENGE' });
-  if (expected === 'unavailable') {
-    if (question.success || !/Level 4.*unavailable/.test(question.error)) throw new Error('Preview changed the approved Level 4 limit.');
-    continue;
-  }
-  if (!question.success || (expected ? question.moduleId !== expected : !['tracking', 'memory', 'attention'].includes(question.moduleId))) {
-    throw new Error(`Preview selected the wrong module at count ${count}.`);
-  }
-  const restored = await send({ type: 'GET_CHALLENGE' });
-  if (restored.attemptId !== question.attemptId || JSON.stringify(restored.state) !== JSON.stringify(question.state)) throw new Error('Preview rerolled a saved challenge.');
-  if (question.level <= 2) {
-    const saved = local.pf_challenge_state.attempts[question.attemptId];
-    const action = { type: 'CHALLENGE_ACTION', attemptId: question.attemptId, revision: question.revision,
-      action: { type: 'submit', answer: String(saved.state.answer) } };
-    const completed = await send(action), duplicate = await send(action);
-    if (!completed.completed || !duplicate.completed || local.pf_blocked_domains[0].successfulUnlockCount !== count + 1) throw new Error('Preview completion did not count exactly once.');
+for (const count of [0, 21, 31, 51]) {
+  const selected = new Set();
+  for (let sample = 0; sample < 4; sample++) {
+    // Seed fixtures only in this external verifier; the distributed build has no count editor.
+    local.pf_blocked_domains[0].successfulUnlockCount = count;
+    local.pf_unlock_sessions = {};
+    if (local.pf_challenge_state) {
+      local.pf_challenge_state.attempts = {};
+      local.pf_challenge_state.receipts = {};
+    }
+    let a = await send({
+      type: 'GET_CHALLENGE'
+    });
+    if (!a.success || a.level !== [0, 21, 31, 51].indexOf(count) + 1) throw Error(JSON.stringify(a));
+    const id = a.moduleId;
+    if (!['maths', 'memory', 'route', 'ordering'].includes(id) || selected.has(id)) throw Error('Invalid rotation');
+    selected.add(id);
+    const saved = local.pf_challenge_state.attempts[a.attemptId].state;
+    const actions = [];
+    if (id === 'maths') for (const q of saved.questions) actions.push({
+      type: 'submit',
+      answer: String(q.answers?.[0] ?? q.answer)
+    });
+    if (id === 'memory') {
+      for (const shape of new Set(saved.cards)) saved.cards.forEach((c, i) => {
+        if (c === shape) actions.push({
+          type: 'flip',
+          index: i
+        });
+      });
+    }
+    if (id === 'route') {
+      const {
+        solveRoute
+      } = await import('../src/challenges/modules/route/solver.js');
+      const path = solveRoute(saved.board);
+      actions.push(...path.slice(1).map(cell => ({
+        type: 'extend',
+        cell
+      })), {
+        type: 'submit'
+      });
+    }
+    if (id === 'ordering') {
+      const {
+        brokenClueIds
+      } = await import('../src/challenges/modules/ordering/clues.js');
+      function solve(prefix, remaining) {
+        if (!remaining.length) return brokenClueIds(prefix, saved.board.clues).length ? null : prefix;
+        for (const item of remaining) {
+          const win = solve([...prefix, item], remaining.filter(x => x !== item));
+          if (win) return win;
+        }
+      }
+      const row = [...saved.row],
+        win = solve([], row);
+      for (let to = 0; to < row.length; to++) {
+        const from = row.indexOf(win[to]);
+        if (from !== to) {
+          actions.push({
+            type: 'reorder',
+            from,
+            to
+          });
+          row.splice(to, 0, row.splice(from, 1)[0]);
+        }
+      }
+      actions.push({
+        type: 'submit'
+      });
+    }
+    for (const [i, action] of actions.entries()) {
+      const req = {
+        type: 'CHALLENGE_ACTION',
+        attemptId: a.attemptId,
+        revision: a.revision,
+        action
+      };
+      a = await send(req);
+      if (!a.success) throw Error(JSON.stringify(a));
+      if (i === 0) {
+        const restored = await send({
+          type: 'GET_CHALLENGE'
+        });
+        if (restored.attemptId !== a.attemptId || JSON.stringify(restored.state) !== JSON.stringify(a.state)) throw Error('Restore failed');
+      }
+      if (i === actions.length - 1) {
+        const dup = await send(req);
+        if (!dup.completed || !a.completed) throw Error('Completion failed');
+      } else if (a.completed) throw Error('Unlocked early');
+    }
+    if (local.pf_blocked_domains[0].successfulUnlockCount !== count + 1) throw Error('Count mismatch');
   }
 }
 const manifestPath = resolve(root, 'manifest.json');
 const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
 manifest.name = 'Progressive Friction — Private Preview';
 manifest.version_name = `${manifest.version} private preview`;
-manifest.description = 'Private feedback build with arithmetic, equations and mini-games. Level 4 is not yet available.';
+manifest.description = 'Private feedback build with maths, memory, route planning and logical ordering at all four levels.';
 await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
-console.log('Private preview verified: Levels 1–3 restore, counts advance once, developer controls are absent/rejected, and Level 4 stays unavailable.');
+console.log('Private preview verified: all 16 type/level combinations restore and complete exactly once; rotation works and developer controls are absent/rejected.');

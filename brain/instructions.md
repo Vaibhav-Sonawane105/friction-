@@ -27,7 +27,7 @@ These instructions apply whenever an AI assistant works on this project. Read th
 
 ## Required challenge architecture
 
-Use the [approved redesign rules](project.md#challenge-progression) on the existing modular foundation. Keep policy, registries, independent models, versioned local state and shared exactly-once completion separate. Development (`dist-dev`) runs four rotating challenge types at all four levels. The friends’ preview (`dist-preview`) retains the earlier Levels 1–3 and reports Level 4 unavailable; production (`dist`) retains legacy arithmetic. Keep the builds distinct; no waiting-only level.
+Use the [approved redesign rules](project.md#challenge-progression) on the existing modular foundation. Keep policy, registries, independent models, versioned local state and shared exactly-once completion separate. Development (`dist-dev`) and the friends’ preview (`dist-preview`) run maths, memory, route planning and logical ordering at all four levels. Only development includes testing controls; the preview uses normal progression. Production (`dist`) retains legacy arithmetic. Keep the builds distinct; no waiting-only level.
 
 MV3 workers must statically import their runtime and pure models; they cannot call dynamic imports or DOM-dependent preload helpers. Only the selected model executes. Browser views remain lazy through the separate browser registry, sharing metadata with the worker registry. Keep the emitted-worker sandbox check in `npm run build:challenge-dev` and production exclusion check in `npm run build`.
 

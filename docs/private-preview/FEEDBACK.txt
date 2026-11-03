@@ -6,7 +6,7 @@ Send this back to the person who shared the extension. Nothing here is submitted
 
 2. Did restricted websites reliably show a challenge? Did access stay unlocked on refresh and end after leaving the website?
 
-3. What level/game did you naturally reach? No need to reach every level.
+3. Which levels and puzzle types did you try (maths, memory, route planning, logical ordering)? No need to reach every level. Did any become automatic after repeated use?
 
 4. Did the challenge make you reconsider opening the website, or did it just feel annoying? Describe one example if you can.
 
